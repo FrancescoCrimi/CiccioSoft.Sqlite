@@ -16,6 +16,8 @@ public class SqliteDataReader : DbDataReader
     private readonly System.Data.CommandBehavior _behavior;
     private readonly Sqlite3Stmt _stmt;
     private bool _hasRow;
+    private bool _prefetched;
+    private bool _readStarted;
     private bool _closed;
 
     internal SqliteDataReader(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
@@ -39,7 +41,15 @@ public class SqliteDataReader : DbDataReader
     public override object this[string name] => GetValue(GetOrdinal(name));
     public override int Depth => 0;
     public override int FieldCount => _closed ? 0 : _stmt.ColumnCount();
-    public override bool HasRows => !_closed;
+    public override bool HasRows
+    {
+        get
+        {
+            EnsureOpen();
+            EnsurePrefetched();
+            return _hasRow;
+        }
+    }
     public override bool IsClosed => _closed;
     public override int RecordsAffected => -1;
 
@@ -108,7 +118,7 @@ public class SqliteDataReader : DbDataReader
             if (string.Equals(GetName(i), name, StringComparison.OrdinalIgnoreCase)) return i;
         }
 
-        return -1;
+        throw new IndexOutOfRangeException($"Column '{name}' not found.");
     }
 
     public override string GetString(int ordinal) => _stmt.GetString(ordinal) ?? string.Empty;
@@ -139,7 +149,16 @@ public class SqliteDataReader : DbDataReader
     public override bool Read()
     {
         EnsureOpen();
-        _hasRow = _stmt.Step();
+        _readStarted = true;
+        if (_prefetched)
+        {
+            _prefetched = false;
+        }
+        else
+        {
+            _hasRow = _stmt.Step();
+        }
+
         if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
         {
             Close();
@@ -151,7 +170,11 @@ public class SqliteDataReader : DbDataReader
     public override Task<bool> ReadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(Read());
+        return Task.Run(() =>
+        {
+            using CancellationTokenRegistration reg = cancellationToken.Register(() => _session.Native.Interrupt());
+            return Read();
+        }, cancellationToken);
     }
 
     public override void Close()
@@ -184,5 +207,14 @@ public class SqliteDataReader : DbDataReader
     private void EnsureOpen()
     {
         if (_closed) throw new InvalidOperationException("Reader is closed.");
+    }
+
+    private void EnsurePrefetched()
+    {
+        if (_prefetched || _readStarted)
+            return;
+
+        _hasRow = _stmt.Step();
+        _prefetched = true;
     }
 }
