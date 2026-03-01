@@ -10,6 +10,7 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnection : DbConnection
 {
+    private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
     private ConnectionState _state = ConnectionState.Closed;
     private SqliteSession? _session;
@@ -27,9 +28,12 @@ public class SqliteConnection : DbConnection
         get => _connectionString;
         set
         {
-            if (_state != ConnectionState.Closed) throw new InvalidOperationException("Connection must be closed.");
-            _connectionString = value ?? string.Empty;
-            _settings = new SqliteConnectionStringBuilder { ConnectionString = _connectionString };
+            lock (_syncRoot)
+            {
+                if (_state != ConnectionState.Closed) throw new InvalidOperationException("Connection must be closed.");
+                _connectionString = value ?? string.Empty;
+                _settings = new SqliteConnectionStringBuilder { ConnectionString = _connectionString };
+            }
         }
     }
 
@@ -39,7 +43,16 @@ public class SqliteConnection : DbConnection
 
     public override string ServerVersion => "3";
 
-    public override ConnectionState State => _state;
+    public override ConnectionState State
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _state;
+            }
+        }
+    }
 
     public override void ChangeDatabase(string databaseName)
     {
@@ -48,50 +61,78 @@ public class SqliteConnection : DbConnection
 
     public override void Close()
     {
-        if (_state == ConnectionState.Closed)
-            return;
-
-        SqliteSession? session = Interlocked.Exchange(ref _session, null);
-        if (session is not null)
+        SqliteSession? session;
+        bool pooling;
+        string connectionString;
+        lock (_syncRoot)
         {
-            if (_settings.Pooling)
-                SqliteConnectionPool.Return(_connectionString, session);
-            else
-                session.Dispose();
+            if (_state == ConnectionState.Closed)
+                return;
+
+            session = Interlocked.Exchange(ref _session, null);
+            pooling = _settings.Pooling;
+            connectionString = _connectionString;
+            _state = ConnectionState.Closed;
         }
 
-        _state = ConnectionState.Closed;
+        if (session is null)
+            return;
+
+        // Ensure no command/reader is still using this session before recycling/disposing it.
+        session.Gate.Wait();
+        try
+        {
+            if (pooling)
+            {
+                session.Gate.Release();
+                SqliteConnectionPool.Return(connectionString, session);
+                return;
+            }
+        }
+        finally
+        {
+            if (!pooling)
+            {
+                session.Dispose();
+            }
+        }
     }
 
     public override void Open()
     {
-        if (_state != ConnectionState.Closed)
-            return;
-
-        if (string.IsNullOrWhiteSpace(_settings.DataSource))
-            throw new InvalidOperationException("Data Source is required.");
-
-        try
+        lock (_syncRoot)
         {
-            SqliteSession session = _settings.Pooling
-                ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize)
-                : new SqliteSession(Sqlite3.Open(_settings.DataSource));
+            if (_state != ConnectionState.Closed)
+                return;
 
-            session.Native.SetBusyTimeout(_settings.BusyTimeout);
-            _session = session;
-            _state = ConnectionState.Open;
-        }
-        catch (SqliteInteropException ex)
-        {
-            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            if (string.IsNullOrWhiteSpace(_settings.DataSource))
+                throw new InvalidOperationException("Data Source is required.");
+
+            try
+            {
+                SqliteSession session = _settings.Pooling
+                    ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize)
+                    : new SqliteSession(Sqlite3.Open(_settings.DataSource));
+
+                session.Native.SetBusyTimeout(_settings.BusyTimeout);
+                if (!string.IsNullOrWhiteSpace(_settings.JournalMode))
+                {
+                    session.Native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
+                }
+                _session = session;
+                _state = ConnectionState.Open;
+            }
+            catch (SqliteInteropException ex)
+            {
+                throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            }
         }
     }
 
-    public override Task OpenAsync(CancellationToken cancellationToken)
+    public override async Task OpenAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        Open();
-        return Task.CompletedTask;
+        await Task.Run(Open, cancellationToken).ConfigureAwait(false);
     }
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
@@ -114,8 +155,11 @@ public class SqliteConnection : DbConnection
 
     internal SqliteSession GetSession()
     {
-        EnsureOpen();
-        return _session!;
+        lock (_syncRoot)
+        {
+            EnsureOpen();
+            return _session!;
+        }
     }
 
     internal void EnsureOpen()

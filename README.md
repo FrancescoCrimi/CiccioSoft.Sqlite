@@ -38,6 +38,12 @@ This repository is organized into two main layers:
 - 🛡️ **Type-Safe**: Idiomatic C# patterns for modern development
 - 🔮 **Future-Ready**: Potential integration with Entity Framework Core down the road
 
+## ⚠️ Concurrency & Async Notes
+
+- The provider serializes native SQLite access internally and is designed to be thread-safe by default for typical concurrent usage from async/sync ADO.NET APIs.
+- Async methods are non-blocking for the caller and support cancellation via token-driven native interrupt where applicable.
+- `Journal Mode` can be configured via connection string (for example `Journal Mode=WAL`) and is applied at connection open.
+
 ## 🚀 Quick Start
 
 ### Requirements

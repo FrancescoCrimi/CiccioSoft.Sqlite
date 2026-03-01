@@ -9,6 +9,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string PoolingKey = "Pooling";
     private const string MaxPoolSizeKey = "Max Pool Size";
     private const string BusyTimeoutKey = "Busy Timeout";
+    private const string JournalModeKey = "Journal Mode";
 
     public string DataSource
     {
@@ -32,5 +33,11 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     {
         get => TryGetValue(BusyTimeoutKey, out object? v) ? Convert.ToInt32(v) : 30000;
         set => this[BusyTimeoutKey] = Math.Max(0, value);
+    }
+
+    public string JournalMode
+    {
+        get => TryGetValue(JournalModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        set => this[JournalModeKey] = value ?? string.Empty;
     }
 }

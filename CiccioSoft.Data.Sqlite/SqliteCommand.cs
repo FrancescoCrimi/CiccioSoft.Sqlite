@@ -59,7 +59,10 @@ public class SqliteCommand : DbCommand
 
     public override void Cancel()
     {
-        _connection?.GetSession().Native.Interrupt();
+        if (_connection is null || _connection.State != ConnectionState.Open)
+            return;
+
+        _connection.GetSession().Native.Interrupt();
     }
 
     public override int ExecuteNonQuery()
@@ -147,7 +150,7 @@ public class SqliteCommand : DbCommand
     protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(ExecuteDbDataReader(behavior));
+        return Task.Run(() => ExecuteDbDataReader(behavior), cancellationToken);
     }
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
