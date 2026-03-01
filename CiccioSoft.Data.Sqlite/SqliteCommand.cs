@@ -150,7 +150,7 @@ public class SqliteCommand : DbCommand
     protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteDbDataReader(behavior), cancellationToken);
+        return Task.FromResult(ExecuteDbDataReader(behavior));
     }
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)

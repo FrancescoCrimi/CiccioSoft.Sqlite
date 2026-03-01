@@ -62,22 +62,40 @@ public class SqliteConnection : DbConnection
     public override void Close()
     {
         SqliteSession? session;
+        bool pooling;
+        string connectionString;
         lock (_syncRoot)
         {
             if (_state == ConnectionState.Closed)
                 return;
 
             session = Interlocked.Exchange(ref _session, null);
+            pooling = _settings.Pooling;
+            connectionString = _connectionString;
             _state = ConnectionState.Closed;
         }
 
         if (session is null)
             return;
 
-        if (_settings.Pooling)
-            SqliteConnectionPool.Return(_connectionString, session);
-        else
-            session.Dispose();
+        // Ensure no command/reader is still using this session before recycling/disposing it.
+        session.Gate.Wait();
+        try
+        {
+            if (pooling)
+            {
+                session.Gate.Release();
+                SqliteConnectionPool.Return(connectionString, session);
+                return;
+            }
+        }
+        finally
+        {
+            if (!pooling)
+            {
+                session.Dispose();
+            }
+        }
     }
 
     public override void Open()
@@ -107,10 +125,11 @@ public class SqliteConnection : DbConnection
         }
     }
 
-    public override async Task OpenAsync(CancellationToken cancellationToken)
+    public override Task OpenAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await Task.Run(Open, cancellationToken).ConfigureAwait(false);
+        Open();
+        return Task.CompletedTask;
     }
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
