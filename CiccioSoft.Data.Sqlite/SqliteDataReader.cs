@@ -170,7 +170,11 @@ public class SqliteDataReader : DbDataReader
     public override Task<bool> ReadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(Read());
+        return Task.Run(() =>
+        {
+            using CancellationTokenRegistration reg = cancellationToken.Register(() => _session.Native.Interrupt());
+            return Read();
+        }, cancellationToken);
     }
 
     public override void Close()

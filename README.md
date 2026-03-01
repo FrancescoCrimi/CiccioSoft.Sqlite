@@ -40,34 +40,9 @@ This repository is organized into two main layers:
 
 ## ⚠️ Concurrency & Async Notes
 
-- SQLite does not provide true async I/O APIs: ADO.NET async members in this project are cooperative wrappers around synchronous native calls.
-- A single SQLite connection should not be used concurrently for multiple active commands/readers.
-- For parallel work, prefer one connection per worker/thread/task (optionally with pooling enabled).
-- Enabling `WAL` mode (`Journal Mode=WAL` in connection string) improves read/write concurrency (many readers + one writer), but does **not** make one connection safe for concurrent use from multiple threads.
-
-### Recommended pattern for real parallel work
-
-If you need effective parallelism, open **one connection per task** (same connection string, pooling enabled) and use `WAL`.
-
-```csharp
-const string cs = "Data Source=app.db;Pooling=True;Journal Mode=WAL;";
-
-Task[] jobs = Enumerable.Range(0, 8)
-    .Select(_ => Task.Run(() =>
-    {
-        using var conn = new SqliteConnection(cs);
-        conn.Open();
-
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM Users";
-        _ = cmd.ExecuteScalar();
-    }))
-    .ToArray();
-
-await Task.WhenAll(jobs);
-```
-
-This gives scalable concurrency at provider level without sharing one `SqliteConnection` instance across threads.
+- The provider serializes native SQLite access internally and is designed to be thread-safe by default for typical concurrent usage from async/sync ADO.NET APIs.
+- Async methods are non-blocking for the caller and support cancellation via token-driven native interrupt where applicable.
+- `Journal Mode` can be configured via connection string (for example `Journal Mode=WAL`) and is applied at connection open.
 
 ## 🚀 Quick Start
 
