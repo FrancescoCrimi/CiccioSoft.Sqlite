@@ -43,6 +43,7 @@ This repository is organized into two main layers:
 - SQLite does not provide true async I/O APIs: ADO.NET async members in this project are cooperative wrappers around synchronous native calls.
 - A single SQLite connection should not be used concurrently for multiple active commands/readers.
 - For parallel work, prefer one connection per worker/thread/task (optionally with pooling enabled).
+- Enabling `WAL` mode (`Journal Mode=WAL` in connection string) improves read/write concurrency (many readers + one writer), but does **not** make one connection safe for concurrent use from multiple threads.
 
 ## 🚀 Quick Start
 

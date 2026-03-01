@@ -115,6 +115,10 @@ public class SqliteConnection : DbConnection
                     : new SqliteSession(Sqlite3.Open(_settings.DataSource));
 
                 session.Native.SetBusyTimeout(_settings.BusyTimeout);
+                if (!string.IsNullOrWhiteSpace(_settings.JournalMode))
+                {
+                    session.Native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
+                }
                 _session = session;
                 _state = ConnectionState.Open;
             }
