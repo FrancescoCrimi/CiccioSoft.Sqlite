@@ -5,7 +5,7 @@ using System.Text;
 using SQLitePCL; // NuGet: SQLitePCLRaw.bundle_green o simile
 using CiccioSoft.Sqlite.Interop;
 
-namespace CiccioSoft.Sqlite.Interop.Example;
+namespace CiccioSoft.Sqlite.Interop.Benchmark;
 
 public static class RawComparisonBenchmark2
 {

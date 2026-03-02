@@ -5,955 +5,955 @@ namespace CiccioSoft.Sqlite.Interop.Native
 {
     public static unsafe partial class sqlite3
     {
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_libversion();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_sourceid();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_libversion_number();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_compileoption_used([NativeTypeName("const char *")] byte* zOptName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_compileoption_get(int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_threadsafe();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_close([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_close_v2([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_exec([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* sql, [NativeTypeName("int (*)(void *, int, char **, char **)")] delegate* unmanaged[Cdecl]<void*, int, byte**, byte**, int> callback, void* param3, [NativeTypeName("char **")] byte** errmsg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_initialize();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_shutdown();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_os_init();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_os_end();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_config(int param0, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_config([NativeTypeName("sqlite3*")] nint param0, int op, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_extended_result_codes([NativeTypeName("sqlite3*")] nint param0, int onoff);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_last_insert_rowid([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_set_last_insert_rowid([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("sqlite3_int64")] long param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_changes([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_changes64([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_total_changes([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_total_changes64([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_interrupt([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_is_interrupted([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_complete([NativeTypeName("const char *")] byte* sql);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_complete16([NativeTypeName("const void *")] void* sql);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_busy_handler([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("int (*)(void *, int)")] delegate* unmanaged[Cdecl]<void*, int, int> param1, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_busy_timeout([NativeTypeName("sqlite3*")] nint param0, int ms);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_setlk_timeout([NativeTypeName("sqlite3*")] nint param0, int ms, int flags);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_get_table([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSql, [NativeTypeName("char ***")] byte*** pazResult, int* pnRow, int* pnColumn, [NativeTypeName("char **")] byte** pzErrmsg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_free_table([NativeTypeName("char **")] byte** result);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_mprintf([NativeTypeName("const char *")] byte* param0, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_vmprintf([NativeTypeName("const char *")] byte* param0, [NativeTypeName("va_list")] byte* param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_snprintf(int param0, [NativeTypeName("char *")] byte* param1, [NativeTypeName("const char *")] byte* param2, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_vsnprintf(int param0, [NativeTypeName("char *")] byte* param1, [NativeTypeName("const char *")] byte* param2, [NativeTypeName("va_list")] byte* param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_malloc(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_malloc64([NativeTypeName("sqlite3_uint64")] ulong param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_realloc(void* param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_realloc64(void* param0, [NativeTypeName("sqlite3_uint64")] ulong param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_free(void* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_uint64")]
         public static extern ulong sqlite3_msize(void* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_memory_used();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_memory_highwater(int resetFlag);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_randomness(int N, void* P);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_set_authorizer([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("int (*)(void *, int, const char *, const char *, const char *, const char *)")] delegate* unmanaged[Cdecl]<void*, int, byte*, byte*, byte*, byte*, int> xAuth, void* pUserData);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_trace([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("void (*)(void *, const char *)")] delegate* unmanaged[Cdecl]<void*, byte*, void> xTrace, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_profile([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("void (*)(void *, const char *, sqlite3_uint64)")] delegate* unmanaged[Cdecl]<void*, byte*, ulong, void> xProfile, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_trace_v2([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("unsigned int")] uint uMask, [NativeTypeName("int (*)(unsigned int, void *, void *, void *)")] delegate* unmanaged[Cdecl]<uint, void*, void*, void*, int> xCallback, void* pCtx);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_progress_handler([NativeTypeName("sqlite3*")] nint param0, int param1, [NativeTypeName("int (*)(void *)")] delegate* unmanaged[Cdecl]<void*, int> param2, void* param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_open([NativeTypeName("const char *")] byte* filename, [NativeTypeName("sqlite3 **")] nint* ppDb);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_open16([NativeTypeName("const void *")] void* filename, [NativeTypeName("sqlite3 **")] nint* ppDb);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_open_v2([NativeTypeName("const char *")] byte* filename, [NativeTypeName("sqlite3 **")] nint* ppDb, int flags, [NativeTypeName("const char *")] byte* zVfs);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_uri_parameter([NativeTypeName("sqlite3_filename")] byte* z, [NativeTypeName("const char *")] byte* zParam);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_uri_boolean([NativeTypeName("sqlite3_filename")] byte* z, [NativeTypeName("const char *")] byte* zParam, int bDefault);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_uri_int64([NativeTypeName("sqlite3_filename")] byte* param0, [NativeTypeName("const char *")] byte* param1, [NativeTypeName("sqlite3_int64")] long param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_uri_key([NativeTypeName("sqlite3_filename")] byte* z, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_filename_database([NativeTypeName("sqlite3_filename")] byte* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_filename_journal([NativeTypeName("sqlite3_filename")] byte* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_filename_wal([NativeTypeName("sqlite3_filename")] byte* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_file*")]
         public static extern nint sqlite3_database_file_object([NativeTypeName("const char *")] byte* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_filename")]
         public static extern byte* sqlite3_create_filename([NativeTypeName("const char *")] byte* zDatabase, [NativeTypeName("const char *")] byte* zJournal, [NativeTypeName("const char *")] byte* zWal, int nParam, [NativeTypeName("const char **")] byte** azParam);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_free_filename([NativeTypeName("sqlite3_filename")] byte* param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_errcode([NativeTypeName("sqlite3*")] nint db);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_extended_errcode([NativeTypeName("sqlite3*")] nint db);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_errmsg([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_errmsg16([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_errstr(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_error_offset([NativeTypeName("sqlite3*")] nint db);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_set_errmsg([NativeTypeName("sqlite3*")] nint db, int errcode, [NativeTypeName("const char *")] byte* zErrMsg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_limit([NativeTypeName("sqlite3*")] nint param0, int id, int newVal);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSql, int nByte, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const char **")] byte** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare_v2([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSql, int nByte, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const char **")] byte** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare_v3([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSql, int nByte, [NativeTypeName("unsigned int")] uint prepFlags, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const char **")] byte** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare16([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const void *")] void* zSql, int nByte, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const void **")] void** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare16_v2([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const void *")] void* zSql, int nByte, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const void **")] void** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_prepare16_v3([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const void *")] void* zSql, int nByte, [NativeTypeName("unsigned int")] uint prepFlags, [NativeTypeName("sqlite3_stmt **")] nint* ppStmt, [NativeTypeName("const void **")] void** pzTail);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_sql([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_expanded_sql([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_readonly([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_isexplain([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_explain([NativeTypeName("sqlite3_stmt*")] nint pStmt, int eMode);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_busy([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_blob([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const void *")] void* param2, int n, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_blob64([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const void *")] void* param2, [NativeTypeName("sqlite3_uint64")] ulong param3, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_double([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, double param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_int([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, int param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_int64([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("sqlite3_int64")] long param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_null([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_text([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const char *")] byte* param2, int param3, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_text16([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const void *")] void* param2, int param3, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_text64([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const char *")] byte* param2, [NativeTypeName("sqlite3_uint64")] ulong param3, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4, [NativeTypeName("unsigned char")] byte encoding);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_value([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("const sqlite3_value *")] nint param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_pointer([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, void* param2, [NativeTypeName("const char *")] byte* param3, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_zeroblob([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, int n);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_zeroblob64([NativeTypeName("sqlite3_stmt*")] nint param0, int param1, [NativeTypeName("sqlite3_uint64")] ulong param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_parameter_count([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_bind_parameter_name([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_bind_parameter_index([NativeTypeName("sqlite3_stmt*")] nint param0, [NativeTypeName("const char *")] byte* zName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_clear_bindings([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_column_count([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_column_name([NativeTypeName("sqlite3_stmt*")] nint param0, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_name16([NativeTypeName("sqlite3_stmt*")] nint param0, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_column_database_name([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_database_name16([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_column_table_name([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_table_name16([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_column_origin_name([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_origin_name16([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_column_decltype([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_decltype16([NativeTypeName("sqlite3_stmt*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_step([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_data_count([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_blob([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern double sqlite3_column_double([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_column_int([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_column_int64([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const unsigned char *")]
         public static extern byte* sqlite3_column_text([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_column_text16([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_value*")]
         public static extern nint sqlite3_column_value([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_column_bytes([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_column_bytes16([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_column_type([NativeTypeName("sqlite3_stmt*")] nint param0, int iCol);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_finalize([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_reset([NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_function([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zFunctionName, int nArg, int eTextRep, void* pApp, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xFunc, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xStep, [NativeTypeName("void (*)(sqlite3_context *)")] delegate* unmanaged[Cdecl]<nint, void> xFinal);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_function16([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const void *")] void* zFunctionName, int nArg, int eTextRep, void* pApp, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xFunc, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xStep, [NativeTypeName("void (*)(sqlite3_context *)")] delegate* unmanaged[Cdecl]<nint, void> xFinal);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_function_v2([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zFunctionName, int nArg, int eTextRep, void* pApp, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xFunc, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xStep, [NativeTypeName("void (*)(sqlite3_context *)")] delegate* unmanaged[Cdecl]<nint, void> xFinal, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestroy);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_window_function([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zFunctionName, int nArg, int eTextRep, void* pApp, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xStep, [NativeTypeName("void (*)(sqlite3_context *)")] delegate* unmanaged[Cdecl]<nint, void> xFinal, [NativeTypeName("void (*)(sqlite3_context *)")] delegate* unmanaged[Cdecl]<nint, void> xValue, [NativeTypeName("void (*)(sqlite3_context *, int, sqlite3_value **)")] delegate* unmanaged[Cdecl]<nint, int, nint*, void> xInverse, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestroy);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_aggregate_count([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_expired([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_transfer_bindings([NativeTypeName("sqlite3_stmt*")] nint param0, [NativeTypeName("sqlite3_stmt*")] nint param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_global_recover();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_thread_cleanup();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_memory_alarm([NativeTypeName("void (*)(void *, sqlite3_int64, int)")] delegate* unmanaged[Cdecl]<void*, long, int, void> param0, void* param1, [NativeTypeName("sqlite3_int64")] long param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_value_blob([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern double sqlite3_value_double([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_int([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_value_int64([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_value_pointer([NativeTypeName("sqlite3_value*")] nint param0, [NativeTypeName("const char *")] byte* param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const unsigned char *")]
         public static extern byte* sqlite3_value_text([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_value_text16([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_value_text16le([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const void *")]
         public static extern void* sqlite3_value_text16be([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_bytes([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_bytes16([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_type([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_numeric_type([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_nochange([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_frombind([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_value_encoding([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("unsigned int")]
         public static extern uint sqlite3_value_subtype([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_value*")]
         public static extern nint sqlite3_value_dup([NativeTypeName("const sqlite3_value *")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_value_free([NativeTypeName("sqlite3_value*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_aggregate_context([NativeTypeName("sqlite3_context*")] nint param0, int nBytes);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_user_data([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3*")]
         public static extern nint sqlite3_context_db_handle([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_get_auxdata([NativeTypeName("sqlite3_context*")] nint param0, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_set_auxdata([NativeTypeName("sqlite3_context*")] nint param0, int N, void* param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_get_clientdata([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_set_clientdata([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* param1, void* param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_blob([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, int param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_blob64([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, [NativeTypeName("sqlite3_uint64")] ulong param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_double([NativeTypeName("sqlite3_context*")] nint param0, double param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_error([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const char *")] byte* param1, int param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_error16([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, int param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_error_toobig([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_error_nomem([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_error_code([NativeTypeName("sqlite3_context*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_int([NativeTypeName("sqlite3_context*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_int64([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("sqlite3_int64")] long param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_null([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_text([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const char *")] byte* param1, int param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_text64([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const char *")] byte* param1, [NativeTypeName("sqlite3_uint64")] ulong param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3, [NativeTypeName("unsigned char")] byte encoding);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_text16([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, int param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_text16le([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, int param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_text16be([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("const void *")] void* param1, int param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_value([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("sqlite3_value*")] nint param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_pointer([NativeTypeName("sqlite3_context*")] nint param0, void* param1, [NativeTypeName("const char *")] byte* param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_zeroblob([NativeTypeName("sqlite3_context*")] nint param0, int n);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_result_zeroblob64([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("sqlite3_uint64")] ulong n);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_result_subtype([NativeTypeName("sqlite3_context*")] nint param0, [NativeTypeName("unsigned int")] uint param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_collation([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zName, int eTextRep, void* pArg, [NativeTypeName("int (*)(void *, int, const void *, int, const void *)")] delegate* unmanaged[Cdecl]<void*, int, void*, int, void*, int> xCompare);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_collation_v2([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zName, int eTextRep, void* pArg, [NativeTypeName("int (*)(void *, int, const void *, int, const void *)")] delegate* unmanaged[Cdecl]<void*, int, void*, int, void*, int> xCompare, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestroy);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_collation16([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const void *")] void* zName, int eTextRep, void* pArg, [NativeTypeName("int (*)(void *, int, const void *, int, const void *)")] delegate* unmanaged[Cdecl]<void*, int, void*, int, void*, int> xCompare);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_collation_needed([NativeTypeName("sqlite3*")] nint param0, void* param1, [NativeTypeName("void (*)(void *, sqlite3 *, int, const char *)")] delegate* unmanaged[Cdecl]<void*, nint, int, byte*, void> param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_collation_needed16([NativeTypeName("sqlite3*")] nint param0, void* param1, [NativeTypeName("void (*)(void *, sqlite3 *, int, const void *)")] delegate* unmanaged[Cdecl]<void*, nint, int, void*, void> param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_sleep(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_win32_set_directory([NativeTypeName("unsigned long")] uint type, void* zValue);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_win32_set_directory8([NativeTypeName("unsigned long")] uint type, [NativeTypeName("const char *")] byte* zValue);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_win32_set_directory16([NativeTypeName("unsigned long")] uint type, [NativeTypeName("const void *")] void* zValue);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_get_autocommit([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3*")]
         public static extern nint sqlite3_db_handle([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_db_name([NativeTypeName("sqlite3*")] nint db, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_filename")]
         public static extern byte* sqlite3_db_filename([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDbName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_readonly([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDbName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_txn_state([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zSchema);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_stmt*")]
         public static extern nint sqlite3_next_stmt([NativeTypeName("sqlite3*")] nint pDb, [NativeTypeName("sqlite3_stmt*")] nint pStmt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_commit_hook([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("int (*)(void *)")] delegate* unmanaged[Cdecl]<void*, int> param1, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_rollback_hook([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param1, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_autovacuum_pages([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("unsigned int (*)(void *, const char *, unsigned int, unsigned int, unsigned int)")] delegate* unmanaged[Cdecl]<void*, byte*, uint, uint, uint, uint> param1, void* param2, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_update_hook([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("void (*)(void *, int, const char *, const char *, sqlite3_int64)")] delegate* unmanaged[Cdecl]<void*, int, byte*, byte*, long, void> param1, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_enable_shared_cache(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_release_memory(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_release_memory([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_soft_heap_limit64([NativeTypeName("sqlite3_int64")] long N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_int64")]
         public static extern long sqlite3_hard_heap_limit64([NativeTypeName("sqlite3_int64")] long N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_soft_heap_limit(int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_table_column_metadata([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDbName, [NativeTypeName("const char *")] byte* zTableName, [NativeTypeName("const char *")] byte* zColumnName, [NativeTypeName("const char **")] byte** pzDataType, [NativeTypeName("const char **")] byte** pzCollSeq, int* pNotNull, int* pPrimaryKey, int* pAutoinc);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_load_extension([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zFile, [NativeTypeName("const char *")] byte* zProc, [NativeTypeName("char **")] byte** pzErrMsg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_enable_load_extension([NativeTypeName("sqlite3*")] nint db, int onoff);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_auto_extension([NativeTypeName("void (*)(void)")] delegate* unmanaged[Cdecl]<void> xEntryPoint);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_cancel_auto_extension([NativeTypeName("void (*)(void)")] delegate* unmanaged[Cdecl]<void> xEntryPoint);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_reset_auto_extension();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_module([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zName, [NativeTypeName("const sqlite3_module *")] nint p, void* pClientData);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_create_module_v2([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zName, [NativeTypeName("const sqlite3_module *")] nint p, void* pClientData, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestroy);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_drop_modules([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char **")] byte** azKeep);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_declare_vtab([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zSQL);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_overload_function([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zFuncName, int nArg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_open([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zDb, [NativeTypeName("const char *")] byte* zTable, [NativeTypeName("const char *")] byte* zColumn, [NativeTypeName("sqlite3_int64")] long iRow, int flags, [NativeTypeName("sqlite3_blob **")] nint* ppBlob);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_reopen([NativeTypeName("sqlite3_blob*")] nint param0, [NativeTypeName("sqlite3_int64")] long param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_close([NativeTypeName("sqlite3_blob*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_bytes([NativeTypeName("sqlite3_blob*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_read([NativeTypeName("sqlite3_blob*")] nint param0, void* Z, int N, int iOffset);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_blob_write([NativeTypeName("sqlite3_blob*")] nint param0, [NativeTypeName("const void *")] void* z, int n, int iOffset);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_vfs*")]
         public static extern nint sqlite3_vfs_find([NativeTypeName("const char *")] byte* zVfsName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vfs_register([NativeTypeName("sqlite3_vfs*")] nint param0, int makeDflt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vfs_unregister([NativeTypeName("sqlite3_vfs*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_mutex*")]
         public static extern nint sqlite3_mutex_alloc(int param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_mutex_free([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_mutex_enter([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_mutex_try([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_mutex_leave([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_mutex_held([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_mutex_notheld([NativeTypeName("sqlite3_mutex*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_mutex*")]
         public static extern nint sqlite3_db_mutex([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_file_control([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("const char *")] byte* zDbName, int op, void* param3);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_test_control(int op, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_keyword_count();
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_keyword_name(int param0, [NativeTypeName("const char **")] byte** param1, int* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_keyword_check([NativeTypeName("const char *")] byte* param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_str*")]
         public static extern nint sqlite3_str_new([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_str_finish([NativeTypeName("sqlite3_str*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_appendf([NativeTypeName("sqlite3_str*")] nint param0, [NativeTypeName("const char *")] byte* zFormat, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_vappendf([NativeTypeName("sqlite3_str*")] nint param0, [NativeTypeName("const char *")] byte* zFormat, [NativeTypeName("va_list")] byte* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_append([NativeTypeName("sqlite3_str*")] nint param0, [NativeTypeName("const char *")] byte* zIn, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_appendall([NativeTypeName("sqlite3_str*")] nint param0, [NativeTypeName("const char *")] byte* zIn);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_appendchar([NativeTypeName("sqlite3_str*")] nint param0, int N, [NativeTypeName("char")] byte C);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_str_reset([NativeTypeName("sqlite3_str*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_str_errcode([NativeTypeName("sqlite3_str*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_str_length([NativeTypeName("sqlite3_str*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("char *")]
         public static extern byte* sqlite3_str_value([NativeTypeName("sqlite3_str*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_status(int op, int* pCurrent, int* pHighwater, int resetFlag);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_status64(int op, [NativeTypeName("sqlite3_int64 *")] long* pCurrent, [NativeTypeName("sqlite3_int64 *")] long* pHighwater, int resetFlag);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_status([NativeTypeName("sqlite3*")] nint param0, int op, int* pCur, int* pHiwtr, int resetFlg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_status64([NativeTypeName("sqlite3*")] nint param0, int param1, [NativeTypeName("sqlite3_int64 *")] long* param2, [NativeTypeName("sqlite3_int64 *")] long* param3, int param4);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_status([NativeTypeName("sqlite3_stmt*")] nint param0, int op, int resetFlg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("sqlite3_backup*")]
         public static extern nint sqlite3_backup_init([NativeTypeName("sqlite3*")] nint pDest, [NativeTypeName("const char *")] byte* zDestName, [NativeTypeName("sqlite3*")] nint pSource, [NativeTypeName("const char *")] byte* zSourceName);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_backup_step([NativeTypeName("sqlite3_backup*")] nint p, int nPage);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_backup_finish([NativeTypeName("sqlite3_backup*")] nint p);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_backup_remaining([NativeTypeName("sqlite3_backup*")] nint p);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_backup_pagecount([NativeTypeName("sqlite3_backup*")] nint p);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_unlock_notify([NativeTypeName("sqlite3*")] nint pBlocked, [NativeTypeName("void (*)(void **, int)")] delegate* unmanaged[Cdecl]<void**, int, void> xNotify, void* pNotifyArg);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stricmp([NativeTypeName("const char *")] byte* param0, [NativeTypeName("const char *")] byte* param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_strnicmp([NativeTypeName("const char *")] byte* param0, [NativeTypeName("const char *")] byte* param1, int param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_strglob([NativeTypeName("const char *")] byte* zGlob, [NativeTypeName("const char *")] byte* zStr);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_strlike([NativeTypeName("const char *")] byte* zGlob, [NativeTypeName("const char *")] byte* zStr, [NativeTypeName("unsigned int")] uint cEsc);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_log(int iErrCode, [NativeTypeName("const char *")] byte* zFormat, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void* sqlite3_wal_hook([NativeTypeName("sqlite3*")] nint param0, [NativeTypeName("int (*)(void *, sqlite3 *, const char *, int)")] delegate* unmanaged[Cdecl]<void*, nint, byte*, int, int> param1, void* param2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_wal_autocheckpoint([NativeTypeName("sqlite3*")] nint db, int N);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_wal_checkpoint([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDb);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_wal_checkpoint_v2([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDb, int eMode, int* pnLog, int* pnCkpt);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_config([NativeTypeName("sqlite3*")] nint param0, int op, __arglist);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_on_conflict([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_nochange([NativeTypeName("sqlite3_context*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
         public static extern byte* sqlite3_vtab_collation([NativeTypeName("sqlite3_index_info*")] nint param0, int param1);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_distinct([NativeTypeName("sqlite3_index_info*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_in([NativeTypeName("sqlite3_index_info*")] nint param0, int iCons, int bHandle);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_in_first([NativeTypeName("sqlite3_value*")] nint pVal, [NativeTypeName("sqlite3_value **")] nint* ppOut);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_in_next([NativeTypeName("sqlite3_value*")] nint pVal, [NativeTypeName("sqlite3_value **")] nint* ppOut);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_vtab_rhs_value([NativeTypeName("sqlite3_index_info*")] nint param0, int param1, [NativeTypeName("sqlite3_value **")] nint* ppVal);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_scanstatus([NativeTypeName("sqlite3_stmt*")] nint pStmt, int idx, int iScanStatusOp, void* pOut);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_scanstatus_v2([NativeTypeName("sqlite3_stmt*")] nint pStmt, int idx, int iScanStatusOp, int flags, void* pOut);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_stmt_scanstatus_reset([NativeTypeName("sqlite3_stmt*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_db_cacheflush([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_system_errno([NativeTypeName("sqlite3*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_snapshot_get([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSchema, [NativeTypeName("sqlite3_snapshot **")] nint* ppSnapshot);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_snapshot_open([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSchema, [NativeTypeName("sqlite3_snapshot*")] nint pSnapshot);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern void sqlite3_snapshot_free([NativeTypeName("sqlite3_snapshot*")] nint param0);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_snapshot_cmp([NativeTypeName("sqlite3_snapshot*")] nint p1, [NativeTypeName("sqlite3_snapshot*")] nint p2);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_snapshot_recover([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zDb);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("unsigned char *")]
         public static extern byte* sqlite3_serialize([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSchema, [NativeTypeName("sqlite3_int64 *")] long* piSize, [NativeTypeName("unsigned int")] uint mFlags);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_deserialize([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSchema, [NativeTypeName("unsigned char *")] byte* pData, [NativeTypeName("sqlite3_int64")] long szDb, [NativeTypeName("sqlite3_int64")] long szBuf, [NativeTypeName("unsigned int")] uint mFlags);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_carray_bind([NativeTypeName("sqlite3_stmt*")] nint pStmt, int i, void* aData, int nData, int mFlags, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDel);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_rtree_geometry_callback([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zGeom, [NativeTypeName("int (*)(sqlite3_rtree_geometry *, int, sqlite3_rtree_dbl *, int *)")] delegate* unmanaged[Cdecl]<nint, int, double*, int*, int> xGeom, void* pContext);
 
-        [DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_rtree_query_callback([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zQueryFunc, [NativeTypeName("int (*)(sqlite3_rtree_query_info *)")] delegate* unmanaged[Cdecl]<nint, int> xQueryFunc, void* pContext, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestructor);
 
         [NativeTypeName("#define SQLITE_VERSION \"3.51.2\"")]

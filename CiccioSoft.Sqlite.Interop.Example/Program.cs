@@ -10,7 +10,5 @@ class Program
 
         new UserRepository(nomeDaInserire);
         // new ImageRepository();
-        // SqliteBenchmark.Run();
-        // RawComparisonBenchmark2.Run();
     }
 }

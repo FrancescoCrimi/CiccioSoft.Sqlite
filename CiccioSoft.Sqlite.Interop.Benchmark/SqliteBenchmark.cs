@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace CiccioSoft.Sqlite.Interop.Example;
+namespace CiccioSoft.Sqlite.Interop.Benchmark;
 
 public static class SqliteBenchmark
 {
