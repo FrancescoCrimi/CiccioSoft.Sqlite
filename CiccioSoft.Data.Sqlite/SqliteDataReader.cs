@@ -20,19 +20,41 @@ public class SqliteDataReader : DbDataReader
     private bool _readStarted;
     private bool _closed;
 
-    internal SqliteDataReader(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
+    private SqliteDataReader(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior, Sqlite3Stmt stmt)
     {
         _command = command;
         _session = session;
         _behavior = behavior;
-        _session.Gate.Wait();
+        _stmt = stmt;
+    }
+
+    internal static SqliteDataReader Create(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
+    {
+        session.Gate.Wait();
         try
         {
-            _stmt = command.PrepareAndBind(session);
+            Sqlite3Stmt stmt = command.PrepareAndBind(session);
+            return new SqliteDataReader(command, session, behavior, stmt);
         }
         catch
         {
-            _session.Gate.Release();
+            session.Gate.Release();
+            throw;
+        }
+    }
+
+    internal static async Task<SqliteDataReader> CreateAsync(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior, CancellationToken cancellationToken)
+    {
+        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
+            Sqlite3Stmt stmt = command.PrepareAndBind(session);
+            return new SqliteDataReader(command, session, behavior, stmt);
+        }
+        catch
+        {
+            session.Gate.Release();
             throw;
         }
     }

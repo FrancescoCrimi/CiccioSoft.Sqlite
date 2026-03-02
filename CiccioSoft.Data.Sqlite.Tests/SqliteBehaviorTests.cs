@@ -51,4 +51,26 @@ public class SqliteBehaviorTests
 
         await Assert.ThrowsAsync<TaskCanceledException>(() => query.ExecuteReaderAsync(CommandBehavior.Default, cts.Token));
     }
+
+    [Fact]
+    public async Task ExecuteReaderAsync_CanBeCanceledWhileWaitingForConnectionGate()
+    {
+        using SqliteConnection connection = new("Data Source=:memory:;Profile=StrictSingleConnection;");
+        connection.Open();
+
+        using (SqliteCommand setup = new("CREATE TABLE t(id INTEGER); INSERT INTO t(id) VALUES(1);", connection))
+        {
+            setup.ExecuteNonQuery();
+        }
+
+        using SqliteCommand blockingCommand = new("SELECT id FROM t;", connection);
+        using SqliteDataReader blockingReader = (SqliteDataReader)blockingCommand.ExecuteReader();
+
+        using SqliteCommand pendingCommand = new("SELECT id FROM t;", connection);
+        using CancellationTokenSource cts = new();
+        cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pendingCommand.ExecuteReaderAsync(CommandBehavior.Default, cts.Token));
+    }
+
 }
