@@ -139,6 +139,28 @@ public class SqliteCommand : DbCommand
         }
     }
 
+    public override async Task PrepareAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        SqliteConnection conn = RequireConnection();
+        SqliteSession session = conn.GetSession();
+        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
+        try
+        {
+            using Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
+        }
+        catch (SqliteInteropException ex)
+        {
+            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
+    }
+
     protected override DbParameter CreateDbParameter() => new SqliteParameter();
 
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
