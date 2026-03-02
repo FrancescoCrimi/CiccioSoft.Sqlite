@@ -2,6 +2,8 @@ using AdoNet.Specification.Tests;
 using System.Data.Common;
 using CiccioSoft.Data.Sqlite; // Assicurati che qui ci sia la tua implementazione
 
+namespace CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests;
+
 public class SqliteDbFactoryFixture : IDbFactoryFixture
 {
     // Ritorna la tua istanza di DbProviderFactory

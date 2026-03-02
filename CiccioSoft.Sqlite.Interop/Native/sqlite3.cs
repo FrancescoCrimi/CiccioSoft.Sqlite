@@ -234,9 +234,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
         public static extern int sqlite3_error_offset([NativeTypeName("sqlite3*")] nint db);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int sqlite3_set_errmsg([NativeTypeName("sqlite3*")] nint db, int errcode, [NativeTypeName("const char *")] byte* zErrMsg);
-
-        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_limit([NativeTypeName("sqlite3*")] nint param0, int id, int newVal);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -831,9 +828,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
         public static extern int sqlite3_db_status([NativeTypeName("sqlite3*")] nint param0, int op, int* pCur, int* pHiwtr, int resetFlg);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int sqlite3_db_status64([NativeTypeName("sqlite3*")] nint param0, int param1, [NativeTypeName("sqlite3_int64 *")] long* param2, [NativeTypeName("sqlite3_int64 *")] long* param3, int param4);
-
-        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_stmt_status([NativeTypeName("sqlite3_stmt*")] nint param0, int op, int resetFlg);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
@@ -948,31 +942,19 @@ namespace CiccioSoft.Sqlite.Interop.Native
         public static extern int sqlite3_deserialize([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zSchema, [NativeTypeName("unsigned char *")] byte* pData, [NativeTypeName("sqlite3_int64")] long szDb, [NativeTypeName("sqlite3_int64")] long szBuf, [NativeTypeName("unsigned int")] uint mFlags);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        public static extern int sqlite3_carray_bind([NativeTypeName("sqlite3_stmt*")] nint pStmt, int i, void* aData, int nData, int mFlags, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDel);
-
-        [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_rtree_geometry_callback([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zGeom, [NativeTypeName("int (*)(sqlite3_rtree_geometry *, int, sqlite3_rtree_dbl *, int *)")] delegate* unmanaged[Cdecl]<nint, int, double*, int*, int> xGeom, void* pContext);
 
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern int sqlite3_rtree_query_callback([NativeTypeName("sqlite3*")] nint db, [NativeTypeName("const char *")] byte* zQueryFunc, [NativeTypeName("int (*)(sqlite3_rtree_query_info *)")] delegate* unmanaged[Cdecl]<nint, int> xQueryFunc, void* pContext, [NativeTypeName("void (*)(void *)")] delegate* unmanaged[Cdecl]<void*, void> xDestructor);
 
-        [NativeTypeName("#define SQLITE_VERSION \"3.51.2\"")]
-        public static ReadOnlySpan<byte> SQLITE_VERSION => new byte[] { 0x33, 0x2E, 0x35, 0x31, 0x2E, 0x32, 0x00 };
+        [NativeTypeName("#define SQLITE_VERSION \"3.50.4\"")]
+        public static ReadOnlySpan<byte> SQLITE_VERSION => new byte[] { 0x33, 0x2E, 0x35, 0x30, 0x2E, 0x34, 0x00 };
 
-        [NativeTypeName("#define SQLITE_VERSION_NUMBER 3051002")]
-        public const int SQLITE_VERSION_NUMBER = 3051002;
+        [NativeTypeName("#define SQLITE_VERSION_NUMBER 3050004")]
+        public const int SQLITE_VERSION_NUMBER = 3050004;
 
-        [NativeTypeName("#define SQLITE_SOURCE_ID \"2026-01-09 17:27:48 b270f8339eb13b504d0b2ba154ebca966b7dde08e40c3ed7d559749818cb2075\"")]
-        public static ReadOnlySpan<byte> SQLITE_SOURCE_ID => new byte[] { 0x32, 0x30, 0x32, 0x36, 0x2D, 0x30, 0x31, 0x2D, 0x30, 0x39, 0x20, 0x31, 0x37, 0x3A, 0x32, 0x37, 0x3A, 0x34, 0x38, 0x20, 0x62, 0x32, 0x37, 0x30, 0x66, 0x38, 0x33, 0x33, 0x39, 0x65, 0x62, 0x31, 0x33, 0x62, 0x35, 0x30, 0x34, 0x64, 0x30, 0x62, 0x32, 0x62, 0x61, 0x31, 0x35, 0x34, 0x65, 0x62, 0x63, 0x61, 0x39, 0x36, 0x36, 0x62, 0x37, 0x64, 0x64, 0x65, 0x30, 0x38, 0x65, 0x34, 0x30, 0x63, 0x33, 0x65, 0x64, 0x37, 0x64, 0x35, 0x35, 0x39, 0x37, 0x34, 0x39, 0x38, 0x31, 0x38, 0x63, 0x62, 0x32, 0x30, 0x37, 0x35, 0x00 };
-
-        [NativeTypeName("#define SQLITE_SCM_BRANCH \"branch-3.51\"")]
-        public static ReadOnlySpan<byte> SQLITE_SCM_BRANCH => new byte[] { 0x62, 0x72, 0x61, 0x6E, 0x63, 0x68, 0x2D, 0x33, 0x2E, 0x35, 0x31, 0x00 };
-
-        [NativeTypeName("#define SQLITE_SCM_TAGS \"release version-3.51.2\"")]
-        public static ReadOnlySpan<byte> SQLITE_SCM_TAGS => new byte[] { 0x72, 0x65, 0x6C, 0x65, 0x61, 0x73, 0x65, 0x20, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x2D, 0x33, 0x2E, 0x35, 0x31, 0x2E, 0x32, 0x00 };
-
-        [NativeTypeName("#define SQLITE_SCM_DATETIME \"2026-01-09T17:27:48.405Z\"")]
-        public static ReadOnlySpan<byte> SQLITE_SCM_DATETIME => new byte[] { 0x32, 0x30, 0x32, 0x36, 0x2D, 0x30, 0x31, 0x2D, 0x30, 0x39, 0x54, 0x31, 0x37, 0x3A, 0x32, 0x37, 0x3A, 0x34, 0x38, 0x2E, 0x34, 0x30, 0x35, 0x5A, 0x00 };
+        [NativeTypeName("#define SQLITE_SOURCE_ID \"2025-07-30 19:33:53 4d8adfb30e03f9cf27f800a2c1ba3c48fb4ca1b08b0f5ed59a4d5ecbf45e20a3\"")]
+        public static ReadOnlySpan<byte> SQLITE_SOURCE_ID => new byte[] { 0x32, 0x30, 0x32, 0x35, 0x2D, 0x30, 0x37, 0x2D, 0x33, 0x30, 0x20, 0x31, 0x39, 0x3A, 0x33, 0x33, 0x3A, 0x35, 0x33, 0x20, 0x34, 0x64, 0x38, 0x61, 0x64, 0x66, 0x62, 0x33, 0x30, 0x65, 0x30, 0x33, 0x66, 0x39, 0x63, 0x66, 0x32, 0x37, 0x66, 0x38, 0x30, 0x30, 0x61, 0x32, 0x63, 0x31, 0x62, 0x61, 0x33, 0x63, 0x34, 0x38, 0x66, 0x62, 0x34, 0x63, 0x61, 0x31, 0x62, 0x30, 0x38, 0x62, 0x30, 0x66, 0x35, 0x65, 0x64, 0x35, 0x39, 0x61, 0x34, 0x64, 0x35, 0x65, 0x63, 0x62, 0x66, 0x34, 0x35, 0x65, 0x32, 0x30, 0x61, 0x33, 0x00 };
 
         [NativeTypeName("#define SQLITE_OK 0")]
         public const int SQLITE_OK = 0;
@@ -1076,15 +1058,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
         [NativeTypeName("#define SQLITE_ERROR_SNAPSHOT (SQLITE_ERROR | (3<<8))")]
         public const int SQLITE_ERROR_SNAPSHOT = (1 | (3 << 8));
 
-        [NativeTypeName("#define SQLITE_ERROR_RESERVESIZE (SQLITE_ERROR | (4<<8))")]
-        public const int SQLITE_ERROR_RESERVESIZE = (1 | (4 << 8));
-
-        [NativeTypeName("#define SQLITE_ERROR_KEY (SQLITE_ERROR | (5<<8))")]
-        public const int SQLITE_ERROR_KEY = (1 | (5 << 8));
-
-        [NativeTypeName("#define SQLITE_ERROR_UNABLE (SQLITE_ERROR | (6<<8))")]
-        public const int SQLITE_ERROR_UNABLE = (1 | (6 << 8));
-
         [NativeTypeName("#define SQLITE_IOERR_READ (SQLITE_IOERR | (1<<8))")]
         public const int SQLITE_IOERR_READ = (10 | (1 << 8));
 
@@ -1186,12 +1159,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
 
         [NativeTypeName("#define SQLITE_IOERR_IN_PAGE (SQLITE_IOERR | (34<<8))")]
         public const int SQLITE_IOERR_IN_PAGE = (10 | (34 << 8));
-
-        [NativeTypeName("#define SQLITE_IOERR_BADKEY (SQLITE_IOERR | (35<<8))")]
-        public const int SQLITE_IOERR_BADKEY = (10 | (35 << 8));
-
-        [NativeTypeName("#define SQLITE_IOERR_CODEC (SQLITE_IOERR | (36<<8))")]
-        public const int SQLITE_IOERR_CODEC = (10 | (36 << 8));
 
         [NativeTypeName("#define SQLITE_LOCKED_SHAREDCACHE (SQLITE_LOCKED |  (1<<8))")]
         public const int SQLITE_LOCKED_SHAREDCACHE = (6 | (1 << 8));
@@ -1582,9 +1549,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
 
         [NativeTypeName("#define SQLITE_FCNTL_BLOCK_ON_CONNECT 44")]
         public const int SQLITE_FCNTL_BLOCK_ON_CONNECT = 44;
-
-        [NativeTypeName("#define SQLITE_FCNTL_FILESTAT 45")]
-        public const int SQLITE_FCNTL_FILESTAT = 45;
 
         [NativeTypeName("#define SQLITE_GET_LOCKPROXYFILE SQLITE_FCNTL_GET_LOCKPROXYFILE")]
         public const int SQLITE_GET_LOCKPROXYFILE = 2;
@@ -2312,11 +2276,8 @@ namespace CiccioSoft.Sqlite.Interop.Native
         [NativeTypeName("#define SQLITE_DBSTATUS_CACHE_SPILL 12")]
         public const int SQLITE_DBSTATUS_CACHE_SPILL = 12;
 
-        [NativeTypeName("#define SQLITE_DBSTATUS_TEMPBUF_SPILL 13")]
-        public const int SQLITE_DBSTATUS_TEMPBUF_SPILL = 13;
-
-        [NativeTypeName("#define SQLITE_DBSTATUS_MAX 13")]
-        public const int SQLITE_DBSTATUS_MAX = 13;
+        [NativeTypeName("#define SQLITE_DBSTATUS_MAX 12")]
+        public const int SQLITE_DBSTATUS_MAX = 12;
 
         [NativeTypeName("#define SQLITE_STMTSTATUS_FULLSCAN_STEP 1")]
         public const int SQLITE_STMTSTATUS_FULLSCAN_STEP = 1;
@@ -2344,9 +2305,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
 
         [NativeTypeName("#define SQLITE_STMTSTATUS_MEMUSED 99")]
         public const int SQLITE_STMTSTATUS_MEMUSED = 99;
-
-        [NativeTypeName("#define SQLITE_CHECKPOINT_NOOP -1")]
-        public const int SQLITE_CHECKPOINT_NOOP = -1;
 
         [NativeTypeName("#define SQLITE_CHECKPOINT_PASSIVE 0")]
         public const int SQLITE_CHECKPOINT_PASSIVE = 0;
@@ -2419,36 +2377,6 @@ namespace CiccioSoft.Sqlite.Interop.Native
 
         [NativeTypeName("#define SQLITE_DESERIALIZE_READONLY 4")]
         public const int SQLITE_DESERIALIZE_READONLY = 4;
-
-        [NativeTypeName("#define SQLITE_CARRAY_INT32 0")]
-        public const int SQLITE_CARRAY_INT32 = 0;
-
-        [NativeTypeName("#define SQLITE_CARRAY_INT64 1")]
-        public const int SQLITE_CARRAY_INT64 = 1;
-
-        [NativeTypeName("#define SQLITE_CARRAY_DOUBLE 2")]
-        public const int SQLITE_CARRAY_DOUBLE = 2;
-
-        [NativeTypeName("#define SQLITE_CARRAY_TEXT 3")]
-        public const int SQLITE_CARRAY_TEXT = 3;
-
-        [NativeTypeName("#define SQLITE_CARRAY_BLOB 4")]
-        public const int SQLITE_CARRAY_BLOB = 4;
-
-        [NativeTypeName("#define CARRAY_INT32 0")]
-        public const int CARRAY_INT32 = 0;
-
-        [NativeTypeName("#define CARRAY_INT64 1")]
-        public const int CARRAY_INT64 = 1;
-
-        [NativeTypeName("#define CARRAY_DOUBLE 2")]
-        public const int CARRAY_DOUBLE = 2;
-
-        [NativeTypeName("#define CARRAY_TEXT 3")]
-        public const int CARRAY_TEXT = 3;
-
-        [NativeTypeName("#define CARRAY_BLOB 4")]
-        public const int CARRAY_BLOB = 4;
 
         [NativeTypeName("#define NOT_WITHIN 0")]
         public const int NOT_WITHIN = 0;
