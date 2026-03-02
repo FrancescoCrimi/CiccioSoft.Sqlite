@@ -3,6 +3,8 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Properties;
+using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -14,13 +16,13 @@ public class SqliteTransaction : DbTransaction
     internal SqliteTransaction(SqliteConnection connection, IsolationLevel isolationLevel)
     {
         _connection = connection;
-        IsolationLevel = isolationLevel;
-        Execute("BEGIN TRANSACTION;");
+        IsolationLevel = NormalizeIsolationLevel(isolationLevel);
+        Execute(GetBeginStatement(IsolationLevel));
     }
 
     public override IsolationLevel IsolationLevel { get; }
 
-    protected override DbConnection? DbConnection => _connection;
+    protected override DbConnection? DbConnection => _completed ? null : _connection;
 
     public override void Commit()
     {
@@ -35,7 +37,6 @@ public class SqliteTransaction : DbTransaction
         Execute("ROLLBACK;");
         _completed = true;
     }
-
 
     public override Task CommitAsync(CancellationToken cancellationToken = default)
     {
@@ -63,7 +64,11 @@ public class SqliteTransaction : DbTransaction
 
     private void EnsureActive()
     {
-        if (_completed) throw new InvalidOperationException("Transaction already completed.");
+        if (_completed || _connection.State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException(Resources.TransactionCompleted);
+        }
+
         _connection.EnsureOpen();
     }
 
@@ -75,9 +80,34 @@ public class SqliteTransaction : DbTransaction
         {
             session.Native.Execute(sql);
         }
+        catch (SqliteInteropException ex)
+        {
+            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+        }
         finally
         {
             session.Gate.Release();
         }
+    }
+
+    private static IsolationLevel NormalizeIsolationLevel(IsolationLevel isolationLevel)
+    {
+        return isolationLevel switch
+        {
+            IsolationLevel.Unspecified => IsolationLevel.Serializable,
+            IsolationLevel.Chaos => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
+            IsolationLevel.Snapshot => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
+            IsolationLevel.ReadCommitted => IsolationLevel.Serializable,
+            IsolationLevel.RepeatableRead => IsolationLevel.Serializable,
+            IsolationLevel.ReadUncommitted => IsolationLevel.ReadUncommitted,
+            _ => isolationLevel,
+        };
+    }
+
+    private static string GetBeginStatement(IsolationLevel isolationLevel)
+    {
+        return isolationLevel == IsolationLevel.ReadUncommitted
+            ? "PRAGMA read_uncommitted=1; BEGIN;"
+            : "PRAGMA read_uncommitted=0; BEGIN IMMEDIATE;";
     }
 }

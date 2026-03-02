@@ -8,7 +8,7 @@ This file tracks which copied test suites are currently usable for `CiccioSoft.D
 - `SqliteParameterBindingParityTest.cs`
 - `SqliteExceptionTest.cs`
 - `SqliteFactoryTest.cs`
-- `SqliteTransactionTest.cs` (mostly relevant to ADO.NET transaction semantics)
+- `SqliteTransactionSemanticsTest.cs` (provider-aligned transaction behavior and isolation mapping)
 - `SqliteDataReaderTest.cs` (reader behavior remains a parity target)
 - `SqliteCommandTest.cs` (command semantics and cancellation remain relevant)
 - `SqliteParameterTest.cs` (binding-related parity target; keep for future interop/binding completion)
@@ -25,6 +25,8 @@ opinionated design (Default + StrictSingleConnection profiles, no full keyword/o
   - expects internal handle/pooling behaviors tied to Microsoft provider contracts.
 - `SqliteBlobTest.cs`
   - depends on blob-stream API/features not yet in current provider scope.
+- `SqliteTransactionTest.cs`
+  - expects Microsoft-compatible savepoint/deferred APIs and richer transaction surface not yet implemented.
 
 These suites are wrapped in `#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS` and can be re-enabled later.
 
