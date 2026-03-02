@@ -177,7 +177,7 @@ This project demonstrates:
 
 This library was inspired by and built thanks to ideas, tooling, and examples from the following open-source projects:
 
-- [SourceGear.sqlite3](https://github.com/sourcegear/sqlite3) for the SQLite native integration approach and packaging references.
+- [SourceGear.sqlite3](https://sqlite.sourcegear.com/) for the SQLite native integration approach and packaging references.
 - [ClangSharp](https://github.com/dotnet/ClangSharp) for C/C++ interop generation workflows and ecosystem tooling around .NET bindings.
 
 Many thanks to the maintainers and contributors of these projects for their valuable work.
