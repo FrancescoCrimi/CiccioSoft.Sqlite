@@ -144,13 +144,14 @@ public class SqliteCommand : DbCommand
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
         SqliteConnection conn = RequireConnection();
-        return new SqliteDataReader(this, conn.GetSession(), behavior);
+        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
     }
 
-    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteDbDataReader(behavior), cancellationToken);
+        SqliteConnection conn = RequireConnection();
+        return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
