@@ -190,6 +190,7 @@ public class SqliteConnection : DbConnection
         {
             native.SetBusyTimeout(0);
             native.Execute("PRAGMA foreign_keys=ON;");
+            native.Execute("PRAGMA journal_mode=DELETE;");
             return;
         }
 
