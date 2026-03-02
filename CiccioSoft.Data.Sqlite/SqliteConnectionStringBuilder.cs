@@ -10,6 +10,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string MaxPoolSizeKey = "Max Pool Size";
     private const string BusyTimeoutKey = "Busy Timeout";
     private const string JournalModeKey = "Journal Mode";
+    private const string ProfileKey = "Profile";
 
     public string DataSource
     {
@@ -39,5 +40,29 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     {
         get => TryGetValue(JournalModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
         set => this[JournalModeKey] = value ?? string.Empty;
+    }
+
+    public SqliteConnectionProfile Profile
+    {
+        get
+        {
+            if (!TryGetValue(ProfileKey, out object? value))
+            {
+                return SqliteConnectionProfile.Default;
+            }
+
+            if (value is SqliteConnectionProfile profile)
+            {
+                return profile;
+            }
+
+            if (Enum.TryParse(Convert.ToString(value), ignoreCase: true, out SqliteConnectionProfile parsed))
+            {
+                return parsed;
+            }
+
+            throw new ArgumentException($"Unsupported profile '{value}'.", nameof(value));
+        }
+        set => this[ProfileKey] = value;
     }
 }
