@@ -139,18 +139,41 @@ public class SqliteCommand : DbCommand
         }
     }
 
+    public override async Task PrepareAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        SqliteConnection conn = RequireConnection();
+        SqliteSession session = conn.GetSession();
+        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
+        try
+        {
+            using Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
+        }
+        catch (SqliteInteropException ex)
+        {
+            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
+    }
+
     protected override DbParameter CreateDbParameter() => new SqliteParameter();
 
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
         SqliteConnection conn = RequireConnection();
-        return new SqliteDataReader(this, conn.GetSession(), behavior);
+        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
     }
 
-    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteDbDataReader(behavior), cancellationToken);
+        SqliteConnection conn = RequireConnection();
+        return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
