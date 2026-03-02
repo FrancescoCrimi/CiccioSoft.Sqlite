@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Sqlite.Interop;
+using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnection : DbConnection
 {
+    private const int DefaultBusyTimeoutMs = 30000;
     private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
     private ConnectionState _state = ConnectionState.Closed;
@@ -43,6 +44,8 @@ public class SqliteConnection : DbConnection
 
     public override string ServerVersion => "3";
 
+    public SqliteConnectionProfile Profile => _settings.Profile;
+
     public override ConnectionState State
     {
         get
@@ -70,7 +73,7 @@ public class SqliteConnection : DbConnection
                 return;
 
             session = Interlocked.Exchange(ref _session, null);
-            pooling = _settings.Pooling;
+            pooling = IsPoolingEnabled();
             connectionString = _connectionString;
             _state = ConnectionState.Closed;
         }
@@ -78,7 +81,6 @@ public class SqliteConnection : DbConnection
         if (session is null)
             return;
 
-        // Ensure no command/reader is still using this session before recycling/disposing it.
         session.Gate.Wait();
         try
         {
@@ -110,15 +112,13 @@ public class SqliteConnection : DbConnection
 
             try
             {
-                SqliteSession session = _settings.Pooling
-                    ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize)
-                    : new SqliteSession(Sqlite3.Open(_settings.DataSource));
+                bool pooling = IsPoolingEnabled();
+                SqliteSession session = pooling
+                    ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize, GetOpenFlags())
+                    : new SqliteSession(Sqlite3.Open(_settings.DataSource, GetOpenFlags()));
 
-                session.Native.SetBusyTimeout(_settings.BusyTimeout);
-                if (!string.IsNullOrWhiteSpace(_settings.JournalMode))
-                {
-                    session.Native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
-                }
+                ApplyProfileSettings(session.Native);
+
                 _session = session;
                 _state = ConnectionState.Open;
             }
@@ -166,5 +166,35 @@ public class SqliteConnection : DbConnection
     {
         if (_state != ConnectionState.Open || _session is null)
             throw new InvalidOperationException("Connection is not open.");
+    }
+
+    private bool IsPoolingEnabled()
+    {
+        return _settings.Profile == SqliteConnectionProfile.Default && _settings.Pooling;
+    }
+
+    private int GetOpenFlags()
+    {
+        int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+        if (_settings.Profile == SqliteConnectionProfile.Default)
+        {
+            flags |= SQLITE_OPEN_FULLMUTEX;
+        }
+
+        return flags;
+    }
+
+    private void ApplyProfileSettings(Sqlite3 native)
+    {
+        if (_settings.Profile == SqliteConnectionProfile.StrictSingleConnection)
+        {
+            native.SetBusyTimeout(0);
+            native.Execute("PRAGMA foreign_keys=ON;");
+            return;
+        }
+
+        native.SetBusyTimeout(Math.Max(DefaultBusyTimeoutMs, _settings.BusyTimeout));
+        native.Execute("PRAGMA foreign_keys=ON;");
+        native.Execute("PRAGMA journal_mode=WAL;");
     }
 }
