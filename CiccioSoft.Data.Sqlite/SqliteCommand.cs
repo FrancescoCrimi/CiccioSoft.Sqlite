@@ -139,18 +139,41 @@ public class SqliteCommand : DbCommand
         }
     }
 
+    public override async Task PrepareAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        SqliteConnection conn = RequireConnection();
+        SqliteSession session = conn.GetSession();
+        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
+        try
+        {
+            using Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
+        }
+        catch (SqliteInteropException ex)
+        {
+            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
+    }
+
     protected override DbParameter CreateDbParameter() => new SqliteParameter();
 
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
         SqliteConnection conn = RequireConnection();
-        return new SqliteDataReader(this, conn.GetSession(), behavior);
+        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
     }
 
-    protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => ExecuteDbDataReader(behavior), cancellationToken);
+        SqliteConnection conn = RequireConnection();
+        return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
@@ -180,25 +203,26 @@ public class SqliteCommand : DbCommand
             return index;
         }
 
-        if (parameterName[0] is not ('@' or ':' or '$'))
+        string coreName = parameterName[0] is ('@' or ':' or '$')
+            ? parameterName.Substring(1)
+            : parameterName;
+
+        index = stmt.GetParameterIndex($"@{coreName}");
+        if (index > 0)
         {
-            index = stmt.GetParameterIndex($"@{parameterName}");
-            if (index > 0)
-            {
-                return index;
-            }
+            return index;
+        }
 
-            index = stmt.GetParameterIndex($":{parameterName}");
-            if (index > 0)
-            {
-                return index;
-            }
+        index = stmt.GetParameterIndex($":{coreName}");
+        if (index > 0)
+        {
+            return index;
+        }
 
-            index = stmt.GetParameterIndex($"${parameterName}");
-            if (index > 0)
-            {
-                return index;
-            }
+        index = stmt.GetParameterIndex($"${coreName}");
+        if (index > 0)
+        {
+            return index;
         }
 
         throw new InvalidOperationException($"Parameter '{parameterName}' does not exist in the command text.");
@@ -218,11 +242,22 @@ public class SqliteCommand : DbCommand
             case int i: stmt.BindInt(index, i); break;
             case long l: stmt.BindLong(index, l); break;
             case short s: stmt.BindInt(index, s); break;
+            case sbyte sb: stmt.BindInt(index, sb); break;
             case byte b: stmt.BindInt(index, b); break;
+            case uint ui: stmt.BindLong(index, ui); break;
+            case ulong ul when ul <= long.MaxValue: stmt.BindLong(index, (long)ul); break;
+            case ulong ul: stmt.BindText(index, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+            case ushort us: stmt.BindInt(index, us); break;
             case bool bo: stmt.BindInt(index, bo ? 1 : 0); break;
             case float f: stmt.BindDouble(index, f); break;
             case double d: stmt.BindDouble(index, d); break;
             case decimal m: stmt.BindText(index, m.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+            case char c: stmt.BindText(index, c.ToString()); break;
+            case Guid guid: stmt.BindText(index, guid.ToString("D").ToUpperInvariant()); break;
+            case DateTime dateTime: stmt.BindText(index, dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case DateTimeOffset dateTimeOffset: stmt.BindText(index, dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case TimeSpan timeSpan: stmt.BindText(index, timeSpan.ToString("c", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, System.Globalization.CultureInfo.InvariantCulture)); break;
             case byte[] bytes: stmt.BindBlob(index, bytes); break;
             default: stmt.BindText(index, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty); break;
         }
