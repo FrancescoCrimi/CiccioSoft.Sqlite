@@ -42,6 +42,7 @@ This repository is organized into two main layers:
 
 - The provider serializes native SQLite access internally and is designed to be thread-safe by default for typical concurrent usage from async/sync ADO.NET APIs.
 - Async methods are non-blocking for the caller and support cancellation via token-driven native interrupt where applicable.
+- `SqliteCommand.CommandTimeout` is enforced on the full command execution scope (statement preparation + execution/reader lifecycle), with native interrupt on timeout. `0` means no timeout, values greater than `0` are interpreted as seconds.
 - `Journal Mode` can be configured via connection string (for example `Journal Mode=WAL`) and is applied at connection open.
 
 ## 🚀 Quick Start

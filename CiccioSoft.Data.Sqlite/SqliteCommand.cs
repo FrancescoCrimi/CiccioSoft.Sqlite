@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Sqlite.Interop;
+using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -30,7 +31,16 @@ public class SqliteCommand : DbCommand
         get => _commandText;
         set => _commandText = value ?? string.Empty;
     }
-    public override int CommandTimeout { get; set; } = 30;
+
+    private int _commandTimeout = 30;
+    public override int CommandTimeout
+    {
+        get => _commandTimeout;
+        set => _commandTimeout = value < 0
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
+            : value;
+    }
+
     private CommandType _commandType = CommandType.Text;
 
     public override CommandType CommandType
@@ -46,6 +56,7 @@ public class SqliteCommand : DbCommand
             _commandType = value;
         }
     }
+
     public override bool DesignTimeVisible { get; set; }
     public override UpdateRowSource UpdatedRowSource { get; set; }
 
@@ -86,13 +97,10 @@ public class SqliteCommand : DbCommand
         session.Gate.Wait();
         try
         {
-            using Sqlite3Stmt stmt = PrepareAndBind(session);
-            while (stmt.Step()) { }
+            using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+            using Sqlite3Stmt stmt = scope.Execute(() => PrepareAndBind(session));
+            while (scope.Execute(stmt.Step)) { }
             return session.Native.Changes();
-        }
-        catch (SqliteInteropException ex)
-        {
-            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
         }
         finally
         {
@@ -111,16 +119,12 @@ public class SqliteCommand : DbCommand
         SqliteConnection conn = RequireConnection();
         SqliteSession session = conn.GetSession();
         await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
         try
         {
-            using Sqlite3Stmt stmt = PrepareAndBind(session);
-            while (stmt.Step()) { cancellationToken.ThrowIfCancellationRequested(); }
+            using CommandExecutionScope scope = CreateExecutionScope(session, cancellationToken);
+            using Sqlite3Stmt stmt = scope.Execute(() => PrepareAndBind(session));
+            while (scope.Execute(stmt.Step)) { }
             return session.Native.Changes();
-        }
-        catch (SqliteInteropException ex)
-        {
-            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
         }
         finally
         {
@@ -141,11 +145,8 @@ public class SqliteCommand : DbCommand
         session.Gate.Wait();
         try
         {
-            using Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
-        }
-        catch (SqliteInteropException ex)
-        {
-            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+            using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
         }
         finally
         {
@@ -160,19 +161,96 @@ public class SqliteCommand : DbCommand
         SqliteConnection conn = RequireConnection();
         SqliteSession session = conn.GetSession();
         await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
         try
         {
-            using Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
-        }
-        catch (SqliteInteropException ex)
-        {
-            throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            using CommandExecutionScope scope = CreateExecutionScope(session, cancellationToken);
+            using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
         }
         finally
         {
             session.Gate.Release();
         }
+    }
+
+    internal CommandExecutionScope CreateExecutionScope(SqliteSession session, CancellationToken cancellationToken)
+        => new(this, session, cancellationToken);
+
+    internal sealed class CommandExecutionScope : IDisposable
+    {
+        private readonly SqliteCommand _command;
+        private readonly CancellationToken _externalCancellationToken;
+        private readonly SqliteSession _session;
+        private readonly CancellationTokenSource _timeoutSource;
+        private readonly CancellationTokenSource _linkedSource;
+        private readonly CancellationTokenRegistration _timeoutRegistration;
+        private readonly CancellationTokenRegistration _interruptRegistration;
+        private bool _timeoutTriggered;
+
+        public CommandExecutionScope(SqliteCommand command, SqliteSession session, CancellationToken cancellationToken)
+        {
+            _command = command;
+            _session = session;
+            _externalCancellationToken = cancellationToken;
+            _timeoutSource = command.CreateTimeoutSource();
+            _linkedSource = _timeoutSource.Token.CanBeCanceled
+                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _timeoutSource.Token)
+                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            _timeoutRegistration = _timeoutSource.Token.Register(() => _timeoutTriggered = true);
+            _interruptRegistration = _linkedSource.Token.Register(() => session.Native.Interrupt());
+        }
+
+        public T Execute<T>(Func<T> operation, CancellationToken operationCancellationToken = default)
+        {
+            bool operationCanceled = false;
+            using CancellationTokenRegistration operationRegistration = operationCancellationToken.CanBeCanceled
+                ? operationCancellationToken.Register(() => operationCanceled = true)
+                : default;
+            using CancellationTokenRegistration operationInterruptRegistration = operationCancellationToken.CanBeCanceled
+                ? operationCancellationToken.Register(() => _session.Native.Interrupt())
+                : default;
+
+            try
+            {
+                _externalCancellationToken.ThrowIfCancellationRequested();
+                operationCancellationToken.ThrowIfCancellationRequested();
+                return operation();
+            }
+            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            {
+                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), SQLITE_INTERRUPT, ex.ExtendedErrorCode, ex);
+            }
+            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            {
+                throw new OperationCanceledException(operationCancellationToken);
+            }
+            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            {
+                throw new OperationCanceledException(_externalCancellationToken);
+            }
+            catch (SqliteInteropException ex)
+            {
+                throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            }
+        }
+
+        public void Dispose()
+        {
+            _interruptRegistration.Dispose();
+            _timeoutRegistration.Dispose();
+            _linkedSource.Dispose();
+            _timeoutSource.Dispose();
+        }
+    }
+
+    private CancellationTokenSource CreateTimeoutSource()
+    {
+        if (CommandTimeout <= 0)
+        {
+            return new CancellationTokenSource();
+        }
+
+        return new CancellationTokenSource(TimeSpan.FromSeconds(CommandTimeout));
     }
 
     protected override DbParameter CreateDbParameter() => new SqliteParameter();
@@ -278,49 +356,4 @@ public class SqliteCommand : DbCommand
     }
 
     private SqliteConnection RequireConnection() => _connection ?? throw new InvalidOperationException("Connection is required.");
-}
-
-internal sealed class SqliteParameterCollection : DbParameterCollection
-{
-    private readonly List<DbParameter> _items = new();
-
-    public override int Count => _items.Count;
-    public override object SyncRoot => ((ICollection)_items).SyncRoot;
-
-    public override int Add(object value)
-    {
-        _items.Add((DbParameter)value);
-        return _items.Count - 1;
-    }
-
-    public override void AddRange(Array values)
-    {
-        foreach (object value in values) Add(value);
-    }
-
-    public override void Clear() => _items.Clear();
-    public override bool Contains(object value) => _items.Contains((DbParameter)value);
-    public override bool Contains(string value) => IndexOf(value) >= 0;
-    public override void CopyTo(Array array, int index) => ((ICollection)_items).CopyTo(array, index);
-    public override IEnumerator GetEnumerator() => _items.GetEnumerator();
-    public override int IndexOf(object value) => _items.IndexOf((DbParameter)value);
-    public override int IndexOf(string parameterName) => _items.FindIndex(p => string.Equals(p.ParameterName, parameterName, StringComparison.OrdinalIgnoreCase));
-    public override void Insert(int index, object value) => _items.Insert(index, (DbParameter)value);
-    public override void Remove(object value) => _items.Remove((DbParameter)value);
-    public override void RemoveAt(int index) => _items.RemoveAt(index);
-    public override void RemoveAt(string parameterName)
-    {
-        int idx = IndexOf(parameterName);
-        if (idx >= 0) _items.RemoveAt(idx);
-    }
-
-    protected override DbParameter GetParameter(int index) => _items[index];
-    protected override DbParameter GetParameter(string parameterName) => _items[IndexOf(parameterName)];
-    protected override void SetParameter(int index, DbParameter value) => _items[index] = value;
-    protected override void SetParameter(string parameterName, DbParameter value)
-    {
-        int idx = IndexOf(parameterName);
-        if (idx >= 0) _items[idx] = value;
-        else _items.Add(value);
-    }
 }

@@ -15,17 +15,24 @@ public class SqliteDataReader : DbDataReader
     private readonly SqliteSession _session;
     private readonly System.Data.CommandBehavior _behavior;
     private readonly Sqlite3Stmt _stmt;
+    private readonly SqliteCommand.CommandExecutionScope _executionScope;
     private bool _hasRow;
     private bool _prefetched;
     private bool _readStarted;
     private bool _closed;
 
-    private SqliteDataReader(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior, Sqlite3Stmt stmt)
+    private SqliteDataReader(
+        SqliteCommand command,
+        SqliteSession session,
+        System.Data.CommandBehavior behavior,
+        Sqlite3Stmt stmt,
+        SqliteCommand.CommandExecutionScope executionScope)
     {
         _command = command;
         _session = session;
         _behavior = behavior;
         _stmt = stmt;
+        _executionScope = executionScope;
     }
 
     internal static SqliteDataReader Create(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
@@ -33,8 +40,19 @@ public class SqliteDataReader : DbDataReader
         session.Gate.Wait();
         try
         {
-            Sqlite3Stmt stmt = command.PrepareAndBind(session);
-            return new SqliteDataReader(command, session, behavior, stmt);
+            SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
+            Sqlite3Stmt stmt;
+            try
+            {
+                stmt = scope.Execute(() => command.PrepareAndBind(session));
+            }
+            catch
+            {
+                scope.Dispose();
+                throw;
+            }
+
+            return new SqliteDataReader(command, session, behavior, stmt, scope);
         }
         catch
         {
@@ -48,9 +66,19 @@ public class SqliteDataReader : DbDataReader
         await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
-            Sqlite3Stmt stmt = command.PrepareAndBind(session);
-            return new SqliteDataReader(command, session, behavior, stmt);
+            SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, cancellationToken);
+            Sqlite3Stmt stmt;
+            try
+            {
+                stmt = scope.Execute(() => command.PrepareAndBind(session));
+            }
+            catch
+            {
+                scope.Dispose();
+                throw;
+            }
+
+            return new SqliteDataReader(command, session, behavior, stmt, scope);
         }
         catch
         {
@@ -72,6 +100,7 @@ public class SqliteDataReader : DbDataReader
             return _hasRow;
         }
     }
+
     public override bool IsClosed => _closed;
     public override int RecordsAffected => -1;
 
@@ -178,7 +207,7 @@ public class SqliteDataReader : DbDataReader
         }
         else
         {
-            _hasRow = _stmt.Step();
+            _hasRow = _executionScope.Execute(_stmt.Step);
         }
 
         if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
@@ -192,10 +221,26 @@ public class SqliteDataReader : DbDataReader
     public override Task<bool> ReadAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
         return Task.Run(() =>
         {
-            using CancellationTokenRegistration reg = cancellationToken.Register(() => _session.Native.Interrupt());
-            return Read();
+            EnsureOpen();
+            _readStarted = true;
+            if (_prefetched)
+            {
+                _prefetched = false;
+            }
+            else
+            {
+                _hasRow = _executionScope.Execute(_stmt.Step, cancellationToken);
+            }
+
+            if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
+            {
+                Close();
+            }
+
+            return _hasRow;
         }, cancellationToken);
     }
 
@@ -204,6 +249,7 @@ public class SqliteDataReader : DbDataReader
         if (_closed) return;
         _closed = true;
         _stmt.Dispose();
+        _executionScope.Dispose();
         _session.Gate.Release();
         if (_behavior.HasFlag(System.Data.CommandBehavior.CloseConnection))
         {
@@ -217,7 +263,6 @@ public class SqliteDataReader : DbDataReader
         return Task.CompletedTask;
     }
 
-    // non override don't exist
     public bool IsDBNull(string name) => IsDBNull(GetOrdinal(name));
 
     protected override void Dispose(bool disposing)
@@ -236,7 +281,7 @@ public class SqliteDataReader : DbDataReader
         if (_prefetched || _readStarted)
             return;
 
-        _hasRow = _stmt.Step();
+        _hasRow = _executionScope.Execute(_stmt.Step);
         _prefetched = true;
     }
 }

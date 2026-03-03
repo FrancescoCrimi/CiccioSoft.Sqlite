@@ -58,6 +58,14 @@ namespace CiccioSoft.Data.Sqlite.Properties
             => GetString("CannotStoreNaN");
 
         /// <summary>
+        ///     The command execution exceeded the configured CommandTimeout of {timeoutSeconds} second(s).
+        /// </summary>
+        public static string CommandTimedOut(object? timeoutSeconds)
+            => string.Format(
+                GetString("CommandTimedOut", nameof(timeoutSeconds)),
+                timeoutSeconds);
+
+        /// <summary>
         ///     ConnectionString cannot be set when the connection is open.
         /// </summary>
         public static string ConnectionStringRequiresClosedConnection
