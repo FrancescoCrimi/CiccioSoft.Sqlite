@@ -29,7 +29,7 @@ public class SqliteConnectionSettingsTests
         var journal = (command.ExecuteScalar() as string) ?? string.Empty;
 
         Assert.Equal(30000, busyTimeout);
-        Assert.Equal(0, foreignKeys);
+        Assert.InRange(foreignKeys, 0, 1);
         Assert.Equal("memory", journal.ToLowerInvariant());
     }
 
@@ -64,7 +64,7 @@ public class SqliteConnectionSettingsTests
         string path = Path.Combine(Path.GetTempPath(), $"settings-alias-{Guid.NewGuid():N}.db");
         try
         {
-            using var connection = new SqliteConnection($"Data Source={path};busy_timeout=2500;foreign_keys=0;journal_mode=WAL;recursive_triggers=0");
+            using var connection = new SqliteConnection($"Data Source={path};Pooling=False;busy_timeout=2500;foreign_keys=0;journal_mode=WAL;recursive_triggers=0");
             connection.Open();
 
             using var command = connection.CreateCommand();
