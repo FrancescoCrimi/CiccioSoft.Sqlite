@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 // Copyright (c) 2026 Francesco Crimi
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
