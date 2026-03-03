@@ -95,10 +95,10 @@ public class SqliteParameterTests
 
     [Theory]
     [MemberData(nameof(TypesData))]
-    public void SqliteType_is_inferred_from_value(object value, SqliteType expectedType)
+    public void SqliteType_is_inferred_from_value(object value, DbType expectedType)
     {
         var parameter = new SqliteParameter { Value = value };
-        Assert.Equal(expectedType, parameter.SqliteType);
+        Assert.Equal(expectedType, parameter.DbType);
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class SqliteParameterTests
     [Theory]
     [InlineData(true, 1L)]
     [InlineData((byte)1, 1L)]
-    [InlineData('A', 65L, SqliteType.Integer)]
+    [InlineData('A', 65L, DbType.Int64)]
     [InlineData('A', "A")]
     [InlineData(3.14, 3.14)]
     [InlineData(3f, 3.0)]
@@ -227,16 +227,16 @@ public class SqliteParameterTests
     [InlineData(double.PositiveInfinity, double.PositiveInfinity)]
     [InlineData(float.NegativeInfinity, double.NegativeInfinity)]
     [InlineData(float.PositiveInfinity, double.PositiveInfinity)]
-    public void Bind_works(object value, object coercedValue, SqliteType? sqliteType = null)
+    public void Bind_works(object value, object coercedValue, DbType? dbType = null)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
             var command = connection.CreateCommand();
             command.CommandText = "SELECT @Parameter;";
             var sqliteParameter = command.Parameters.AddWithValue("@Parameter", value);
-            if (sqliteType.HasValue)
+            if (dbType.HasValue)
             {
-                sqliteParameter.SqliteType = sqliteType.Value;
+                sqliteParameter.DbType = dbType.Value;
             }
 
             connection.Open();
