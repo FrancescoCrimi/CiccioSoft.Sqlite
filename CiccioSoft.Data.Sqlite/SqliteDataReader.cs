@@ -131,11 +131,17 @@ public class SqliteDataReader : DbDataReader
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
     {
         EnsureHasRow();
+        ValidateOrdinal(ordinal);
 
         ReadOnlySpan<byte> blob = Stmt.GetBlob(ordinal);
+        if (buffer is null)
+        {
+            return blob.Length;
+        }
+
         int available = Math.Max(0, blob.Length - (int)dataOffset);
         int toCopy = Math.Min(length, available);
-        if (buffer is not null && toCopy > 0)
+        if (toCopy > 0)
         {
             blob.Slice((int)dataOffset, toCopy).CopyTo(buffer.AsSpan(bufferOffset, toCopy));
         }
@@ -143,16 +149,28 @@ public class SqliteDataReader : DbDataReader
         return available;
     }
 
-    public override char GetChar(int ordinal) => GetString(ordinal)[0];
+    public override char GetChar(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return GetString(ordinal)[0];
+    }
 
     public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length)
     {
         EnsureHasRow();
+        ValidateOrdinal(ordinal);
 
         string s = GetString(ordinal);
+        if (buffer is null)
+        {
+            return s.Length;
+        }
+
         int available = Math.Max(0, s.Length - (int)dataOffset);
         int toCopy = Math.Min(length, available);
-        if (buffer is not null && toCopy > 0)
+        if (toCopy > 0)
         {
             s.AsSpan((int)dataOffset, toCopy).CopyTo(buffer.AsSpan(bufferOffset, toCopy));
         }
@@ -162,6 +180,9 @@ public class SqliteDataReader : DbDataReader
 
     public override string GetDataTypeName(int ordinal)
     {
+        EnsureOpen();
+        ValidateOrdinal(ordinal);
+
         string? declaredType = Stmt.GetColumnDeclType(ordinal);
         if (!string.IsNullOrWhiteSpace(declaredType))
         {
@@ -490,6 +511,14 @@ public class SqliteDataReader : DbDataReader
         if (!_readStarted || !_hasRow)
         {
             throw new InvalidOperationException(Resources.NoData);
+        }
+    }
+
+    private void ValidateOrdinal(int ordinal)
+    {
+        if (ordinal < 0 || ordinal >= FieldCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
         }
     }
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
