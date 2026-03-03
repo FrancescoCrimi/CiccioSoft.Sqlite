@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
@@ -139,6 +140,41 @@ public class SqliteConnection : DbConnection
         return Task.CompletedTask;
     }
 
+    public override DataTable GetSchema()
+    {
+        return GetSchema(DbMetaDataCollectionNames.MetaDataCollections);
+    }
+
+    public override DataTable GetSchema(string collectionName)
+    {
+        if (!TryNormalizeCollectionName(collectionName, out string normalizedCollectionName))
+        {
+            throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
+        }
+
+        return normalizedCollectionName switch
+        {
+            DbMetaDataCollectionNames.MetaDataCollections => CreateMetaDataCollectionsTable(),
+            DbMetaDataCollectionNames.ReservedWords => CreateReservedWordsTable(),
+            _ => throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName))
+        };
+    }
+
+    public override DataTable GetSchema(string collectionName, string?[]? restrictionValues)
+    {
+        if (!TryNormalizeCollectionName(collectionName, out string normalizedCollectionName))
+        {
+            throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
+        }
+
+        if (restrictionValues is { Length: > 0 })
+        {
+            throw new ArgumentException(Resources.TooManyRestrictions(normalizedCollectionName), nameof(restrictionValues));
+        }
+
+        return GetSchema(normalizedCollectionName);
+    }
+
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
     {
         EnsureOpen();
@@ -170,6 +206,47 @@ public class SqliteConnection : DbConnection
     {
         if (_state != ConnectionState.Open || _session is null)
             throw new InvalidOperationException("Connection is not open.");
+    }
+
+
+    private static bool TryNormalizeCollectionName(string? collectionName, out string normalizedCollectionName)
+    {
+        if (string.Equals(collectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedCollectionName = DbMetaDataCollectionNames.MetaDataCollections;
+            return true;
+        }
+
+        if (string.Equals(collectionName, DbMetaDataCollectionNames.ReservedWords, StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedCollectionName = DbMetaDataCollectionNames.ReservedWords;
+            return true;
+        }
+
+        normalizedCollectionName = string.Empty;
+        return false;
+    }
+
+    private static DataTable CreateMetaDataCollectionsTable()
+    {
+        var table = new DataTable(DbMetaDataCollectionNames.MetaDataCollections);
+        table.Columns.Add(DbMetaDataColumnNames.CollectionName, typeof(string));
+        table.Columns.Add(DbMetaDataColumnNames.NumberOfRestrictions, typeof(int));
+        table.Columns.Add(DbMetaDataColumnNames.NumberOfIdentifierParts, typeof(int));
+
+        table.Rows.Add(DbMetaDataCollectionNames.MetaDataCollections, 0, 0);
+        table.Rows.Add(DbMetaDataCollectionNames.ReservedWords, 0, 0);
+
+        return table;
+    }
+
+    private static DataTable CreateReservedWordsTable()
+    {
+        var table = new DataTable(DbMetaDataCollectionNames.ReservedWords);
+        table.Columns.Add(DbMetaDataColumnNames.ReservedWord, typeof(string));
+        table.Rows.Add("SELECT");
+
+        return table;
     }
 
     private bool IsPoolingEnabled()
