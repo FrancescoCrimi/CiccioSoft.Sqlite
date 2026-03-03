@@ -1962,9 +1962,9 @@ public class SqliteDataReaderTests
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.ColumnName));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.ColumnOrdinal));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.DataType));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.DataTypeName));
+                Assert.True(schema.Columns.Contains("DataTypeName"));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.AllowDBNull));
-                Assert.True(schema.Columns.Contains(SchemaTableOptionalColumn.IsKey));
+                Assert.True(schema.Columns.Contains("IsKey"));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.BaseTableName));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.BaseColumnName));
                 Assert.True(schema.Columns.Contains(SchemaTableColumn.IsAliased));
@@ -1975,7 +1975,7 @@ public class SqliteDataReaderTests
                 Assert.Equal("LastName", schema.Rows[0][SchemaTableColumn.ColumnName]);
                 Assert.Equal(0, schema.Rows[0][SchemaTableColumn.ColumnOrdinal]);
                 Assert.Equal(typeof(string), schema.Rows[0][SchemaTableColumn.DataType]);
-                Assert.Equal("TEXT", schema.Rows[0][SchemaTableColumn.DataTypeName]);
+                Assert.Equal("TEXT", schema.Rows[0]["DataTypeName"]);
                 Assert.Equal("Person", schema.Rows[0][SchemaTableColumn.BaseTableName]);
                 Assert.Equal("LastName", schema.Rows[0][SchemaTableColumn.BaseColumnName]);
                 Assert.False((bool)schema.Rows[0][SchemaTableColumn.IsAliased]);
@@ -1984,17 +1984,17 @@ public class SqliteDataReaderTests
                 Assert.Equal("ID", schema.Rows[1][SchemaTableColumn.ColumnName]);
                 Assert.Equal(1, schema.Rows[1][SchemaTableColumn.ColumnOrdinal]);
                 Assert.Equal(typeof(long), schema.Rows[1][SchemaTableColumn.DataType]);
-                Assert.Equal("INTEGER", schema.Rows[1][SchemaTableColumn.DataTypeName]);
+                Assert.Equal("INTEGER", schema.Rows[1]["DataTypeName"]);
 
                 Assert.Equal("Code", schema.Rows[2][SchemaTableColumn.ColumnName]);
                 Assert.Equal(2, schema.Rows[2][SchemaTableColumn.ColumnOrdinal]);
                 Assert.Equal(typeof(long), schema.Rows[2][SchemaTableColumn.DataType]);
-                Assert.Equal("INT", schema.Rows[2][SchemaTableColumn.DataTypeName]);
+                Assert.Equal("INT", schema.Rows[2]["DataTypeName"]);
 
                 Assert.Equal("IncID", schema.Rows[3][SchemaTableColumn.ColumnName]);
                 Assert.Equal(3, schema.Rows[3][SchemaTableColumn.ColumnOrdinal]);
                 Assert.Equal(typeof(long), schema.Rows[3][SchemaTableColumn.DataType]);
-                Assert.Equal("INTEGER", schema.Rows[3][SchemaTableColumn.DataTypeName]);
+                Assert.Equal("INTEGER", schema.Rows[3]["DataTypeName"]);
                 Assert.True((bool)schema.Rows[3][SchemaTableColumn.IsAliased]);
                 Assert.True((bool)schema.Rows[3][SchemaTableColumn.IsExpression]);
             }

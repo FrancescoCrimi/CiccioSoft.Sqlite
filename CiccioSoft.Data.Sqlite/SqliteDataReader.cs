@@ -13,6 +13,10 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteDataReader : DbDataReader
 {
+    private const string SchemaDataTypeNameColumn = "DataTypeName";
+    private const string SchemaIsKeyColumn = "IsKey";
+    private const string SchemaIsUniqueColumn = "IsUnique";
+
     private readonly SqliteCommand _command;
     private readonly SqliteSession _session;
     private readonly System.Data.CommandBehavior _behavior;
@@ -269,10 +273,10 @@ public class SqliteDataReader : DbDataReader
         schemaTable.Columns.Add(SchemaTableColumn.ColumnName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.ColumnOrdinal, typeof(int));
         schemaTable.Columns.Add(SchemaTableColumn.DataType, typeof(Type));
-        schemaTable.Columns.Add(SchemaTableColumn.DataTypeName, typeof(string));
+        schemaTable.Columns.Add(SchemaDataTypeNameColumn, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.AllowDBNull, typeof(bool));
-        schemaTable.Columns.Add(SchemaTableOptionalColumn.IsKey, typeof(bool));
-        schemaTable.Columns.Add(SchemaTableOptionalColumn.IsUnique, typeof(bool));
+        schemaTable.Columns.Add(SchemaIsKeyColumn, typeof(bool));
+        schemaTable.Columns.Add(SchemaIsUniqueColumn, typeof(bool));
         schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.BaseTableName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.BaseColumnName, typeof(string));
@@ -293,10 +297,10 @@ public class SqliteDataReader : DbDataReader
             row[SchemaTableColumn.ColumnName] = columnName;
             row[SchemaTableColumn.ColumnOrdinal] = ordinal;
             row[SchemaTableColumn.DataType] = GetFieldTypeFromDeclaration(ordinal);
-            row[SchemaTableColumn.DataTypeName] = GetDataTypeName(ordinal);
+            row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
             row[SchemaTableColumn.AllowDBNull] = true;
-            row[SchemaTableOptionalColumn.IsKey] = false;
-            row[SchemaTableOptionalColumn.IsUnique] = false;
+            row[SchemaIsKeyColumn] = false;
+            row[SchemaIsUniqueColumn] = false;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
             row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
             row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
