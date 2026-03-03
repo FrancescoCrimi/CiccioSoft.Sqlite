@@ -31,5 +31,6 @@ opinionated design (Default + StrictSingleConnection profiles, no full keyword/o
 These suites are wrapped in `#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS` and can be re-enabled later.
 
 ## Notes
+- `SqliteConnection` custom SQL function/aggregate API parity (`CreateFunction`, `CreateAggregate`) is intentionally out of scope for this provider and related tests were removed.
 - Binding-related tests with missing implementation are intentionally kept in place, per roadmap.
 - When interop/binding work lands, remove deferrals incrementally and adapt expectations explicitly.

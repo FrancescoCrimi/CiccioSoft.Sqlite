@@ -1761,16 +1761,14 @@ public class SqliteDataReaderTest
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
-            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
-
             var sql = @"
                     SELECT 1;
-                    SELECT throw('An error');
+                    SELECT missing_function('An error');
                     INSERT INTO Test VALUES (1);";
             using (var reader = connection.ExecuteReader(sql))
             {
                 var ex = Assert.Throws<SqliteException>(() => reader.NextResult());
-                Assert.Contains("An error", ex.Message);
+                Assert.Contains("missing_function", ex.Message);
             }
 
             Assert.Equal(0L, connection.ExecuteScalar<long>("SELECT count() FROM Test;"));
@@ -2231,8 +2229,6 @@ public class SqliteDataReaderTest
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
-            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
-
             var reader = connection.ExecuteReader(
                 @"
                     SELECT 1;
@@ -2251,12 +2247,10 @@ public class SqliteDataReaderTest
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
-            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
-
             var reader = connection.ExecuteReader(
                 @"
                     SELECT 1;
-                    SELECT throw('An error');
+                    SELECT missing_function('An error');
                     INSERT INTO Test VALUES (1);");
             ((IDisposable)reader).Dispose();
 
