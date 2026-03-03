@@ -59,7 +59,8 @@ public class SqliteTransactionSemanticsTests
 
         ArgumentException ex = Assert.Throws<ArgumentException>(() => connection.BeginTransaction(isolationLevel));
 
-        Assert.Equal(Resources.InvalidIsolationLevel(isolationLevel), ex.Message);
+        Assert.StartsWith(Resources.InvalidIsolationLevel(isolationLevel), ex.Message, StringComparison.Ordinal);
+        Assert.Equal("isolationLevel", ex.ParamName);
     }
 
     [Fact]
