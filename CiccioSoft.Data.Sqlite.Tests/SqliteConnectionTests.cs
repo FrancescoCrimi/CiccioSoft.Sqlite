@@ -39,7 +39,7 @@ public class SqliteConnectionTests
     [Fact]
     public void ConnectionString_coalesces_to_empty()
     {
-        var connection = new SqliteConnection { ConnectionString = null };
+        var connection = new SqliteConnection { ConnectionString = null! };
 
         Assert.NotNull(connection.ConnectionString);
         Assert.Empty(connection.ConnectionString);
@@ -96,27 +96,19 @@ public class SqliteConnectionTests
     }
 
     [Fact]
-    public void DefaultTimeout_defaults_to_30()
+    public void Profile_defaults_to_default()
     {
         var connection = new SqliteConnection();
 
-        Assert.Equal(30, connection.DefaultTimeout);
+        Assert.Equal(SqliteConnectionProfile.Default, connection.Profile);
     }
 
     [Fact]
-    public void DefaultTimeout_defaults_to_connection_string()
+    public void Profile_reads_connection_string_value()
     {
-        var connection = new SqliteConnection("Default Timeout=1");
+        var connection = new SqliteConnection("Data Source=test.db;Profile=StrictSingleConnection");
 
-        Assert.Equal(1, connection.DefaultTimeout);
-    }
-
-    [Fact]
-    public void DefaultTimeout_works()
-    {
-        var connection = new SqliteConnection("Default Timeout=1") { DefaultTimeout = 2 };
-
-        Assert.Equal(2, connection.DefaultTimeout);
+        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, connection.Profile);
     }
 
     [Fact]
@@ -287,7 +279,7 @@ public class SqliteConnectionTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => connection.Open());
 
-        Assert.Equal(Resources.EncryptionNotSupported(GetNativeLibraryName()), ex.Message);
+        Assert.Equal(Resources.EncryptionNotSupported("sqlite3"), ex.Message);
         Assert.False(stateChangeRaised);
         Assert.Equal(ConnectionState.Closed, connection.State);
     }

@@ -69,7 +69,7 @@ public class SqliteParameterCollectionContractTests
     public void AddRange_keeps_successfully_added_items_before_failure()
     {
         var command = new SqliteCommand();
-        var parameters = (IList)command.Parameters;
+        DbParameterCollection parameters = command.Parameters;
 
         var values = new object[]
         {
