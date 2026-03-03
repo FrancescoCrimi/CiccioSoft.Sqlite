@@ -23,6 +23,77 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string RecursiveTriggersKey = "Recursive Triggers";
     private const string RecursiveTriggersPragmaKey = "recursive_triggers";
 
+    public SqliteConnectionStringBuilder()
+    {
+        base[DataSourceKey] = string.Empty;
+        base[PoolingKey] = true;
+        base[MaxPoolSizeKey] = 100;
+        base[BusyTimeoutKey] = 30000;
+        base[JournalModeKey] = string.Empty;
+    }
+
+    public override object this[string keyword]
+    {
+        get
+        {
+            if (keyword is null)
+            {
+                throw new ArgumentNullException(nameof(keyword));
+            }
+
+            return keyword switch
+            {
+                DataSourceKey => DataSource,
+                PoolingKey => Pooling,
+                MaxPoolSizeKey => MaxPoolSize,
+                BusyTimeoutKey or BusyTimeoutPragmaKey => BusyTimeout,
+                JournalModeKey or JournalModePragmaKey => JournalMode,
+                ForeignKeysKey or ForeignKeysPragmaKey => ForeignKeys ?? false,
+                RecursiveTriggersKey or RecursiveTriggersPragmaKey => RecursiveTriggers ?? false,
+                _ => base[keyword]
+            };
+        }
+        set
+        {
+            if (keyword is null)
+            {
+                throw new ArgumentNullException(nameof(keyword));
+            }
+
+            switch (keyword)
+            {
+                case DataSourceKey:
+                    DataSource = Convert.ToString(value) ?? string.Empty;
+                    break;
+                case PoolingKey:
+                    Pooling = Convert.ToBoolean(value);
+                    break;
+                case MaxPoolSizeKey:
+                    MaxPoolSize = Convert.ToInt32(value);
+                    break;
+                case BusyTimeoutKey:
+                case BusyTimeoutPragmaKey:
+                    BusyTimeout = Convert.ToInt32(value);
+                    break;
+                case JournalModeKey:
+                case JournalModePragmaKey:
+                    JournalMode = Convert.ToString(value) ?? string.Empty;
+                    break;
+                case ForeignKeysKey:
+                case ForeignKeysPragmaKey:
+                    ForeignKeys = ConvertToNullableBoolean(value);
+                    break;
+                case RecursiveTriggersKey:
+                case RecursiveTriggersPragmaKey:
+                    RecursiveTriggers = ConvertToNullableBoolean(value);
+                    break;
+                default:
+                    base[keyword] = value;
+                    break;
+            }
+        }
+    }
+
     public string DataSource
     {
         get => TryGetValue(DataSourceKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
@@ -138,5 +209,31 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 
         Remove(key);
         Remove(pragmaKey);
+    }
+
+    private static bool? ConvertToNullableBoolean(object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (value is bool typed)
+        {
+            return typed;
+        }
+
+        string text = Convert.ToString(value) ?? string.Empty;
+        if (string.Equals(text, "1", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (string.Equals(text, "0", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return Convert.ToBoolean(value);
     }
 }
