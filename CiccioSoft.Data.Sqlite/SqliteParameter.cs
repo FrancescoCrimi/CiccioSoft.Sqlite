@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using CiccioSoft.Data.Sqlite.Properties;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -16,7 +17,19 @@ public class SqliteParameter : DbParameter
     }
 
     public override DbType DbType { get; set; } = DbType.Object;
-    public override ParameterDirection Direction { get; set; } = ParameterDirection.Input;
+    private ParameterDirection _direction = ParameterDirection.Input;
+    public override ParameterDirection Direction
+    {
+        get => _direction;
+        set => _direction = value switch
+        {
+            ParameterDirection.Input or
+            ParameterDirection.Output or
+            ParameterDirection.InputOutput or
+            ParameterDirection.ReturnValue => value,
+            _ => throw new ArgumentException(Resources.InvalidParameterDirection(value))
+        };
+    }
     public override bool IsNullable { get; set; }
     private string _parameterName = string.Empty;
     private string _sourceColumn = string.Empty;
