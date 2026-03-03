@@ -1,4 +1,10 @@
-﻿using System.Data.Common;
+﻿// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+using System.Data.Common;
 
 namespace CiccioSoft.Data.Sqlite;
 
