@@ -1090,6 +1090,99 @@ CREATE TABLE "Products" (
         }
     }
 
+
+    [Fact]
+    public async Task ExecuteNonQueryAsync_honors_CommandTimeout()
+    {
+        using (var connection = new SqliteConnection("Data Source=:memory:"))
+        {
+            connection.Open();
+
+            connection.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (0);");
+
+            using (connection.ExecuteReader("SELECT * FROM Data;"))
+            {
+                var command = connection.CreateCommand();
+                command.CommandText = "DROP TABLE Data;";
+                command.CommandTimeout = 1;
+
+                var stopwatch = Stopwatch.StartNew();
+                await Assert.ThrowsAsync<SqliteException>(() => command.ExecuteNonQueryAsync());
+                stopwatch.Stop();
+
+                Assert.InRange(stopwatch.ElapsedMilliseconds, 1000, 1999);
+            }
+        }
+    }
+
+
+    [Fact]
+    public async Task ExecuteReaderAsync_ReadAsync_can_be_canceled()
+    {
+        const string connectionString = "Data Source=command-read-cancel.db";
+        File.Delete("command-read-cancel.db");
+
+        try
+        {
+            using var writerConnection = new SqliteConnection(connectionString);
+            writerConnection.Open();
+            writerConnection.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (0);");
+            writerConnection.ExecuteNonQuery("BEGIN IMMEDIATE; UPDATE Data SET Value = 1;");
+
+            using var readerConnection = new SqliteConnection(connectionString);
+            readerConnection.Open();
+
+            var command = readerConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM Data;";
+            command.CommandTimeout = 30;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            using var cts = new CancellationTokenSource(250);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => reader.ReadAsync(cts.Token));
+        }
+        finally
+        {
+            SqliteConnection.ClearPool(new SqliteConnection(connectionString));
+            File.Delete("command-read-cancel.db");
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteReaderAsync_ReadAsync_honors_CommandTimeout()
+    {
+        const string connectionString = "Data Source=command-timeout-reader.db";
+        File.Delete("command-timeout-reader.db");
+
+        try
+        {
+            using var writerConnection = new SqliteConnection(connectionString);
+            writerConnection.Open();
+            writerConnection.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (0);");
+            writerConnection.ExecuteNonQuery("BEGIN IMMEDIATE; UPDATE Data SET Value = 1;");
+
+            using var readerConnection = new SqliteConnection(connectionString);
+            readerConnection.Open();
+
+            var command = readerConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM Data;";
+            command.CommandTimeout = 1;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var stopwatch = Stopwatch.StartNew();
+            await Assert.ThrowsAsync<SqliteException>(() => reader.ReadAsync());
+            stopwatch.Stop();
+
+            Assert.InRange(stopwatch.ElapsedMilliseconds, 1000, 1999);
+        }
+        finally
+        {
+            SqliteConnection.ClearPool(new SqliteConnection(connectionString));
+            File.Delete("command-timeout-reader.db");
+        }
+    }
+
     [Fact]
     public void ExecuteReader_honors_CommandTimeout()
     {

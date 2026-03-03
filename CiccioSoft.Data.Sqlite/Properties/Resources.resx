@@ -78,6 +78,9 @@
   <data name="CannotStoreNaN" xml:space="preserve">
     <value>Cannot store 'NaN' values.</value>
   </data>
+  <data name="CommandTimedOut" xml:space="preserve">
+    <value>The command execution exceeded the configured CommandTimeout of {timeoutSeconds} second(s).</value>
+  </data>
   <data name="ConnectionStringRequiresClosedConnection" xml:space="preserve">
     <value>ConnectionString cannot be set when the connection is open.</value>
   </data>
