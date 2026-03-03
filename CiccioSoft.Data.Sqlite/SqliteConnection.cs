@@ -289,7 +289,14 @@ public class SqliteConnection : DbConnection
 
     private int GetOpenFlags()
     {
-        return SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+        int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+
+        if (_settings.DataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+        {
+            flags |= SQLITE_OPEN_URI;
+        }
+
+        return flags;
     }
 
     private void ApplyConnectionSettings(Sqlite3 native)
