@@ -65,6 +65,8 @@ public class SqliteConnection : DbConnection
         }
     }
 
+    protected override DbProviderFactory DbProviderFactory => SqliteFactory.Instance;
+
     public override void ChangeDatabase(string databaseName)
     {
         throw new NotSupportedException("SQLite does not support changing active database through ADO.NET connection.");
