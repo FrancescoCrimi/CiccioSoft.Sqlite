@@ -1,38 +1,28 @@
-
 # CiccioSoft.Data.Sqlite.Tests – Microsoft.Data.Sqlite porting audit
 
-This file tracks which copied test suites are currently usable for `CiccioSoft.Data.Sqlite` and which are intentionally deferred.
+This file tracks which copied suites have been pruned and adapted to the current provider scope.
 
-## Kept active now (aligned with current provider direction)
+## Active suites (kept and aligned)
 - `SqliteBehaviorTests.cs`
 - `SqliteConnectionProfileTests.cs`
-- `SqliteParameterBindingParityTests.cs`
 - `SqliteExceptionTests.cs`
 - `SqliteFactoryTests.cs`
-- `SqliteTransactionSemanticsTests.cs` (provider-aligned transaction behavior and isolation mapping)
-- `SqliteDataReaderTests.cs` (reader behavior remains a parity target)
-- `SqliteCommandTests.cs` (command semantics and cancellation remain relevant)
-- `SqliteParameterTests.cs` (binding-related parity target; keep for future interop/binding completion)
+- `SqliteParameterBindingParityTests.cs`
+- `SqliteParameterCollectionContractTests.cs`
+- `SqliteParameterDirectionBehaviorTests.cs`
+- `SqliteTransactionSemanticsTests.cs`
+- `SqliteCommandTests.cs` (pruned to provider-supported command behaviors)
+- `SqliteParameterTests.cs` (pruned to provider-supported parameter contract)
+- `SqliteDataReaderTests.cs` (pruned to provider-supported reader contract)
 
-## Deferred / commented out for now
-These suites were copied from `Microsoft.Data.Sqlite` but are not aligned with the current
-opinionated design (Default + StrictSingleConnection profiles, no full keyword/options parity).
-
-- `SqliteConnectionStringBuilderTests.cs`
-  - relies on extensive keyword aliasing and mode/cache compatibility surface.
-- `SqliteConnectionTests.cs`
-  - expects Microsoft-compatible connection string and open-mode behaviors.
-- `SqliteConnectionFactoryTests.cs`
-  - expects internal handle/pooling behaviors tied to Microsoft provider contracts.
+## Deferred suites (still copied but compile-gated)
+These remain in-tree for future incremental porting, but are not part of default compilation yet:
 - `SqliteBlobTests.cs`
-  - depends on blob-stream API/features not yet in current provider scope.
+- `SqliteConnectionFactoryTests.cs`
+- `SqliteConnectionStringBuilderTests.cs`
+- `SqliteConnectionTests.cs`
 - `SqliteTransactionTests.cs`
-  - expects Microsoft-compatible savepoint/deferred APIs and richer transaction surface not yet implemented.
 
-These suites are wrapped in `#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS` and can be re-enabled later.
-
-## Notes
-- Scope decisions follow the provider policy in `PROVIDER_SCOPE.md` (ADO.NET core first, then cross-provider extras only when broadly useful).
-- `SqliteConnection` custom SQL function/aggregate API parity (`CreateFunction`, `CreateAggregate`) is intentionally out of scope for this provider and related tests were removed.
-- Binding-related tests with missing implementation are intentionally kept in place, per roadmap.
-- When interop/binding work lands, remove deferrals incrementally and adapt expectations explicitly.
+## Scope note
+No full Microsoft.Data.Sqlite compatibility contract is targeted. Tests relying on APIs not exposed by
+this provider are removed or deferred; tests covering shared ADO.NET/provider behavior are kept.

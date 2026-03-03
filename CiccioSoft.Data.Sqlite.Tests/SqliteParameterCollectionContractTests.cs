@@ -18,7 +18,7 @@ public class SqliteParameterCollectionContractTests
     public void Add_validates_null()
     {
         var command = new SqliteCommand();
-        var parameters = (IList)command.Parameters;
+        DbParameterCollection parameters = command.Parameters;
 
         Assert.Throws<ArgumentNullException>(() => parameters.Add(null!));
     }

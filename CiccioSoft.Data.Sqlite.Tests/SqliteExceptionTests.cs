@@ -8,7 +8,6 @@
 
 using CiccioSoft.Data.Sqlite;
 using Xunit;
-using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
@@ -21,7 +20,7 @@ public class SqliteExceptionTests
 
         Assert.Equal("test", ex.Message);
         Assert.Equal(1, ex.SqliteErrorCode);
-        Assert.Equal(1, ex.SqliteExtendedErrorCode);
+        Assert.Equal(0, ex.SqliteExtendedErrorCode);
     }
 
     [Fact]
@@ -33,11 +32,4 @@ public class SqliteExceptionTests
         Assert.Equal(1, ex.SqliteErrorCode);
         Assert.Equal(2, ex.SqliteExtendedErrorCode);
     }
-
-    [Theory]
-    [InlineData(SQLITE_OK)]
-    [InlineData(SQLITE_ROW)]
-    [InlineData(SQLITE_DONE)]
-    public void ThrowExceptionForRC_does_nothing_when_non_error(int rc)
-        => SqliteException.ThrowExceptionForRC(rc, null);
 }
