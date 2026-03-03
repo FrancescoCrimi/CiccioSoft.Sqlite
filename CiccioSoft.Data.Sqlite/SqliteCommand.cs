@@ -281,11 +281,21 @@ public class SqliteCommand : DbCommand
         for (int i = 0; i < _parameters.Count; i++)
         {
             SqliteParameter parameter = (SqliteParameter)_parameters[i]!;
+            ValidateParameterDirection(parameter);
             int parameterIndex = ResolveParameterIndex(stmt, parameter, i);
             BindParameter(stmt, parameterIndex, parameter);
         }
 
         return stmt;
+    }
+
+
+    private static void ValidateParameterDirection(SqliteParameter parameter)
+    {
+        if (parameter.Direction != ParameterDirection.Input)
+        {
+            throw new NotSupportedException(Resources.InvalidParameterDirection(parameter.Direction));
+        }
     }
 
     private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)

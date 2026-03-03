@@ -110,9 +110,19 @@ public class SqliteParameterTest
     [Fact]
     public void Direction_validates_value()
     {
-        var ex = Assert.Throws<ArgumentException>(() => new SqliteParameter().Direction = ParameterDirection.Output);
-        Assert.Equal(Resources.InvalidParameterDirection(ParameterDirection.Output), ex.Message);
+        const ParameterDirection invalidDirection = (ParameterDirection)999;
+
+        var ex = Assert.Throws<ArgumentException>(() => new SqliteParameter().Direction = invalidDirection);
+        Assert.Equal(Resources.InvalidParameterDirection(invalidDirection), ex.Message);
     }
+
+    [Theory]
+    [InlineData(ParameterDirection.Input)]
+    [InlineData(ParameterDirection.Output)]
+    [InlineData(ParameterDirection.InputOutput)]
+    [InlineData(ParameterDirection.ReturnValue)]
+    public void Direction_accepts_common_provider_values(ParameterDirection direction)
+        => Assert.Equal(direction, new SqliteParameter { Direction = direction }.Direction);
 
     [Fact]
     public void ResetDbType_works()
