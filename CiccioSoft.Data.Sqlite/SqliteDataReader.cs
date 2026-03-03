@@ -207,14 +207,23 @@ public class SqliteDataReader : DbDataReader
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     public override Type GetFieldType(int ordinal)
     {
-        return Stmt.GetColumnType(ordinal) switch
+        EnsureOpen();
+        ValidateOrdinal(ordinal);
+        EnsurePrefetched();
+
+        if (_hasRow)
         {
-            1 => typeof(long),
-            2 => typeof(double),
-            3 => typeof(string),
-            4 => typeof(byte[]),
-            _ => typeof(DBNull),
-        };
+            return Stmt.GetColumnType(ordinal) switch
+            {
+                1 => typeof(long),
+                2 => typeof(double),
+                3 => typeof(string),
+                4 => typeof(byte[]),
+                _ => GetFieldTypeFromDeclaration(ordinal),
+            };
+        }
+
+        return GetFieldTypeFromDeclaration(ordinal);
     }
 
     public override float GetFloat(int ordinal) => (float)GetDouble(ordinal);
@@ -527,7 +536,7 @@ public class SqliteDataReader : DbDataReader
         string? declaredType = Stmt.GetColumnDeclType(ordinal);
         if (string.IsNullOrWhiteSpace(declaredType))
         {
-            return GetFieldType(ordinal);
+            return typeof(byte[]);
         }
 
         string typeName = declaredType.Trim().ToUpperInvariant();
