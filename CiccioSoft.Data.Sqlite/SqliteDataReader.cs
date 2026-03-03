@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -135,7 +136,23 @@ public class SqliteDataReader : DbDataReader
         return available;
     }
 
-    public override string GetDataTypeName(int ordinal) => GetFieldType(ordinal).Name;
+    public override string GetDataTypeName(int ordinal)
+    {
+        string? declaredType = _stmt.GetColumnDeclType(ordinal);
+        if (!string.IsNullOrWhiteSpace(declaredType))
+        {
+            return declaredType;
+        }
+
+        return _stmt.GetColumnType(ordinal) switch
+        {
+            1 => "INTEGER",
+            2 => "REAL",
+            3 => "TEXT",
+            4 => "BLOB",
+            _ => "BLOB",
+        };
+    }
 
     public override DateTime GetDateTime(int ordinal) => DateTime.Parse(GetString(ordinal), System.Globalization.CultureInfo.InvariantCulture);
     public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture);
@@ -194,8 +211,63 @@ public class SqliteDataReader : DbDataReader
         return count;
     }
 
+
     public override bool IsDBNull(int ordinal) => _stmt.GetColumnType(ordinal) == 5;
     public override bool NextResult() => false;
+
+    public override DataTable GetSchemaTable()
+    {
+        EnsureOpen();
+
+        if (FieldCount == 0)
+        {
+            throw new InvalidOperationException("The reader does not have result columns.");
+        }
+
+        DataTable schemaTable = new("SchemaTable");
+
+        schemaTable.Columns.Add(SchemaTableColumn.ColumnName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.ColumnOrdinal, typeof(int));
+        schemaTable.Columns.Add(SchemaTableColumn.DataType, typeof(Type));
+        schemaTable.Columns.Add(SchemaTableColumn.DataTypeName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.AllowDBNull, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableOptionalColumn.IsKey, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableOptionalColumn.IsUnique, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.BaseTableName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.BaseColumnName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.IsAliased, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableColumn.IsExpression, typeof(bool));
+
+        for (int ordinal = 0; ordinal < FieldCount; ordinal++)
+        {
+            string columnName = GetName(ordinal);
+            string? baseColumnName = _stmt.GetColumnOriginName(ordinal);
+            string? baseTableName = _stmt.GetColumnTableName(ordinal);
+            string? baseCatalogName = _stmt.GetColumnDatabaseName(ordinal);
+
+            bool hasOrigin = !string.IsNullOrEmpty(baseColumnName) && !string.IsNullOrEmpty(baseTableName);
+            bool isAliased = !string.Equals(columnName, baseColumnName, StringComparison.Ordinal);
+
+            DataRow row = schemaTable.NewRow();
+            row[SchemaTableColumn.ColumnName] = columnName;
+            row[SchemaTableColumn.ColumnOrdinal] = ordinal;
+            row[SchemaTableColumn.DataType] = GetFieldTypeFromDeclaration(ordinal);
+            row[SchemaTableColumn.DataTypeName] = GetDataTypeName(ordinal);
+            row[SchemaTableColumn.AllowDBNull] = true;
+            row[SchemaTableOptionalColumn.IsKey] = false;
+            row[SchemaTableOptionalColumn.IsUnique] = false;
+            row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
+            row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
+            row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
+            row[SchemaTableColumn.IsAliased] = isAliased;
+            row[SchemaTableColumn.IsExpression] = !hasOrigin;
+
+            schemaTable.Rows.Add(row);
+        }
+
+        return schemaTable;
+    }
 
     public override bool Read()
     {
@@ -283,5 +355,43 @@ public class SqliteDataReader : DbDataReader
 
         _hasRow = _executionScope.Execute(_stmt.Step);
         _prefetched = true;
+    }
+    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
+    private Type GetFieldTypeFromDeclaration(int ordinal)
+    {
+        string? declaredType = _stmt.GetColumnDeclType(ordinal);
+        if (string.IsNullOrWhiteSpace(declaredType))
+        {
+            return GetFieldType(ordinal);
+        }
+
+        string typeName = declaredType.Trim().ToUpperInvariant();
+        if (typeName.Contains("INT", StringComparison.Ordinal))
+        {
+            return typeof(long);
+        }
+
+        if (typeName.Contains("CHAR", StringComparison.Ordinal)
+            || typeName.Contains("CLOB", StringComparison.Ordinal)
+            || typeName.Contains("TEXT", StringComparison.Ordinal)
+            || typeName.Contains("NCHAR", StringComparison.Ordinal)
+            || typeName.Contains("NVARCHAR", StringComparison.Ordinal))
+        {
+            return typeof(string);
+        }
+
+        if (typeName.Contains("REAL", StringComparison.Ordinal)
+            || typeName.Contains("FLOA", StringComparison.Ordinal)
+            || typeName.Contains("DOUB", StringComparison.Ordinal))
+        {
+            return typeof(double);
+        }
+
+        if (typeName.Contains("BLOB", StringComparison.Ordinal) || typeName.Length == 0)
+        {
+            return typeof(byte[]);
+        }
+
+        return typeof(string);
     }
 }
