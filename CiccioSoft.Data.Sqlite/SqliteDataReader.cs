@@ -310,7 +310,19 @@ public class SqliteDataReader : DbDataReader
         throw new IndexOutOfRangeException($"Column '{name}' not found.");
     }
 
-    public override string GetString(int ordinal) => Stmt.GetString(ordinal) ?? string.Empty;
+    public override string GetString(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        string? value = Stmt.GetString(ordinal);
+        if (value is null)
+        {
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+        }
+
+        return value;
+    }
 
     public override object GetValue(int ordinal)
     {
