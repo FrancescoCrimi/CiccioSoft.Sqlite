@@ -318,11 +318,6 @@ public class SqliteConnection : DbConnection
             }
         }
 
-        if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
-        {
-            flags |= SQLITE_OPEN_URI;
-        }
-
         return flags;
     }
 
@@ -335,7 +330,7 @@ public class SqliteConnection : DbConnection
             native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys == true ? "ON" : "OFF")};");
         }
 
-        if (_settings.HasJournalMode)
+        if (_settings.HasJournalMode && !string.IsNullOrWhiteSpace(_settings.JournalMode))
         {
             native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
         }
