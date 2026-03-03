@@ -211,7 +211,7 @@ CREATE TABLE "Products" (
     [InlineData(CommandType.TableDirect)]
     public void CommandType_validates_value(CommandType commandType)
     {
-        var ex = Assert.Throws<ArgumentException>(() => new SqliteCommand().CommandType = commandType);
+        var ex = Assert.Throws<NotSupportedException>(() => new SqliteCommand().CommandType = commandType);
 
         Assert.Equal(Resources.InvalidCommandType(commandType), ex.Message);
     }

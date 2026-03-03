@@ -31,7 +31,21 @@ public class SqliteCommand : DbCommand
         set => _commandText = value ?? string.Empty;
     }
     public override int CommandTimeout { get; set; } = 30;
-    public override CommandType CommandType { get; set; } = CommandType.Text;
+    private CommandType _commandType = CommandType.Text;
+
+    public override CommandType CommandType
+    {
+        get => _commandType;
+        set
+        {
+            if (value != CommandType.Text)
+            {
+                throw new NotSupportedException(Properties.Resources.InvalidCommandType(value));
+            }
+
+            _commandType = value;
+        }
+    }
     public override bool DesignTimeVisible { get; set; }
     public override UpdateRowSource UpdatedRowSource { get; set; }
 
