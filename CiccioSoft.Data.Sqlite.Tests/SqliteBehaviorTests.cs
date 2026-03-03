@@ -1,3 +1,5 @@
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 using System;
 using System.Data;
 using System.Threading;

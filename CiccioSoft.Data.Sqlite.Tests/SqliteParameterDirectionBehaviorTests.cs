@@ -1,3 +1,5 @@
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 using System;
 using System.Data;
 using CiccioSoft.Data.Sqlite;
@@ -6,7 +8,7 @@ using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteParameterDirectionBehaviorTest
+public class SqliteParameterDirectionBehaviorTests
 {
     [Theory]
     [InlineData(ParameterDirection.Output)]

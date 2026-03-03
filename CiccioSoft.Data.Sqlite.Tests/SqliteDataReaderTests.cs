@@ -1,5 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -12,9 +14,9 @@ using CiccioSoft.Data.Sqlite.Properties;
 // using Microsoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteDataReaderTest
+public class SqliteDataReaderTests
 {
     [Fact]
     public void Depth_returns_zero()

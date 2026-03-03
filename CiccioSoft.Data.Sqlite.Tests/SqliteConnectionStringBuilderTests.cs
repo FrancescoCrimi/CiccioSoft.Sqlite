@@ -1,5 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 #if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
 // NOTE: This test suite is copied from Microsoft.Data.Sqlite and targets compatibility features
@@ -13,9 +15,9 @@ using CiccioSoft.Data.Sqlite.Properties;
 // using Microsoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteConnectionStringBuilderTest
+public class SqliteConnectionStringBuilderTests
 {
     [Theory]
     [InlineData("Data Source")]

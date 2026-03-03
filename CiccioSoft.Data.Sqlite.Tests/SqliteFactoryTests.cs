@@ -1,12 +1,14 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteFactoryTest
+public class SqliteFactoryTests
 {
     [Fact]
     public void CreateConnection_works()

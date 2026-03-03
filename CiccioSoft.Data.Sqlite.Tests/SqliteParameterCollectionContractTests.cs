@@ -1,3 +1,5 @@
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 using System;
 using System.Collections;
 using System.Data.Common;
@@ -5,7 +7,7 @@ using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
 public class SqliteParameterCollectionContractTests
 {

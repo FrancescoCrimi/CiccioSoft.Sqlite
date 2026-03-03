@@ -1,3 +1,5 @@
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 using System;
 using System.IO;
 using CiccioSoft.Data.Sqlite;
@@ -5,7 +7,7 @@ using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteConnectionProfileTest
+public class SqliteConnectionProfileTests
 {
     [Fact]
     public void Profile_DefaultsToDefaultMode()

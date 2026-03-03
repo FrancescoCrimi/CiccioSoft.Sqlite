@@ -1,10 +1,12 @@
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 using System;
 using CiccioSoft.Data.Sqlite;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteParameterBindingParityTest
+public class SqliteParameterBindingParityTests
 {
     [Fact]
     public void Bind_ResolvesAcrossPrefixStyles()

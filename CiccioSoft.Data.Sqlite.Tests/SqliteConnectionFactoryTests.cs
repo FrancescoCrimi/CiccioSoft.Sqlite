@@ -1,5 +1,7 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 #if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
 // NOTE: This test suite is copied from Microsoft.Data.Sqlite and targets compatibility features
@@ -17,11 +19,11 @@ using CiccioSoft.Sqlite.Interop.Native;
 // using SQLitePCL;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-[Collection(nameof(SqliteConnectionFactoryTest))]
-[CollectionDefinition(nameof(SqliteConnectionFactoryTest), DisableParallelization = true)]
-public class SqliteConnectionFactoryTest : IDisposable
+[Collection(nameof(SqliteConnectionFactoryTests))]
+[CollectionDefinition(nameof(SqliteConnectionFactoryTests), DisableParallelization = true)]
+public class SqliteConnectionFactoryTests : IDisposable
 {
     private const string FileName = "pooled.db";
     private const string ConnectionString = "Data Source=" + FileName + ";Cache=Shared;Pooling=True";
