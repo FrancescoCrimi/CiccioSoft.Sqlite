@@ -39,8 +39,10 @@ public class SqliteConnectionStringBuilderTests
     [Fact]
     public void Ctor_parses_known_values()
     {
-        var builder = new SqliteConnectionStringBuilder(
-            "Data Source=test.db;Pooling=false;Max Pool Size=42;Busy Timeout=2500;Journal Mode=WAL;Profile=StrictSingleConnection");
+        var builder = new SqliteConnectionStringBuilder
+        {
+            ConnectionString = "Data Source=test.db;Pooling=false;Max Pool Size=42;Busy Timeout=2500;Journal Mode=WAL;Profile=StrictSingleConnection"
+        };
 
         Assert.Equal("test.db", builder.DataSource);
         Assert.False(builder.Pooling);
