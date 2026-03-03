@@ -130,6 +130,8 @@ public class SqliteDataReader : DbDataReader
 
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
     {
+        EnsureHasRow();
+
         ReadOnlySpan<byte> blob = Stmt.GetBlob(ordinal);
         int available = Math.Max(0, blob.Length - (int)dataOffset);
         int toCopy = Math.Min(length, available);
@@ -145,6 +147,8 @@ public class SqliteDataReader : DbDataReader
 
     public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length)
     {
+        EnsureHasRow();
+
         string s = GetString(ordinal);
         int available = Math.Max(0, s.Length - (int)dataOffset);
         int toCopy = Math.Min(length, available);
@@ -207,17 +211,7 @@ public class SqliteDataReader : DbDataReader
                 return (T)value;
             }
 
-            if (!nonNullableType.IsValueType)
-            {
-                return default!;
-            }
-
-            if (Nullable.GetUnderlyingType(targetType) is not null)
-            {
-                return default!;
-            }
-
-            throw new InvalidCastException($"Unable to cast object of type '{typeof(DBNull)}' to type '{targetType}'.");
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
         }
 
         if (targetType == typeof(Stream))
@@ -290,6 +284,8 @@ public class SqliteDataReader : DbDataReader
 
     public override object GetValue(int ordinal)
     {
+        EnsureHasRow();
+
         if (IsDBNull(ordinal)) return DBNull.Value;
         return Stmt.GetColumnType(ordinal) switch
         {
@@ -309,7 +305,11 @@ public class SqliteDataReader : DbDataReader
     }
 
 
-    public override bool IsDBNull(int ordinal) => Stmt.GetColumnType(ordinal) == 5;
+    public override bool IsDBNull(int ordinal)
+    {
+        EnsureHasRow();
+        return Stmt.GetColumnType(ordinal) == 5;
+    }
     public override bool NextResult()
     {
         EnsureOpen();
@@ -350,7 +350,7 @@ public class SqliteDataReader : DbDataReader
 
         if (FieldCount == 0)
         {
-            throw new InvalidOperationException("The reader does not have result columns.");
+            throw new InvalidOperationException(Resources.NoData);
         }
 
         DataTable schemaTable = new("SchemaTable");
@@ -481,6 +481,16 @@ public class SqliteDataReader : DbDataReader
 
         _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
         _prefetched = true;
+    }
+
+    private void EnsureHasRow()
+    {
+        EnsureOpen();
+
+        if (!_readStarted || !_hasRow)
+        {
+            throw new InvalidOperationException(Resources.NoData);
+        }
     }
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
