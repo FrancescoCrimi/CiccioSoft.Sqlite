@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -191,6 +193,83 @@ public class SqliteDataReader : DbDataReader
     }
 
     public override float GetFloat(int ordinal) => (float)GetDouble(ordinal);
+
+    public override T GetFieldValue<T>(int ordinal)
+    {
+        object value = GetValue(ordinal);
+        Type targetType = typeof(T);
+        Type nonNullableType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        if (value is DBNull)
+        {
+            if (targetType == typeof(DBNull))
+            {
+                return (T)value;
+            }
+
+            if (!nonNullableType.IsValueType)
+            {
+                return default!;
+            }
+
+            if (Nullable.GetUnderlyingType(targetType) is not null)
+            {
+                return default!;
+            }
+
+            throw new InvalidCastException($"Unable to cast object of type '{typeof(DBNull)}' to type '{targetType}'.");
+        }
+
+        if (targetType == typeof(Stream))
+        {
+            return (T)(object)new MemoryStream((byte[])value, writable: false);
+        }
+
+        if (targetType == typeof(TextReader))
+        {
+            return (T)(object)new StringReader((string)value);
+        }
+
+        if (nonNullableType == typeof(Guid))
+        {
+            if (value is byte[] bytes)
+            {
+                return (T)(object)new Guid(bytes);
+            }
+
+            return (T)(object)Guid.Parse((string)value);
+        }
+
+        if (nonNullableType == typeof(DateTimeOffset))
+        {
+            return (T)(object)DateTimeOffset.Parse((string)value, CultureInfo.InvariantCulture);
+        }
+
+        if (nonNullableType == typeof(TimeSpan))
+        {
+            return (T)(object)TimeSpan.Parse((string)value, CultureInfo.InvariantCulture);
+        }
+
+        if (nonNullableType == typeof(decimal))
+        {
+            return (T)(object)Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+        }
+
+        if (nonNullableType.IsEnum)
+        {
+            object enumValue = Enum.ToObject(nonNullableType, Convert.ChangeType(value, Enum.GetUnderlyingType(nonNullableType), CultureInfo.InvariantCulture));
+            return (T)enumValue;
+        }
+
+        if (value is T cast)
+        {
+            return cast;
+        }
+
+        object converted = Convert.ChangeType(value, nonNullableType, CultureInfo.InvariantCulture);
+        return (T)converted;
+    }
+
     public override Guid GetGuid(int ordinal) => Guid.Parse(GetString(ordinal));
     public override short GetInt16(int ordinal) => (short)GetInt32(ordinal);
     public override int GetInt32(int ordinal) => Stmt.GetInt(ordinal);
