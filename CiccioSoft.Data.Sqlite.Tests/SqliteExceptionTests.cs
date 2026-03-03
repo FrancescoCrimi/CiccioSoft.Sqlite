@@ -1,14 +1,16 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 using CiccioSoft.Data.Sqlite;
 using Xunit;
 // using static SQLitePCL.raw;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteExceptionTest
+public class SqliteExceptionTests
 {
     [Fact]
     public void Ctor_sets_message_and_errorCode()

@@ -1,5 +1,7 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 #if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
 // NOTE: This test suite is copied from Microsoft.Data.Sqlite and targets compatibility features
@@ -15,9 +17,9 @@ using Xunit;
 // using static SQLitePCL.raw;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteBlobTest : IDisposable
+public class SqliteBlobTests : IDisposable
 {
     private const string Table = "data";
     private const string Column = "value";
@@ -25,7 +27,7 @@ public class SqliteBlobTest : IDisposable
 
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
 
-    public SqliteBlobTest()
+    public SqliteBlobTests()
     {
         _connection.Open();
         _connection.ExecuteNonQuery(

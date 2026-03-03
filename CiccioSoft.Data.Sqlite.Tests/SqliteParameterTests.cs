@@ -1,5 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 using System;
 using System.Collections.Generic;
@@ -8,12 +10,12 @@ using System.Data.Common;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 // using Microsoft.Data.Sqlite.Properties;
-using Microsoft.Data.Sqlite.TestUtilities;
+using CiccioSoft.Data.Sqlite.Tests.TestUtilities;
 using Xunit;
 
-namespace Microsoft.Data.Sqlite;
+namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteParameterTest
+public class SqliteParameterTests
 {
     [Fact]
     public void Ctor_sets_name_and_value()

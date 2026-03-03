@@ -1,12 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) CiccioSoft.
+// Licensed under the MIT License.
 
 using System;
 using System.Globalization;
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace Microsoft.Data.Sqlite.TestUtilities;
+namespace CiccioSoft.Data.Sqlite.Tests.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public sealed class UseCultureAttribute(string culture, string uiCulture) : BeforeAfterTestAttribute
