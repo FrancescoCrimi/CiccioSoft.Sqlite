@@ -126,6 +126,11 @@ CiccioSoft.Data.Sqlite/
 | License | MIT | Apache 2.0 | MIT |
 | Purpose | Learning | Production | Production |
 
+## 🧭 Provider Scope Policy
+
+- This project follows an ORM-first ADO.NET provider scope: full ADO.NET core compliance first, then minimal cross-provider extras that are broadly useful for mainstream ADO.NET providers.
+- See [PROVIDER_SCOPE.md](./PROVIDER_SCOPE.md) for the formal architecture policy and acceptance criteria.
+
 ## 📖 Examples
 
 For practical examples and use cases, see the [CiccioSoft.Sqlite.Interop.Example](./CiccioSoft.Sqlite.Interop.Example/) project.
