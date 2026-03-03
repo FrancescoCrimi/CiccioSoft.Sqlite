@@ -202,7 +202,13 @@ public class SqliteDataReader : DbDataReader
 
     public override DateTime GetDateTime(int ordinal) => DateTime.Parse(GetString(ordinal), System.Globalization.CultureInfo.InvariantCulture);
     public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture);
-    public override double GetDouble(int ordinal) => Stmt.GetDouble(ordinal);
+    public override double GetDouble(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Stmt.GetDouble(ordinal);
+    }
     public override IEnumerator GetEnumerator() => new DbEnumerator(this);
 
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
@@ -297,9 +303,34 @@ public class SqliteDataReader : DbDataReader
 
     public override Guid GetGuid(int ordinal) => Guid.Parse(GetString(ordinal));
     public override short GetInt16(int ordinal) => (short)GetInt32(ordinal);
-    public override int GetInt32(int ordinal) => Stmt.GetInt(ordinal);
-    public override long GetInt64(int ordinal) => Stmt.GetLong(ordinal);
-    public override string GetName(int ordinal) => Stmt.GetColumnName(ordinal) ?? string.Empty;
+    public override int GetInt32(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Stmt.GetInt(ordinal);
+    }
+
+    public override long GetInt64(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Stmt.GetLong(ordinal);
+    }
+
+    public override string GetName(int ordinal)
+    {
+        EnsureOpen();
+        if (FieldCount == 0)
+        {
+            throw new InvalidOperationException(Resources.NoData);
+        }
+
+        ValidateOrdinal(ordinal);
+
+        return Stmt.GetColumnName(ordinal) ?? string.Empty;
+    }
 
     public override int GetOrdinal(string name)
     {
