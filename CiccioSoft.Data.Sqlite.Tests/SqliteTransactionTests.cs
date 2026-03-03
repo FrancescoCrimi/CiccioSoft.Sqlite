@@ -1,7 +1,10 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// Copyright (c) CiccioSoft.
-// Licensed under the MIT License.
+
+// Copyright (c) 2026 Francesco Crimi
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 
 #if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
 // NOTE: This suite is copied from Microsoft.Data.Sqlite and assumes APIs/behaviors

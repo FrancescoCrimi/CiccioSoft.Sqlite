@@ -1,5 +1,3 @@
-<!-- Copyright (c) CiccioSoft. -->
-<!-- Licensed under the MIT License. -->
 
 # CiccioSoft.Data.Sqlite.Tests – Microsoft.Data.Sqlite porting audit
 
