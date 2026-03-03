@@ -338,26 +338,23 @@ public class SqliteDataReader : DbDataReader
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return Task.Run(() =>
+        EnsureOpen();
+        _readStarted = true;
+        if (_prefetched)
         {
-            EnsureOpen();
-            _readStarted = true;
-            if (_prefetched)
-            {
-                _prefetched = false;
-            }
-            else
-            {
-                _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
-            }
+            _prefetched = false;
+        }
+        else
+        {
+            _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
+        }
 
-            if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
-            {
-                Close();
-            }
+        if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
+        {
+            Close();
+        }
 
-            return _hasRow;
-        }, cancellationToken);
+        return Task.FromResult(_hasRow);
     }
 
     public override void Close()
