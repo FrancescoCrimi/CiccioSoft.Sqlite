@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
@@ -17,7 +18,7 @@ public class SqliteDataReader : DbDataReader
     private readonly System.Data.CommandBehavior _behavior;
     private readonly SqliteCommand.CommandExecutionScope _executionScope;
     private readonly SqliteCommand.BatchExecutionState _batchState;
-    private Sqlite3Stmt _stmt;
+    private Sqlite3Stmt? _stmt;
     private bool _hasRow;
     private bool _prefetched;
     private bool _readStarted;
@@ -27,7 +28,7 @@ public class SqliteDataReader : DbDataReader
         SqliteCommand command,
         SqliteSession session,
         System.Data.CommandBehavior behavior,
-        Sqlite3Stmt stmt,
+        Sqlite3Stmt? stmt,
         SqliteCommand.BatchExecutionState batchState,
         SqliteCommand.CommandExecutionScope executionScope)
     {
@@ -46,10 +47,10 @@ public class SqliteDataReader : DbDataReader
         {
             SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
             SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
-            Sqlite3Stmt stmt;
+            Sqlite3Stmt? stmt;
             try
             {
-                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState) ?? session.Native.Prepare("SELECT 1 WHERE 0;"));
+                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
             }
             catch
             {
@@ -73,10 +74,10 @@ public class SqliteDataReader : DbDataReader
         {
             SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, cancellationToken);
             SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
-            Sqlite3Stmt stmt;
+            Sqlite3Stmt? stmt;
             try
             {
-                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState) ?? session.Native.Prepare("SELECT 1 WHERE 0;"));
+                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
             }
             catch
             {
@@ -93,10 +94,12 @@ public class SqliteDataReader : DbDataReader
         }
     }
 
+
+    private Sqlite3Stmt Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
     public override object this[int ordinal] => GetValue(ordinal);
     public override object this[string name] => GetValue(GetOrdinal(name));
     public override int Depth => 0;
-    public override int FieldCount => _closed ? 0 : _stmt.ColumnCount();
+    public override int FieldCount => _closed ? 0 : _stmt?.ColumnCount() ?? 0;
     public override bool HasRows
     {
         get
@@ -115,7 +118,7 @@ public class SqliteDataReader : DbDataReader
 
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
     {
-        ReadOnlySpan<byte> blob = _stmt.GetBlob(ordinal);
+        ReadOnlySpan<byte> blob = Stmt.GetBlob(ordinal);
         int available = Math.Max(0, blob.Length - (int)dataOffset);
         int toCopy = Math.Min(length, available);
         if (buffer is not null && toCopy > 0)
@@ -143,13 +146,13 @@ public class SqliteDataReader : DbDataReader
 
     public override string GetDataTypeName(int ordinal)
     {
-        string? declaredType = _stmt.GetColumnDeclType(ordinal);
+        string? declaredType = Stmt.GetColumnDeclType(ordinal);
         if (!string.IsNullOrWhiteSpace(declaredType))
         {
             return declaredType;
         }
 
-        return _stmt.GetColumnType(ordinal) switch
+        return Stmt.GetColumnType(ordinal) switch
         {
             1 => "INTEGER",
             2 => "REAL",
@@ -161,13 +164,13 @@ public class SqliteDataReader : DbDataReader
 
     public override DateTime GetDateTime(int ordinal) => DateTime.Parse(GetString(ordinal), System.Globalization.CultureInfo.InvariantCulture);
     public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture);
-    public override double GetDouble(int ordinal) => _stmt.GetDouble(ordinal);
+    public override double GetDouble(int ordinal) => Stmt.GetDouble(ordinal);
     public override IEnumerator GetEnumerator() => new DbEnumerator(this);
 
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     public override Type GetFieldType(int ordinal)
     {
-        return _stmt.GetColumnType(ordinal) switch
+        return Stmt.GetColumnType(ordinal) switch
         {
             1 => typeof(long),
             2 => typeof(double),
@@ -180,9 +183,9 @@ public class SqliteDataReader : DbDataReader
     public override float GetFloat(int ordinal) => (float)GetDouble(ordinal);
     public override Guid GetGuid(int ordinal) => Guid.Parse(GetString(ordinal));
     public override short GetInt16(int ordinal) => (short)GetInt32(ordinal);
-    public override int GetInt32(int ordinal) => _stmt.GetInt(ordinal);
-    public override long GetInt64(int ordinal) => _stmt.GetLong(ordinal);
-    public override string GetName(int ordinal) => _stmt.GetColumnName(ordinal) ?? string.Empty;
+    public override int GetInt32(int ordinal) => Stmt.GetInt(ordinal);
+    public override long GetInt64(int ordinal) => Stmt.GetLong(ordinal);
+    public override string GetName(int ordinal) => Stmt.GetColumnName(ordinal) ?? string.Empty;
 
     public override int GetOrdinal(string name)
     {
@@ -194,17 +197,17 @@ public class SqliteDataReader : DbDataReader
         throw new IndexOutOfRangeException($"Column '{name}' not found.");
     }
 
-    public override string GetString(int ordinal) => _stmt.GetString(ordinal) ?? string.Empty;
+    public override string GetString(int ordinal) => Stmt.GetString(ordinal) ?? string.Empty;
 
     public override object GetValue(int ordinal)
     {
         if (IsDBNull(ordinal)) return DBNull.Value;
-        return _stmt.GetColumnType(ordinal) switch
+        return Stmt.GetColumnType(ordinal) switch
         {
-            1 => _stmt.GetLong(ordinal),
-            2 => _stmt.GetDouble(ordinal),
-            3 => _stmt.GetString(ordinal) ?? string.Empty,
-            4 => _stmt.GetBlob(ordinal).ToArray(),
+            1 => Stmt.GetLong(ordinal),
+            2 => Stmt.GetDouble(ordinal),
+            3 => Stmt.GetString(ordinal) ?? string.Empty,
+            4 => Stmt.GetBlob(ordinal).ToArray(),
             _ => DBNull.Value,
         };
     }
@@ -217,14 +220,19 @@ public class SqliteDataReader : DbDataReader
     }
 
 
-    public override bool IsDBNull(int ordinal) => _stmt.GetColumnType(ordinal) == 5;
+    public override bool IsDBNull(int ordinal) => Stmt.GetColumnType(ordinal) == 5;
     public override bool NextResult()
     {
         EnsureOpen();
 
+        if (_behavior.HasFlag(System.Data.CommandBehavior.SingleResult))
+        {
+            return false;
+        }
+
         while (true)
         {
-            _stmt.Dispose();
+            _stmt?.Dispose();
             _prefetched = false;
             _readStarted = false;
             _hasRow = false;
@@ -236,12 +244,12 @@ public class SqliteDataReader : DbDataReader
             }
 
             _stmt = next;
-            if (_stmt.ColumnCount() > 0)
+            if (_stmt is not null && Stmt.ColumnCount() > 0)
             {
                 return true;
             }
 
-            while (_executionScope.Execute(_stmt.Step))
+            while (_executionScope.Execute(Stmt.Step))
             {
             }
         }
@@ -274,9 +282,9 @@ public class SqliteDataReader : DbDataReader
         for (int ordinal = 0; ordinal < FieldCount; ordinal++)
         {
             string columnName = GetName(ordinal);
-            string? baseColumnName = _stmt.GetColumnOriginName(ordinal);
-            string? baseTableName = _stmt.GetColumnTableName(ordinal);
-            string? baseCatalogName = _stmt.GetColumnDatabaseName(ordinal);
+            string? baseColumnName = Stmt.GetColumnOriginName(ordinal);
+            string? baseTableName = Stmt.GetColumnTableName(ordinal);
+            string? baseCatalogName = Stmt.GetColumnDatabaseName(ordinal);
 
             bool hasOrigin = !string.IsNullOrEmpty(baseColumnName) && !string.IsNullOrEmpty(baseTableName);
             bool isAliased = !string.Equals(columnName, baseColumnName, StringComparison.Ordinal);
@@ -311,7 +319,7 @@ public class SqliteDataReader : DbDataReader
         }
         else
         {
-            _hasRow = _executionScope.Execute(_stmt.Step);
+            _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
         }
 
         if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
@@ -336,7 +344,7 @@ public class SqliteDataReader : DbDataReader
             }
             else
             {
-                _hasRow = _executionScope.Execute(_stmt.Step, cancellationToken);
+                _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
             }
 
             if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
@@ -352,7 +360,7 @@ public class SqliteDataReader : DbDataReader
     {
         if (_closed) return;
         _closed = true;
-        _stmt.Dispose();
+        _stmt?.Dispose();
         _executionScope.Dispose();
         _session.Gate.Release();
         if (_behavior.HasFlag(System.Data.CommandBehavior.CloseConnection))
@@ -385,13 +393,13 @@ public class SqliteDataReader : DbDataReader
         if (_prefetched || _readStarted)
             return;
 
-        _hasRow = _executionScope.Execute(_stmt.Step);
+        _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
         _prefetched = true;
     }
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
     {
-        string? declaredType = _stmt.GetColumnDeclType(ordinal);
+        string? declaredType = Stmt.GetColumnDeclType(ordinal);
         if (string.IsNullOrWhiteSpace(declaredType))
         {
             return GetFieldType(ordinal);
