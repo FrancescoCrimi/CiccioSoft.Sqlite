@@ -15,8 +15,13 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string PoolingKey = "Pooling";
     private const string MaxPoolSizeKey = "Max Pool Size";
     private const string BusyTimeoutKey = "Busy Timeout";
+    private const string BusyTimeoutPragmaKey = "busy_timeout";
+    private const string ForeignKeysKey = "Foreign Keys";
+    private const string ForeignKeysPragmaKey = "foreign_keys";
     private const string JournalModeKey = "Journal Mode";
-    private const string ProfileKey = "Profile";
+    private const string JournalModePragmaKey = "journal_mode";
+    private const string RecursiveTriggersKey = "Recursive Triggers";
+    private const string RecursiveTriggersPragmaKey = "recursive_triggers";
 
     public string DataSource
     {
@@ -38,37 +43,100 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 
     public int BusyTimeout
     {
-        get => TryGetValue(BusyTimeoutKey, out object? v) ? Convert.ToInt32(v) : 30000;
-        set => this[BusyTimeoutKey] = Math.Max(0, value);
+        get
+        {
+            if (TryGetValue(BusyTimeoutKey, out object? value) || TryGetValue(BusyTimeoutPragmaKey, out value))
+            {
+                return Math.Max(0, Convert.ToInt32(value));
+            }
+
+            return 30000;
+        }
+        set
+        {
+            this[BusyTimeoutKey] = Math.Max(0, value);
+            Remove(BusyTimeoutPragmaKey);
+        }
+    }
+
+    public bool? ForeignKeys
+    {
+        get => GetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey);
+        set => SetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey, value);
     }
 
     public string JournalMode
     {
-        get => TryGetValue(JournalModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
-        set => this[JournalModeKey] = value ?? string.Empty;
-    }
-
-    public SqliteConnectionProfile Profile
-    {
         get
         {
-            if (!TryGetValue(ProfileKey, out object? value))
+            if (TryGetValue(JournalModeKey, out object? value) || TryGetValue(JournalModePragmaKey, out value))
             {
-                return SqliteConnectionProfile.Default;
+                return Convert.ToString(value) ?? string.Empty;
             }
 
-            if (value is SqliteConnectionProfile profile)
-            {
-                return profile;
-            }
-
-            if (Enum.TryParse(Convert.ToString(value), ignoreCase: true, out SqliteConnectionProfile parsed))
-            {
-                return parsed;
-            }
-
-            throw new ArgumentException($"Unsupported profile '{value}'.", nameof(value));
+            return string.Empty;
         }
-        set => this[ProfileKey] = value;
+        set
+        {
+            this[JournalModeKey] = value ?? string.Empty;
+            Remove(JournalModePragmaKey);
+        }
+    }
+
+    public bool? RecursiveTriggers
+    {
+        get => GetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey);
+        set => SetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey, value);
+    }
+
+    internal bool HasBusyTimeout
+        => TryGetValue(BusyTimeoutKey, out _) || TryGetValue(BusyTimeoutPragmaKey, out _);
+
+    internal bool HasForeignKeys
+        => TryGetValue(ForeignKeysKey, out _) || TryGetValue(ForeignKeysPragmaKey, out _);
+
+    internal bool HasJournalMode
+        => TryGetValue(JournalModeKey, out _) || TryGetValue(JournalModePragmaKey, out _);
+
+    internal bool HasRecursiveTriggers
+        => TryGetValue(RecursiveTriggersKey, out _) || TryGetValue(RecursiveTriggersPragmaKey, out _);
+
+    private bool? GetNullableBoolean(string key, string pragmaKey)
+    {
+        if (!TryGetValue(key, out object? value) && !TryGetValue(pragmaKey, out value))
+        {
+            return null;
+        }
+
+        if (value is bool typed)
+        {
+            return typed;
+        }
+
+        string text = Convert.ToString(value) ?? string.Empty;
+        if (string.Equals(text, "1", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (string.Equals(text, "0", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return Convert.ToBoolean(value);
+    }
+
+    private void SetNullableBoolean(string key, string pragmaKey, bool? value)
+    {
+        if (value.HasValue)
+        {
+            this[key] = value.Value;
+            Remove(pragmaKey);
+            return;
+        }
+
+        Remove(key);
+        Remove(pragmaKey);
     }
 }
