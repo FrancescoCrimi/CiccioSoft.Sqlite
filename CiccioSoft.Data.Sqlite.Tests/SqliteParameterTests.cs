@@ -12,7 +12,6 @@ using System.Data;
 using System.Data.Common;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
-// using Microsoft.Data.Sqlite.Properties;
 using CiccioSoft.Data.Sqlite.Tests.TestUtilities;
 using Xunit;
 

@@ -6,11 +6,6 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
-// NOTE: This test suite is copied from Microsoft.Data.Sqlite and targets compatibility features
-// (e.g., extended connection string keywords, cache/mode semantics, internal handle behaviors)
-// that are intentionally out-of-scope for the current opinionated CiccioSoft.Data.Sqlite design.
-// Re-enable this suite only when full compatibility mode is introduced.
 using System;
 using System.Data;
 using System.IO;
@@ -19,7 +14,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Sqlite.Interop.Native;
-// using SQLitePCL;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
@@ -272,5 +266,3 @@ public class SqliteConnectionFactoryTests : IDisposable
         File.Delete(FileName);
     }
 }
-
-#endif

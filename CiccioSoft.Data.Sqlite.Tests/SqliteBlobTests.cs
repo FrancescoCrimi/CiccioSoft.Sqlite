@@ -6,19 +6,11 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-
-#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
-// NOTE: This test suite is copied from Microsoft.Data.Sqlite and targets compatibility features
-// (e.g., extended connection string keywords, cache/mode semantics, internal handle behaviors)
-// that are intentionally out-of-scope for the current opinionated CiccioSoft.Data.Sqlite design.
-// Re-enable this suite only when full compatibility mode is introduced.
 using System;
 using System.IO;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
-// using Microsoft.Data.Sqlite.Properties;
 using Xunit;
-// using static SQLitePCL.raw;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
@@ -467,5 +459,3 @@ public class SqliteBlobTests : IDisposable
     public void Dispose()
         => _connection.Dispose();
 }
-
-#endif

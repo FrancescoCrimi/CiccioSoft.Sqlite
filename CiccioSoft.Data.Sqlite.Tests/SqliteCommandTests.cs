@@ -13,10 +13,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite;
-// using Microsoft.Data.Sqlite.Properties;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
-// using static SQLitePCL.raw;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite.Tests;

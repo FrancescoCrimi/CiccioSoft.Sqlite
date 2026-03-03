@@ -6,17 +6,11 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-#if CICCIOSOFT_ENABLE_MICROSOFT_PARITY_TESTS
-// NOTE: This suite is copied from Microsoft.Data.Sqlite and assumes APIs/behaviors
-// that are not yet implemented in the current provider (savepoints, deferred begin overloads,
-// and full compatibility surface). Keep deferred until that compatibility layer is implemented.
 using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-// using Microsoft.Data.Sqlite.Properties;
 using Xunit;
-// using static SQLitePCL.raw;
 using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -471,5 +465,3 @@ public class SqliteTransactionTests
     private static void CreateTestTable(SqliteConnection connection)
         => connection.ExecuteNonQuery("CREATE TABLE TestTable (TestColumn INTEGER)");
 }
-
-#endif
