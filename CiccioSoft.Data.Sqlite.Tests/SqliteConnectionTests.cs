@@ -96,22 +96,6 @@ public class SqliteConnectionTests
     }
 
     [Fact]
-    public void Profile_defaults_to_default()
-    {
-        var connection = new SqliteConnection();
-
-        Assert.Equal(SqliteConnectionProfile.Default, connection.Profile);
-    }
-
-    [Fact]
-    public void Profile_reads_connection_string_value()
-    {
-        var connection = new SqliteConnection("Data Source=test.db;Profile=StrictSingleConnection");
-
-        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, connection.Profile);
-    }
-
-    [Fact]
     public void ServerVersion_returns_value()
     {
         var connection = new SqliteConnection();

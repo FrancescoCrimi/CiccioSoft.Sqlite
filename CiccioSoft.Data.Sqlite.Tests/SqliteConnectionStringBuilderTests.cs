@@ -33,15 +33,11 @@ public class SqliteConnectionStringBuilderTests
         => Assert.Empty(new SqliteConnectionStringBuilder().JournalMode);
 
     [Fact]
-    public void Profile_defaults_to_Default()
-        => Assert.Equal(SqliteConnectionProfile.Default, new SqliteConnectionStringBuilder().Profile);
-
-    [Fact]
     public void Ctor_parses_known_values()
     {
         var builder = new SqliteConnectionStringBuilder
         {
-            ConnectionString = "Data Source=test.db;Pooling=false;Max Pool Size=42;Busy Timeout=2500;Journal Mode=WAL;Profile=StrictSingleConnection"
+            ConnectionString = "Data Source=test.db;Pooling=false;Max Pool Size=42;Busy Timeout=2500;Journal Mode=WAL;Foreign Keys=True;Recursive Triggers=False"
         };
 
         Assert.Equal("test.db", builder.DataSource);
@@ -49,7 +45,8 @@ public class SqliteConnectionStringBuilderTests
         Assert.Equal(42, builder.MaxPoolSize);
         Assert.Equal(2500, builder.BusyTimeout);
         Assert.Equal("WAL", builder.JournalMode);
-        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, builder.Profile);
+        Assert.True(builder.ForeignKeys);
+        Assert.False(builder.RecursiveTriggers);
     }
 
     [Fact]
@@ -62,7 +59,8 @@ public class SqliteConnectionStringBuilderTests
             MaxPoolSize = 32,
             BusyTimeout = 123,
             JournalMode = "MEMORY",
-            Profile = SqliteConnectionProfile.StrictSingleConnection
+            ForeignKeys = true,
+            RecursiveTriggers = false
         };
 
         Assert.Equal("file.db", builder["Data Source"]);
@@ -70,7 +68,8 @@ public class SqliteConnectionStringBuilderTests
         Assert.Equal(32, builder["Max Pool Size"]);
         Assert.Equal(123, builder["Busy Timeout"]);
         Assert.Equal("MEMORY", builder["Journal Mode"]);
-        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, builder["Profile"]);
+        Assert.Equal(true, builder["Foreign Keys"]);
+        Assert.Equal(false, builder["Recursive Triggers"]);
     }
 
     [Theory]
@@ -101,28 +100,38 @@ public class SqliteConnectionStringBuilderTests
         Assert.Equal(expected, builder.BusyTimeout);
     }
 
+
     [Fact]
-    public void Profile_parses_case_insensitive_string()
+    public void BusyTimeout_parses_pragma_alias()
     {
         var builder = new SqliteConnectionStringBuilder
         {
-            ["Profile"] = "strictsingleconnection"
+            ConnectionString = "Data Source=test.db;busy_timeout=1500"
         };
 
-        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, builder.Profile);
+        Assert.Equal(1500, builder.BusyTimeout);
     }
 
     [Fact]
-    public void Profile_throws_on_invalid_value()
+    public void ForeignKeys_parses_pragma_alias()
     {
         var builder = new SqliteConnectionStringBuilder
         {
-            ["Profile"] = "invalid"
+            ConnectionString = "Data Source=test.db;foreign_keys=0"
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => _ = builder.Profile);
+        Assert.False(builder.ForeignKeys);
+    }
 
-        Assert.Contains("Unsupported profile", ex.Message);
+    [Fact]
+    public void JournalMode_parses_pragma_alias()
+    {
+        var builder = new SqliteConnectionStringBuilder
+        {
+            ConnectionString = "Data Source=test.db;journal_mode=MEMORY"
+        };
+
+        Assert.Equal("MEMORY", builder.JournalMode);
     }
 
     [Fact]
@@ -136,6 +145,6 @@ public class SqliteConnectionStringBuilderTests
         Assert.NotEmpty(keys);
         Assert.Equal(keys.Count, values.Count);
         Assert.Contains("Data Source", keys);
-        Assert.Contains("Profile", keys);
+        Assert.Contains("Foreign Keys", keys);
     }
 }

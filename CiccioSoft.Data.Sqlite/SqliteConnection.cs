@@ -16,7 +16,6 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnection : DbConnection
 {
-    private const int DefaultBusyTimeoutMs = 30000;
     private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
     private ConnectionState _state = ConnectionState.Closed;
@@ -49,8 +48,6 @@ public class SqliteConnection : DbConnection
     public override string DataSource => _settings.DataSource;
 
     public override string ServerVersion => "3";
-
-    public SqliteConnectionProfile Profile => _settings.Profile;
 
     public override ConnectionState State
     {
@@ -123,7 +120,7 @@ public class SqliteConnection : DbConnection
                     ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize, GetOpenFlags())
                     : new SqliteSession(Sqlite3.Open(_settings.DataSource, GetOpenFlags()));
 
-                ApplyProfileSettings(session.Native);
+                ApplyConnectionSettings(session.Native);
 
                 _session = session;
                 _state = ConnectionState.Open;
@@ -177,32 +174,31 @@ public class SqliteConnection : DbConnection
 
     private bool IsPoolingEnabled()
     {
-        return _settings.Profile == SqliteConnectionProfile.Default && _settings.Pooling;
+        return _settings.Pooling;
     }
 
     private int GetOpenFlags()
     {
-        int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
-        if (_settings.Profile == SqliteConnectionProfile.Default)
-        {
-            flags |= SQLITE_OPEN_FULLMUTEX;
-        }
-
-        return flags;
+        return SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
     }
 
-    private void ApplyProfileSettings(Sqlite3 native)
+    private void ApplyConnectionSettings(Sqlite3 native)
     {
-        if (_settings.Profile == SqliteConnectionProfile.StrictSingleConnection)
+        native.SetBusyTimeout(Math.Max(0, _settings.BusyTimeout));
+
+        if (_settings.HasForeignKeys)
         {
-            native.SetBusyTimeout(0);
-            native.Execute("PRAGMA foreign_keys=ON;");
-            native.Execute("PRAGMA journal_mode=DELETE;");
-            return;
+            native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys == true ? "ON" : "OFF")};");
         }
 
-        native.SetBusyTimeout(Math.Max(DefaultBusyTimeoutMs, _settings.BusyTimeout));
-        native.Execute("PRAGMA foreign_keys=ON;");
-        native.Execute("PRAGMA journal_mode=WAL;");
+        if (_settings.HasJournalMode)
+        {
+            native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
+        }
+
+        if (_settings.HasRecursiveTriggers)
+        {
+            native.Execute($"PRAGMA recursive_triggers={(_settings.RecursiveTriggers == true ? "ON" : "OFF")};");
+        }
     }
 }

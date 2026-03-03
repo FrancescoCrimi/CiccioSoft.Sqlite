@@ -10,62 +10,80 @@ using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteConnectionProfileTests
+public class SqliteConnectionSettingsTests
 {
     [Fact]
-    public void Profile_DefaultsToDefaultMode()
-    {
-        var builder = new SqliteConnectionStringBuilder();
-
-        Assert.Equal(SqliteConnectionProfile.Default, builder.Profile);
-    }
-
-    [Fact]
-    public void Profile_CanParseFromConnectionString()
-    {
-        var builder = new SqliteConnectionStringBuilder
-        {
-            ConnectionString = "Data Source=:memory:;Profile=StrictSingleConnection"
-        };
-
-        Assert.Equal(SqliteConnectionProfile.StrictSingleConnection, builder.Profile);
-    }
-
-    [Fact]
-    public void Open_DefaultProfileForcesWalAndForeignKeys()
+    public void Open_DoesNotForceForeignKeysOrJournalModeByDefault()
     {
         using var connection = new SqliteConnection("Data Source=:memory:;");
         connection.Open();
 
         using var command = connection.CreateCommand();
-        command.CommandText = "PRAGMA journal_mode;";
-        var journal = (command.ExecuteScalar() as string) ?? string.Empty;
+        command.CommandText = "PRAGMA busy_timeout;";
+        var busyTimeout = Convert.ToInt32(command.ExecuteScalar());
 
         command.CommandText = "PRAGMA foreign_keys;";
         var foreignKeys = Convert.ToInt32(command.ExecuteScalar());
 
-        Assert.Equal("wal", journal.ToLowerInvariant());
-        Assert.Equal(1, foreignKeys);
+        command.CommandText = "PRAGMA journal_mode;";
+        var journal = (command.ExecuteScalar() as string) ?? string.Empty;
+
+        Assert.Equal(30000, busyTimeout);
+        Assert.Equal(0, foreignKeys);
+        Assert.Equal("memory", journal.ToLowerInvariant());
     }
 
     [Fact]
-    public void Open_StrictSingleConnectionForcesDeleteJournalAndNoBusyTimeout()
+    public void Open_AppliesExplicitConnectionSettings()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"strict-profile-{Guid.NewGuid():N}.db");
+        using var connection = new SqliteConnection("Data Source=:memory:;Busy Timeout=1234;Foreign Keys=True;Journal Mode=MEMORY;Recursive Triggers=True");
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA busy_timeout;";
+        var busyTimeout = Convert.ToInt32(command.ExecuteScalar());
+
+        command.CommandText = "PRAGMA foreign_keys;";
+        var foreignKeys = Convert.ToInt32(command.ExecuteScalar());
+
+        command.CommandText = "PRAGMA journal_mode;";
+        var journal = (command.ExecuteScalar() as string) ?? string.Empty;
+
+        command.CommandText = "PRAGMA recursive_triggers;";
+        var recursiveTriggers = Convert.ToInt32(command.ExecuteScalar());
+
+        Assert.Equal(1234, busyTimeout);
+        Assert.Equal(1, foreignKeys);
+        Assert.Equal("memory", journal.ToLowerInvariant());
+        Assert.Equal(1, recursiveTriggers);
+    }
+
+    [Fact]
+    public void Open_AppliesPragmaAliasConnectionSettings()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"settings-alias-{Guid.NewGuid():N}.db");
         try
         {
-            using var connection = new SqliteConnection($"Data Source={path};Profile=StrictSingleConnection");
+            using var connection = new SqliteConnection($"Data Source={path};busy_timeout=2500;foreign_keys=0;journal_mode=WAL;recursive_triggers=0");
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "PRAGMA journal_mode;";
-            var journal = (command.ExecuteScalar() as string) ?? string.Empty;
-
             command.CommandText = "PRAGMA busy_timeout;";
             var busyTimeout = Convert.ToInt32(command.ExecuteScalar());
 
-            Assert.Equal("delete", journal.ToLowerInvariant());
-            Assert.Equal(0, busyTimeout);
+            command.CommandText = "PRAGMA foreign_keys;";
+            var foreignKeys = Convert.ToInt32(command.ExecuteScalar());
+
+            command.CommandText = "PRAGMA journal_mode;";
+            var journal = (command.ExecuteScalar() as string) ?? string.Empty;
+
+            command.CommandText = "PRAGMA recursive_triggers;";
+            var recursiveTriggers = Convert.ToInt32(command.ExecuteScalar());
+
+            Assert.Equal(2500, busyTimeout);
+            Assert.Equal(0, foreignKeys);
+            Assert.Equal("wal", journal.ToLowerInvariant());
+            Assert.Equal(0, recursiveTriggers);
         }
         finally
         {

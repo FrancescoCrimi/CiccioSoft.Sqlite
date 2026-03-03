@@ -60,7 +60,7 @@ public class SqliteBehaviorTests
     [Fact]
     public async Task ExecuteReaderAsync_CanBeCanceledWhileWaitingForConnectionGate()
     {
-        using SqliteConnection connection = new("Data Source=:memory:;Profile=StrictSingleConnection;");
+        using SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
 
         using (SqliteCommand setup = new("CREATE TABLE t(id INTEGER); INSERT INTO t(id) VALUES(1);", connection))
@@ -82,7 +82,7 @@ public class SqliteBehaviorTests
     [Fact]
     public async Task ExecuteNonQueryAsync_CanBeCanceledWhileWaitingForConnectionGate()
     {
-        using SqliteConnection connection = new("Data Source=:memory:;Profile=StrictSingleConnection;");
+        using SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
 
         using (SqliteCommand setup = new("CREATE TABLE t(id INTEGER); INSERT INTO t(id) VALUES(1);", connection))
@@ -103,7 +103,7 @@ public class SqliteBehaviorTests
     [Fact]
     public async Task PrepareAsync_CanBeCanceledWhileWaitingForConnectionGate()
     {
-        using SqliteConnection connection = new("Data Source=:memory:;Profile=StrictSingleConnection;");
+        using SqliteConnection connection = new("Data Source=:memory:");
         connection.Open();
 
         using (SqliteCommand setup = new("CREATE TABLE t(id INTEGER); INSERT INTO t(id) VALUES(1);", connection))
