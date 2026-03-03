@@ -97,19 +97,19 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     public string DataSource
     {
         get => TryGetValue(DataSourceKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
-        set => this[DataSourceKey] = value ?? string.Empty;
+        set => base[DataSourceKey] = value ?? string.Empty;
     }
 
     public bool Pooling
     {
         get => TryGetValue(PoolingKey, out object? v) ? Convert.ToBoolean(v) : true;
-        set => this[PoolingKey] = value;
+        set => base[PoolingKey] = value;
     }
 
     public int MaxPoolSize
     {
         get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;
-        set => this[MaxPoolSizeKey] = Math.Max(1, value);
+        set => base[MaxPoolSizeKey] = Math.Max(1, value);
     }
 
     public int BusyTimeout
@@ -125,7 +125,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         }
         set
         {
-            this[BusyTimeoutKey] = Math.Max(0, value);
+            base[BusyTimeoutKey] = Math.Max(0, value);
             Remove(BusyTimeoutPragmaKey);
         }
     }
@@ -149,7 +149,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         }
         set
         {
-            this[JournalModeKey] = value ?? string.Empty;
+            base[JournalModeKey] = value ?? string.Empty;
             Remove(JournalModePragmaKey);
         }
     }
@@ -202,7 +202,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     {
         if (value.HasValue)
         {
-            this[key] = value.Value;
+            base[key] = value.Value;
             Remove(pragmaKey);
             return;
         }
