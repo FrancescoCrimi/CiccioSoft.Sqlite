@@ -15,8 +15,9 @@ public class SqliteDataReader : DbDataReader
     private readonly SqliteCommand _command;
     private readonly SqliteSession _session;
     private readonly System.Data.CommandBehavior _behavior;
-    private readonly Sqlite3Stmt _stmt;
     private readonly SqliteCommand.CommandExecutionScope _executionScope;
+    private readonly SqliteCommand.BatchExecutionState _batchState;
+    private Sqlite3Stmt _stmt;
     private bool _hasRow;
     private bool _prefetched;
     private bool _readStarted;
@@ -27,12 +28,14 @@ public class SqliteDataReader : DbDataReader
         SqliteSession session,
         System.Data.CommandBehavior behavior,
         Sqlite3Stmt stmt,
+        SqliteCommand.BatchExecutionState batchState,
         SqliteCommand.CommandExecutionScope executionScope)
     {
         _command = command;
         _session = session;
         _behavior = behavior;
         _stmt = stmt;
+        _batchState = batchState;
         _executionScope = executionScope;
     }
 
@@ -42,10 +45,11 @@ public class SqliteDataReader : DbDataReader
         try
         {
             SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
+            SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
             Sqlite3Stmt stmt;
             try
             {
-                stmt = scope.Execute(() => command.PrepareAndBind(session));
+                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState) ?? session.Native.Prepare("SELECT 1 WHERE 0;"));
             }
             catch
             {
@@ -53,7 +57,7 @@ public class SqliteDataReader : DbDataReader
                 throw;
             }
 
-            return new SqliteDataReader(command, session, behavior, stmt, scope);
+            return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
         }
         catch
         {
@@ -68,10 +72,11 @@ public class SqliteDataReader : DbDataReader
         try
         {
             SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, cancellationToken);
+            SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
             Sqlite3Stmt stmt;
             try
             {
-                stmt = scope.Execute(() => command.PrepareAndBind(session));
+                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState) ?? session.Native.Prepare("SELECT 1 WHERE 0;"));
             }
             catch
             {
@@ -79,7 +84,7 @@ public class SqliteDataReader : DbDataReader
                 throw;
             }
 
-            return new SqliteDataReader(command, session, behavior, stmt, scope);
+            return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
         }
         catch
         {
@@ -213,7 +218,34 @@ public class SqliteDataReader : DbDataReader
 
 
     public override bool IsDBNull(int ordinal) => _stmt.GetColumnType(ordinal) == 5;
-    public override bool NextResult() => false;
+    public override bool NextResult()
+    {
+        EnsureOpen();
+
+        while (true)
+        {
+            _stmt.Dispose();
+            _prefetched = false;
+            _readStarted = false;
+            _hasRow = false;
+
+            Sqlite3Stmt? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState));
+            if (next is null)
+            {
+                return false;
+            }
+
+            _stmt = next;
+            if (_stmt.ColumnCount() > 0)
+            {
+                return true;
+            }
+
+            while (_executionScope.Execute(_stmt.Step))
+            {
+            }
+        }
+    }
 
     public override DataTable GetSchemaTable()
     {
