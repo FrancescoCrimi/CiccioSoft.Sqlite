@@ -152,12 +152,17 @@ public class SqliteConnection : DbConnection
             throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
         }
 
-        return normalizedCollectionName switch
+        if (string.Equals(normalizedCollectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.Ordinal))
         {
-            DbMetaDataCollectionNames.MetaDataCollections => CreateMetaDataCollectionsTable(),
-            DbMetaDataCollectionNames.ReservedWords => CreateReservedWordsTable(),
-            _ => throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName))
-        };
+            return CreateMetaDataCollectionsTable();
+        }
+
+        if (string.Equals(normalizedCollectionName, DbMetaDataCollectionNames.ReservedWords, StringComparison.Ordinal))
+        {
+            return CreateReservedWordsTable();
+        }
+
+        throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
     }
 
     public override DataTable GetSchema(string collectionName, string?[]? restrictionValues)
