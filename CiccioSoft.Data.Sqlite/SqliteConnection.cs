@@ -129,10 +129,11 @@ public class SqliteConnection : DbConnection
         }
     }
 
-    public override async Task OpenAsync(CancellationToken cancellationToken)
+    public override Task OpenAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await Task.Run(Open, cancellationToken).ConfigureAwait(false);
+        Open();
+        return Task.CompletedTask;
     }
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
