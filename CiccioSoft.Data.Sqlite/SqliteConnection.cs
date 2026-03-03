@@ -7,6 +7,7 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -23,6 +24,7 @@ public class SqliteConnection : DbConnection
     private SqliteSession? _session;
     private bool _hasActiveTransaction;
     private SqliteConnectionStringBuilder _settings = new();
+    private string _dataSource = string.Empty;
 
     public SqliteConnection() { }
 
@@ -38,18 +40,19 @@ public class SqliteConnection : DbConnection
         {
             lock (_syncRoot)
             {
-                if (_state != ConnectionState.Closed) throw new InvalidOperationException("Connection must be closed.");
+                if (_state != ConnectionState.Closed) throw new InvalidOperationException(Resources.ConnectionStringRequiresClosedConnection);
                 _connectionString = value ?? string.Empty;
                 _settings = new SqliteConnectionStringBuilder { ConnectionString = _connectionString };
+                _dataSource = _settings.DataSource;
             }
         }
     }
 
     public override string Database => "main";
 
-    public override string DataSource => _settings.DataSource;
+    public override string DataSource => _dataSource;
 
-    public override string ServerVersion => "3";
+    public override string ServerVersion => "3.0.0";
 
     public override ConnectionState State
     {
@@ -84,6 +87,8 @@ public class SqliteConnection : DbConnection
             _hasActiveTransaction = false;
         }
 
+        OnStateChange(new StateChangeEventArgs(ConnectionState.Open, ConnectionState.Closed));
+
         if (session is null)
             return;
 
@@ -113,25 +118,28 @@ public class SqliteConnection : DbConnection
             if (_state != ConnectionState.Closed)
                 return;
 
-            if (string.IsNullOrWhiteSpace(_settings.DataSource))
-                throw new InvalidOperationException("Data Source is required.");
+            string dataSource = ResolveDataSource();
+            int openFlags = GetOpenFlags(dataSource);
 
             try
             {
                 bool pooling = IsPoolingEnabled();
                 SqliteSession session = pooling
-                    ? SqliteConnectionPool.Rent(_connectionString, _settings.DataSource, _settings.MaxPoolSize, GetOpenFlags())
-                    : new SqliteSession(Sqlite3.Open(_settings.DataSource, GetOpenFlags()));
+                    ? SqliteConnectionPool.Rent(_connectionString, dataSource, _settings.MaxPoolSize, openFlags)
+                    : new SqliteSession(Sqlite3.Open(dataSource, openFlags));
 
                 ApplyConnectionSettings(session.Native);
 
                 _session = session;
+                _dataSource = dataSource;
                 _state = ConnectionState.Open;
             }
             catch (SqliteInteropException ex)
             {
                 throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
             }
+
+            OnStateChange(new StateChangeEventArgs(ConnectionState.Closed, ConnectionState.Open));
         }
     }
 
@@ -287,11 +295,28 @@ public class SqliteConnection : DbConnection
         return _settings.Pooling;
     }
 
-    private int GetOpenFlags()
+    private int GetOpenFlags(string dataSource)
     {
         int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
-        if (_settings.DataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+        if (_settings.TryGetValue("Mode", out object? modeValue))
+        {
+            string mode = Convert.ToString(modeValue) ?? string.Empty;
+            if (string.Equals(mode, "ReadOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                flags = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
+            }
+            else if (string.Equals(mode, "ReadWrite", StringComparison.OrdinalIgnoreCase))
+            {
+                flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX;
+            }
+            else if (string.Equals(mode, "Memory", StringComparison.OrdinalIgnoreCase))
+            {
+                flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY | SQLITE_OPEN_FULLMUTEX;
+            }
+        }
+
+        if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
         {
             flags |= SQLITE_OPEN_URI;
         }
@@ -317,5 +342,29 @@ public class SqliteConnection : DbConnection
         {
             native.Execute($"PRAGMA recursive_triggers={(_settings.RecursiveTriggers == true ? "ON" : "OFF")};");
         }
+    }
+
+    private string ResolveDataSource()
+    {
+        string dataSource = _settings.DataSource;
+        if (string.IsNullOrWhiteSpace(dataSource))
+        {
+            return ":memory:";
+        }
+
+        if (dataSource.StartsWith("|DataDirectory|", StringComparison.OrdinalIgnoreCase))
+        {
+            string baseDirectory = Convert.ToString(AppDomain.CurrentDomain.GetData("DataDirectory")) ?? AppContext.BaseDirectory;
+            return Path.Combine(baseDirectory, dataSource[15..]);
+        }
+
+        if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase) || dataSource == ":memory:")
+        {
+            return dataSource;
+        }
+
+        return Path.IsPathRooted(dataSource)
+            ? dataSource
+            : Path.Combine(AppContext.BaseDirectory, dataSource);
     }
 }
