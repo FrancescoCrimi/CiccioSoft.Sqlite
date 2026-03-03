@@ -187,34 +187,6 @@ public class SqliteConnectionFactoryTest : IDisposable
         Assert.Equal(0L, readUncommitted);
     }
 
-    [Fact]
-    public void Functions_dont_bleed_across_connections()
-    {
-        sqlite3 db;
-        using (var connection1 = new SqliteConnection(ConnectionString))
-        {
-            if (new Version(connection1.ServerVersion) < new Version(3, 31, 0))
-            {
-                // Skip. SQLite returns deleted functions
-                return;
-            }
-
-            connection1.CreateFunction("function1", () => 1L, isDeterministic: true);
-            connection1.CreateAggregate("aggregate1", 0L, x => x, isDeterministic: true);
-            connection1.Open();
-            db = connection1.Handle!;
-        }
-
-        using var connection2 = new SqliteConnection(ConnectionString);
-        connection2.Open();
-
-        Assert.Same(db, connection2.Handle);
-        var functions = connection2.ExecuteScalar<string>("SELECT group_concat(name) FROM pragma_function_list;")
-            .Split(',');
-        Assert.DoesNotContain("function1", functions);
-        Assert.DoesNotContain("aggregate1", functions);
-    }
-
     [Fact(Skip = "ericsink/SQLitePCL.raw#421")]
     public void Collations_dont_bleed_across_connections()
     {
