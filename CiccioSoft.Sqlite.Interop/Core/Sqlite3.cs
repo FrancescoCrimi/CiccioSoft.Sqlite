@@ -275,6 +275,80 @@ public sealed unsafe class Sqlite3 : IDisposable
     }
 
     /// <summary>
+    /// Compiles the next SQL statement starting from a byte offset within a batch SQL text.
+    /// </summary>
+    /// <param name="sql">The full SQL batch text.</param>
+    /// <param name="sqlByteOffset">The UTF-8 byte offset where statement preparation should start.</param>
+    /// <param name="nextSqlByteOffset">The UTF-8 byte offset immediately after the prepared statement.</param>
+    /// <param name="prepareFlags">Flags such as <c>SQLITE_PREPARE_PERSISTENT</c> or <c>SQLITE_PREPARE_NO_VTAB</c>.</param>
+    /// <returns>
+    /// A prepared statement if one is found at the given offset; otherwise <c>null</c> when only whitespace/comments remain.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="sqlByteOffset"/> is outside the SQL byte buffer range.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
+    /// <exception cref="SqliteInteropException">Thrown if the statement cannot be prepared.</exception>
+    public Sqlite3Stmt? Prepare(string sql, int sqlByteOffset, out int nextSqlByteOffset, uint prepareFlags = 0)
+    {
+        ThrowIfInvalid();
+
+        int dataLength = Encoding.UTF8.GetByteCount(sql);
+        if ((uint)sqlByteOffset > (uint)dataLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sqlByteOffset));
+        }
+
+        byte[]? arrayFromPool = null;
+        Span<byte> buffer = dataLength <= 1024
+            ? stackalloc byte[dataLength]
+            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(dataLength)).AsSpan(0, dataLength);
+
+        try
+        {
+            Encoding.UTF8.GetBytes(sql, buffer);
+
+            fixed (byte* pBuf = buffer)
+            {
+                byte* pStart = pBuf + sqlByteOffset;
+                int remainingLength = dataLength - sqlByteOffset;
+
+                nint pStmt = default;
+                byte* pTail = null;
+                int result = sqlite3.sqlite3_prepare_v3(
+                    _handle.DangerousGetHandle(),
+                    pStart,
+                    remainingLength,
+                    prepareFlags,
+                    &pStmt,
+                    &pTail);
+
+                if (result != sqlite3.SQLITE_OK)
+                {
+                    SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                    if (pStmt != nint.Zero)
+                        sqlite3.sqlite3_finalize(pStmt);
+
+                    throw exception;
+                }
+
+                int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
+                nextSqlByteOffset = sqlByteOffset + consumedBytes;
+
+                if (pStmt == nint.Zero)
+                {
+                    return null;
+                }
+
+                return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
+            }
+        }
+        finally
+        {
+            if (arrayFromPool != null)
+                ArrayPool<byte>.Shared.Return(arrayFromPool);
+        }
+    }
+
+    /// <summary>
     /// Returns the row ID of the last successful INSERT into the database from this connection.
     /// </summary>
     /// <returns>The 64-bit row identifier of the last inserted row.</returns>

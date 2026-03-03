@@ -275,18 +275,58 @@ public class SqliteCommand : DbCommand
         return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
+    internal sealed class BatchExecutionState
+    {
+        private int _sqlByteOffset;
+
+        public BatchExecutionState(string sql)
+        {
+            Sql = sql;
+        }
+
+        public string Sql { get; }
+
+        public int SqlByteOffset
+        {
+            get => _sqlByteOffset;
+            set => _sqlByteOffset = value;
+        }
+    }
+
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
     {
         Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
+        BindParameters(stmt, throwOnMissingParameter: true);
+        return stmt;
+    }
+
+    internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState)
+    {
+        Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset);
+        batchState.SqlByteOffset = nextSqlByteOffset;
+        if (stmt is null)
+        {
+            return null;
+        }
+
+        BindParameters(stmt, throwOnMissingParameter: false);
+        return stmt;
+    }
+
+    private void BindParameters(Sqlite3Stmt stmt, bool throwOnMissingParameter)
+    {
         for (int i = 0; i < _parameters.Count; i++)
         {
             SqliteParameter parameter = (SqliteParameter)_parameters[i]!;
             ValidateParameterDirection(parameter);
-            int parameterIndex = ResolveParameterIndex(stmt, parameter, i);
+            int parameterIndex = ResolveParameterIndex(stmt, parameter, i, throwOnMissingParameter);
+            if (parameterIndex == 0)
+            {
+                continue;
+            }
+
             BindParameter(stmt, parameterIndex, parameter);
         }
-
-        return stmt;
     }
 
 
@@ -298,7 +338,7 @@ public class SqliteCommand : DbCommand
         }
     }
 
-    private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)
+    private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal, bool throwOnMissingParameter)
     {
         string parameterName = parameter.ParameterName;
         if (string.IsNullOrWhiteSpace(parameterName))
@@ -334,7 +374,12 @@ public class SqliteCommand : DbCommand
             return index;
         }
 
-        throw new InvalidOperationException($"Parameter '{parameterName}' does not exist in the command text.");
+        if (throwOnMissingParameter)
+        {
+            throw new InvalidOperationException($"Parameter '{parameterName}' does not exist in the command text.");
+        }
+
+        return 0;
     }
 
     private static void BindParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter)
