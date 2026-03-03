@@ -2138,6 +2138,7 @@ public class SqliteDataReaderTests
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
             connection.Open();
+            connection.ExecuteNonQuery("DROP TABLE IF EXISTS Test;");
             connection.ExecuteNonQuery($"CREATE TABLE Test(Value {type});");
 
             using (var reader = connection.ExecuteReader("SELECT Value FROM Test;"))
