@@ -21,6 +21,7 @@ public class SqliteConnection : DbConnection
     private string _connectionString = string.Empty;
     private ConnectionState _state = ConnectionState.Closed;
     private SqliteSession? _session;
+    private bool _hasActiveTransaction;
     private SqliteConnectionStringBuilder _settings = new();
 
     public SqliteConnection() { }
@@ -80,6 +81,7 @@ public class SqliteConnection : DbConnection
             pooling = IsPoolingEnabled();
             connectionString = _connectionString;
             _state = ConnectionState.Closed;
+            _hasActiveTransaction = false;
         }
 
         if (session is null)
@@ -149,7 +151,7 @@ public class SqliteConnection : DbConnection
     {
         if (!TryNormalizeCollectionName(collectionName, out string normalizedCollectionName))
         {
-            throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
+            throw new ArgumentException(Resources.UnknownCollection(collectionName));
         }
 
         if (string.Equals(normalizedCollectionName, DbMetaDataCollectionNames.MetaDataCollections, StringComparison.Ordinal))
@@ -162,19 +164,19 @@ public class SqliteConnection : DbConnection
             return CreateReservedWordsTable();
         }
 
-        throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
+        throw new ArgumentException(Resources.UnknownCollection(collectionName));
     }
 
     public override DataTable GetSchema(string collectionName, string?[]? restrictionValues)
     {
         if (!TryNormalizeCollectionName(collectionName, out string normalizedCollectionName))
         {
-            throw new ArgumentException(Resources.UnknownCollection(collectionName), nameof(collectionName));
+            throw new ArgumentException(Resources.UnknownCollection(collectionName));
         }
 
         if (restrictionValues is { Length: > 0 })
         {
-            throw new ArgumentException(Resources.TooManyRestrictions(normalizedCollectionName), nameof(restrictionValues));
+            throw new ArgumentException(Resources.TooManyRestrictions(normalizedCollectionName));
         }
 
         return GetSchema(normalizedCollectionName);
@@ -182,8 +184,26 @@ public class SqliteConnection : DbConnection
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
     {
-        EnsureOpen();
-        return new SqliteTransaction(this, isolationLevel);
+        lock (_syncRoot)
+        {
+            EnsureOpen();
+            if (_hasActiveTransaction)
+            {
+                throw new InvalidOperationException(Resources.ParallelTransactionsNotSupported);
+            }
+
+            _hasActiveTransaction = true;
+        }
+
+        try
+        {
+            return new SqliteTransaction(this, isolationLevel);
+        }
+        catch
+        {
+            ClearActiveTransaction();
+            throw;
+        }
     }
 
     protected override DbCommand CreateDbCommand()
@@ -211,6 +231,14 @@ public class SqliteConnection : DbConnection
     {
         if (_state != ConnectionState.Open || _session is null)
             throw new InvalidOperationException("Connection is not open.");
+    }
+
+    internal void ClearActiveTransaction()
+    {
+        lock (_syncRoot)
+        {
+            _hasActiveTransaction = false;
+        }
     }
 
 

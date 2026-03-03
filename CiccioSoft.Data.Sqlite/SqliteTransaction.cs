@@ -35,6 +35,7 @@ public class SqliteTransaction : DbTransaction
         EnsureActive();
         Execute("COMMIT;");
         _completed = true;
+        _connection.ClearActiveTransaction();
     }
 
     public override void Rollback()
@@ -42,6 +43,7 @@ public class SqliteTransaction : DbTransaction
         EnsureActive();
         Execute("ROLLBACK;");
         _completed = true;
+        _connection.ClearActiveTransaction();
     }
 
     public override Task CommitAsync(CancellationToken cancellationToken = default)
@@ -63,6 +65,11 @@ public class SqliteTransaction : DbTransaction
         if (disposing && !_completed && _connection.State == ConnectionState.Open)
         {
             try { Rollback(); } catch { }
+        }
+
+        if (disposing)
+        {
+            _connection.ClearActiveTransaction();
         }
 
         base.Dispose(disposing);
