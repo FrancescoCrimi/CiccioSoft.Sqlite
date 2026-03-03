@@ -143,7 +143,7 @@ public class SqliteTransactionTests
     {
         public bool SimulateFailureOnRollback { get; set; }
 
-        public override SqliteCommand CreateCommand()
+        public new SqliteCommand CreateCommand()
             => new FakeCommand(this, base.CreateCommand());
 
         public new SqliteTransaction? Transaction => base.Transaction;
