@@ -664,6 +664,52 @@ CREATE TABLE "Products" (
     }
 
     [Fact]
+    public void ExecuteNonQuery_throws_when_transaction_mismatched()
+    {
+        using (var connection = new SqliteConnection("Data Source=:memory:"))
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1;";
+            connection.Open();
+
+            using (var otherConnection = new SqliteConnection("Data Source=:memory:"))
+            {
+                otherConnection.Open();
+
+                using (var transaction = otherConnection.BeginTransaction())
+                {
+                    command.Transaction = transaction;
+
+                    var ex = Assert.Throws<InvalidOperationException>(() => command.ExecuteNonQuery());
+
+                    Assert.Equal(Resources.TransactionConnectionMismatch, ex.Message);
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Prepare_throws_when_transaction_completed()
+    {
+        using (var connection = new SqliteConnection("Data Source=:memory:"))
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1;";
+            connection.Open();
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                command.Transaction = transaction;
+                transaction.Rollback();
+
+                var ex = Assert.Throws<InvalidOperationException>(() => command.Prepare());
+
+                Assert.Equal(Resources.TransactionCompleted, ex.Message);
+            }
+        }
+    }
+
+    [Fact]
     public void ExecuteReader_throws_when_transaction_completed_externally()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))

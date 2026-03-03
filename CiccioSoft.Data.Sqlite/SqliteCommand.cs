@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
@@ -81,7 +82,8 @@ public class SqliteCommand : DbCommand
 
     public override int ExecuteNonQuery()
     {
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
+        ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         session.Gate.Wait();
         try
@@ -108,7 +110,8 @@ public class SqliteCommand : DbCommand
 
     public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
     {
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
+        ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
@@ -136,7 +139,8 @@ public class SqliteCommand : DbCommand
 
     public override void Prepare()
     {
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
+        ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         session.Gate.Wait();
         try
@@ -157,7 +161,8 @@ public class SqliteCommand : DbCommand
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
+        ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         using CancellationTokenRegistration reg = cancellationToken.Register(() => session.Native.Interrupt());
@@ -179,14 +184,16 @@ public class SqliteCommand : DbCommand
 
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
     {
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
+        ValidateTransaction(conn);
         return SqliteDataReader.Create(this, conn.GetSession(), behavior);
     }
 
     protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        SqliteConnection conn = RequireConnection();
+        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
+        ValidateTransaction(conn);
         return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
@@ -277,7 +284,33 @@ public class SqliteCommand : DbCommand
         }
     }
 
-    private SqliteConnection RequireConnection() => _connection ?? throw new InvalidOperationException("Connection is required.");
+    private SqliteConnection RequireOpenConnection(string methodName)
+    {
+        if (_connection is null || _connection.State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException(Resources.CallRequiresOpenConnection(methodName));
+        }
+
+        return _connection;
+    }
+
+    private void ValidateTransaction(SqliteConnection connection)
+    {
+        if (Transaction is null)
+        {
+            return;
+        }
+
+        if (Transaction.Connection is null)
+        {
+            throw new InvalidOperationException(Resources.TransactionCompleted);
+        }
+
+        if (!ReferenceEquals(Transaction.Connection, connection))
+        {
+            throw new InvalidOperationException(Resources.TransactionConnectionMismatch);
+        }
+    }
 }
 
 internal sealed class SqliteParameterCollection : DbParameterCollection
