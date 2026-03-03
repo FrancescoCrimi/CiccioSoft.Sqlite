@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -511,9 +512,12 @@ public class SqliteDataReader : DbDataReader
         base.Dispose(disposing);
     }
 
-    private void EnsureOpen()
+    private void EnsureOpen([CallerMemberName] string? operation = null)
     {
-        if (_closed) throw new InvalidOperationException("Reader is closed.");
+        if (_closed)
+        {
+            throw new InvalidOperationException(Resources.DataReaderClosed(operation ?? "operation"));
+        }
     }
 
     private void EnsurePrefetched()
@@ -525,9 +529,9 @@ public class SqliteDataReader : DbDataReader
         _prefetched = true;
     }
 
-    private void EnsureHasRow()
+    private void EnsureHasRow([CallerMemberName] string? operation = null)
     {
-        EnsureOpen();
+        EnsureOpen(operation);
 
         if (!_readStarted || !_hasRow)
         {
