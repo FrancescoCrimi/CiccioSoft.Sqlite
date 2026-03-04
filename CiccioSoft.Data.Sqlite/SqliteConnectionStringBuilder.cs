@@ -5,6 +5,8 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data.Common;
 
 namespace CiccioSoft.Data.Sqlite;
@@ -22,6 +24,17 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string JournalModePragmaKey = "journal_mode";
     private const string RecursiveTriggersKey = "Recursive Triggers";
     private const string RecursiveTriggersPragmaKey = "recursive_triggers";
+
+    private static readonly string[] CanonicalKeys =
+    [
+        DataSourceKey,
+        PoolingKey,
+        MaxPoolSizeKey,
+        BusyTimeoutKey,
+        JournalModeKey,
+        ForeignKeysKey,
+        RecursiveTriggersKey
+    ];
 
     public SqliteConnectionStringBuilder()
     {
@@ -91,6 +104,42 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                     base[keyword] = value;
                     break;
             }
+        }
+    }
+
+    public override ICollection Keys
+    {
+        get
+        {
+            var keys = new List<string>();
+            foreach (string key in base.Keys)
+            {
+                keys.Add(key);
+            }
+
+            foreach (string key in CanonicalKeys)
+            {
+                if (!keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    keys.Add(key);
+                }
+            }
+
+            return keys;
+        }
+    }
+
+    public override ICollection Values
+    {
+        get
+        {
+            var values = new List<object>();
+            foreach (string key in Keys)
+            {
+                values.Add(this[key]);
+            }
+
+            return values;
         }
     }
 
