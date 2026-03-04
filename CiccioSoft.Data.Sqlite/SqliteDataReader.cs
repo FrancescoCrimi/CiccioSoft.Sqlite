@@ -241,8 +241,8 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            1 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetLong(ordinal) - 2440587.5),
-            2 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetDouble(ordinal) - 2440587.5),
+            1 => JulianDayToDateTime(Stmt.GetLong(ordinal)),
+            2 => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
             3 => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
             5 => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
             _ => throw new InvalidCastException(),
@@ -274,14 +274,7 @@ public class SqliteDataReader : DbDataReader
 
         if (_hasRow)
         {
-            return Stmt.GetColumnType(ordinal) switch
-            {
-                1 => typeof(long),
-                2 => typeof(double),
-                3 => typeof(string),
-                4 => typeof(byte[]),
-                _ => GetFieldTypeFromDeclaration(ordinal),
-            };
+            return InferFieldType(ordinal);
         }
 
         return GetFieldTypeFromDeclaration(ordinal);
@@ -318,7 +311,7 @@ public class SqliteDataReader : DbDataReader
 
         if (targetType == typeof(TextReader))
         {
-            return (T)(object)new StringReader((string)value);
+            return (T)(object)new StreamReader(new MemoryStream(System.Text.Encoding.UTF8.GetBytes((string)value), writable: false), System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false);
         }
 
         if (nonNullableType == typeof(Guid))
@@ -345,8 +338,8 @@ public class SqliteDataReader : DbDataReader
         {
             DateTime dateTime = value switch
             {
-                long l => DateTime.UnixEpoch + TimeSpan.FromDays(l - 2440587.5),
-                double d => DateTime.UnixEpoch + TimeSpan.FromDays(d - 2440587.5),
+                long l => JulianDayToDateTime(l),
+                double d => JulianDayToDateTime(d),
                 string s => DateTime.Parse(s, CultureInfo.InvariantCulture),
                 _ => throw new InvalidCastException(),
             };
@@ -486,6 +479,19 @@ public class SqliteDataReader : DbDataReader
         return value;
     }
 
+    public override Stream GetStream(int ordinal)
+        => GetFieldValue<Stream>(ordinal);
+
+    public override TextReader GetTextReader(int ordinal)
+    {
+        if (IsDBNull(ordinal))
+        {
+            return new StringReader(string.Empty);
+        }
+
+        return GetFieldValue<TextReader>(ordinal);
+    }
+
     public override object GetValue(int ordinal)
     {
         EnsureHasRow();
@@ -588,7 +594,7 @@ public class SqliteDataReader : DbDataReader
             DataRow row = schemaTable.NewRow();
             row[SchemaTableColumn.ColumnName] = columnName;
             row[SchemaTableColumn.ColumnOrdinal] = ordinal;
-            row[SchemaTableColumn.DataType] = GetFieldTypeFromDeclaration(ordinal);
+            row[SchemaTableColumn.DataType] = GetFieldType(ordinal);
             row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
             row[SchemaTableColumn.AllowDBNull] = true;
             row[SchemaIsKeyColumn] = false;
@@ -710,6 +716,24 @@ public class SqliteDataReader : DbDataReader
             throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
         }
     }
+
+    private static DateTime JulianDayToDateTime(double julianDay)
+    {
+        const double unixEpochJulianDay = 2440587.5;
+        double ticksSinceUnixEpoch = (julianDay - unixEpochJulianDay) * TimeSpan.TicksPerDay;
+        long roundedTicks = (long)Math.Round(ticksSinceUnixEpoch, MidpointRounding.AwayFromZero);
+        return DateTime.UnixEpoch.AddTicks(roundedTicks);
+    }
+
+    private Type InferFieldType(int ordinal)
+        => Stmt.GetColumnType(ordinal) switch
+        {
+            1 => typeof(long),
+            2 => typeof(double),
+            3 => typeof(string),
+            4 => typeof(byte[]),
+            _ => GetFieldTypeFromDeclaration(ordinal),
+        };
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
     {
