@@ -119,7 +119,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 
             foreach (string key in CanonicalKeys)
             {
-                if (!keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                if (!keys.Exists(existingKey => string.Equals(existingKey, key, StringComparison.OrdinalIgnoreCase)))
                 {
                     keys.Add(key);
                 }
