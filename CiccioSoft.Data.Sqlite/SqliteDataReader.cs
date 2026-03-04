@@ -226,23 +226,15 @@ public class SqliteDataReader : DbDataReader
 
         ValidateOrdinal(ordinal);
 
-        string? declaredType = Stmt.GetColumnDeclType(ordinal);
-        if (!string.IsNullOrWhiteSpace(declaredType))
+        string declaredTypeName = GetDataTypeNameFromDeclaration(ordinal);
+        if (!string.Equals(declaredTypeName, "BLOB", StringComparison.Ordinal))
         {
-            int parenIndex = declaredType.IndexOf('(');
-            return parenIndex >= 0
-                ? declaredType.Substring(0, parenIndex).Trim()
-                : declaredType;
+            return declaredTypeName;
         }
 
         if (!_readStarted)
         {
             EnsurePrefetched();
-        }
-
-        if (!_hasRow)
-        {
-            return "BLOB";
         }
 
         return Stmt.GetColumnType(ordinal) switch
@@ -251,7 +243,7 @@ public class SqliteDataReader : DbDataReader
             2 => "REAL",
             3 => "TEXT",
             4 => "BLOB",
-            _ => "BLOB",
+            _ => declaredTypeName,
         };
     }
 
@@ -308,12 +300,7 @@ public class SqliteDataReader : DbDataReader
         ValidateOrdinal(ordinal);
         EnsurePrefetched();
 
-        if (_hasRow)
-        {
-            return InferFieldType(ordinal);
-        }
-
-        return GetFieldTypeFromDeclaration(ordinal);
+        return InferFieldType(ordinal);
     }
 
     public override float GetFloat(int ordinal)
@@ -670,8 +657,8 @@ public class SqliteDataReader : DbDataReader
             row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
             row[SchemaTableColumn.AllowDBNull] = true;
             row[SchemaTableColumn.ColumnSize] = DBNull.Value;
-            row[SchemaIsKeyColumn] = false;
-            row[SchemaIsUniqueColumn] = false;
+            row[SchemaIsKeyColumn] = DBNull.Value;
+            row[SchemaIsUniqueColumn] = DBNull.Value;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
             row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
             row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
@@ -870,6 +857,20 @@ public class SqliteDataReader : DbDataReader
             4 => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
         };
+
+    private string GetDataTypeNameFromDeclaration(int ordinal)
+    {
+        string? declaredType = Stmt.GetColumnDeclType(ordinal);
+        if (string.IsNullOrWhiteSpace(declaredType))
+        {
+            return "BLOB";
+        }
+
+        int parenIndex = declaredType.IndexOf('(');
+        return parenIndex >= 0
+            ? declaredType.Substring(0, parenIndex).Trim()
+            : declaredType;
+    }
 
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
