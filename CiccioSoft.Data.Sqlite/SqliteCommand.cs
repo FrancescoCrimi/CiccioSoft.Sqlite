@@ -106,8 +106,18 @@ public class SqliteCommand : DbCommand
         try
         {
             using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-            using Sqlite3Stmt stmt = scope.Execute(() => PrepareAndBind(session));
-            while (scope.Execute(stmt.Step)) { }
+            BatchExecutionState batchState = new(CommandText);
+            while (true)
+            {
+                using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
+                if (stmt is null)
+                {
+                    break;
+                }
+
+                while (scope.Execute(stmt.Step)) { }
+            }
+
             return session.Native.Changes();
         }
         finally
@@ -131,8 +141,18 @@ public class SqliteCommand : DbCommand
         try
         {
             using CommandExecutionScope scope = CreateExecutionScope(session, cancellationToken);
-            using Sqlite3Stmt stmt = scope.Execute(() => PrepareAndBind(session));
-            while (scope.Execute(stmt.Step)) { }
+            BatchExecutionState batchState = new(CommandText);
+            while (true)
+            {
+                using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
+                if (stmt is null)
+                {
+                    break;
+                }
+
+                while (scope.Execute(stmt.Step)) { }
+            }
+
             return session.Native.Changes();
         }
         finally
