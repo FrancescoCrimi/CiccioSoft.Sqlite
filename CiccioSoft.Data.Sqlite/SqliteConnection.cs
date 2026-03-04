@@ -23,6 +23,7 @@ public class SqliteConnection : DbConnection
     private ConnectionState _state = ConnectionState.Closed;
     private SqliteSession? _session;
     private bool _hasActiveTransaction;
+    private SqliteTransaction? _activeTransaction;
     private SqliteConnectionStringBuilder _settings = new();
     private string _dataSource = string.Empty;
 
@@ -87,6 +88,7 @@ public class SqliteConnection : DbConnection
             connectionString = _connectionString;
             _state = ConnectionState.Closed;
             _hasActiveTransaction = false;
+            _activeTransaction = null;
         }
 
         OnStateChange(new StateChangeEventArgs(ConnectionState.Open, ConnectionState.Closed));
@@ -122,6 +124,12 @@ public class SqliteConnection : DbConnection
 
             string dataSource = ResolveDataSource();
             int openFlags = GetOpenFlags(dataSource);
+
+            if (_settings.TryGetValue("Password", out object? password)
+                && !string.IsNullOrWhiteSpace(Convert.ToString(password)))
+            {
+                throw new InvalidOperationException(Resources.EncryptionNotSupported("sqlite3"));
+            }
 
             try
             {
@@ -218,7 +226,11 @@ public class SqliteConnection : DbConnection
 
     protected override DbCommand CreateDbCommand()
     {
-        return new SqliteCommand { Connection = this };
+        return new SqliteCommand
+        {
+            Connection = this,
+            Transaction = _activeTransaction,
+        };
     }
 
     protected override void Dispose(bool disposing)
@@ -248,6 +260,15 @@ public class SqliteConnection : DbConnection
         lock (_syncRoot)
         {
             _hasActiveTransaction = false;
+            _activeTransaction = null;
+        }
+    }
+
+    internal void SetActiveTransaction(SqliteTransaction transaction)
+    {
+        lock (_syncRoot)
+        {
+            _activeTransaction = transaction;
         }
     }
 
@@ -334,6 +355,24 @@ public class SqliteConnection : DbConnection
             }
         }
 
+        if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+        {
+            flags |= SQLITE_OPEN_URI;
+        }
+
+        if (_settings.TryGetValue("Cache", out object? cacheValue))
+        {
+            string cache = Convert.ToString(cacheValue) ?? string.Empty;
+            if (string.Equals(cache, "Shared", StringComparison.OrdinalIgnoreCase))
+            {
+                flags |= SQLITE_OPEN_SHAREDCACHE;
+            }
+            else if (string.Equals(cache, "Private", StringComparison.OrdinalIgnoreCase))
+            {
+                flags |= SQLITE_OPEN_PRIVATECACHE;
+            }
+        }
+
         return flags;
     }
 
@@ -374,6 +413,20 @@ public class SqliteConnection : DbConnection
         if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase) || dataSource == ":memory:")
         {
             return dataSource;
+        }
+
+        if (_settings.TryGetValue("Mode", out object? modeValue)
+            && string.Equals(Convert.ToString(modeValue), "Memory", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrEmpty(dataSource))
+        {
+            string cacheSuffix = string.Empty;
+            if (_settings.TryGetValue("Cache", out object? cacheValue)
+                && string.Equals(Convert.ToString(cacheValue), "Shared", StringComparison.OrdinalIgnoreCase))
+            {
+                cacheSuffix = "&cache=shared";
+            }
+
+            return $"file:{dataSource}?mode=memory{cacheSuffix}";
         }
 
         return Path.IsPathRooted(dataSource)
