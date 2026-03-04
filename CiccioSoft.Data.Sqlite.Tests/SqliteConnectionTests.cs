@@ -217,7 +217,8 @@ public class SqliteConnectionTests
     [Fact]
     public void Open_works_when_readwrite()
     {
-        using var connection = new SqliteConnection("Data Source=readwrite.db;Mode=ReadWrite");
+        var path = Path.Combine(AppContext.BaseDirectory, $"readwrite-{Guid.NewGuid():N}.db");
+        using var connection = new SqliteConnection($"Data Source={path};Mode=ReadWrite");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
         Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
@@ -413,7 +414,8 @@ public class SqliteConnectionTests
     [Fact]
     public void Open_works_when_uri()
     {
-        using var connection = new SqliteConnection("Data Source=file:readwrite.db?mode=rw");
+        var fileName = $"readwrite-{Guid.NewGuid():N}.db";
+        using var connection = new SqliteConnection($"Data Source=file:{fileName}?mode=rw");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
         Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);

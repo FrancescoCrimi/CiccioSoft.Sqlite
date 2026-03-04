@@ -657,8 +657,8 @@ public class SqliteDataReader : DbDataReader
             row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
             row[SchemaTableColumn.AllowDBNull] = true;
             row[SchemaTableColumn.ColumnSize] = DBNull.Value;
-            row[SchemaIsKeyColumn] = DBNull.Value;
-            row[SchemaIsUniqueColumn] = DBNull.Value;
+            row[SchemaIsKeyColumn] = false;
+            row[SchemaIsUniqueColumn] = false;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
             row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
             row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;

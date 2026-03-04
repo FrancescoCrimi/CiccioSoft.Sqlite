@@ -24,6 +24,7 @@ public class SqliteTransaction : DbTransaction
         _connection = connection;
         IsolationLevel = NormalizeIsolationLevel(isolationLevel);
         Execute(GetBeginStatement(IsolationLevel));
+        _connection.SetActiveTransaction(this);
     }
 
     public override IsolationLevel IsolationLevel { get; }
