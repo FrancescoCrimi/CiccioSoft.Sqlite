@@ -214,6 +214,16 @@ public class SqliteDataReader : DbDataReader
             return declaredType;
         }
 
+        if (!_readStarted)
+        {
+            EnsurePrefetched();
+        }
+
+        if (!_hasRow)
+        {
+            return "BLOB";
+        }
+
         return Stmt.GetColumnType(ordinal) switch
         {
             1 => "INTEGER",
