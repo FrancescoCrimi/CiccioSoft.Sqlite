@@ -294,7 +294,23 @@ public class SqliteConnection : DbConnection
 
     private bool IsPoolingEnabled()
     {
-        return _settings.Pooling;
+        if (!_settings.Pooling)
+        {
+            return false;
+        }
+
+        if (string.Equals(_settings.DataSource, ":memory:", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (_settings.TryGetValue("Mode", out object? modeValue)
+            && string.Equals(Convert.ToString(modeValue), "Memory", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private int GetOpenFlags(string dataSource)
