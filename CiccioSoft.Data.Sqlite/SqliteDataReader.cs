@@ -36,6 +36,7 @@ public class SqliteDataReader : DbDataReader
     private bool _prefetched;
     private bool _readStarted;
     private bool _closed;
+    private int _recordsAffected = -1;
 
     private SqliteDataReader(
         SqliteCommand command,
@@ -112,7 +113,14 @@ public class SqliteDataReader : DbDataReader
     public override object this[int ordinal] => GetValue(ordinal);
     public override object this[string name] => GetValue(GetOrdinal(name));
     public override int Depth => 0;
-    public override int FieldCount => _closed ? 0 : _stmt?.ColumnCount() ?? 0;
+    public override int FieldCount
+    {
+        get
+        {
+            EnsureOpen();
+            return _stmt?.ColumnCount() ?? 0;
+        }
+    }
     public override bool HasRows
     {
         get
@@ -124,7 +132,7 @@ public class SqliteDataReader : DbDataReader
     }
 
     public override bool IsClosed => _closed;
-    public override int RecordsAffected => -1;
+    public override int RecordsAffected => _recordsAffected;
 
     public override bool GetBoolean(int ordinal)
     {
@@ -148,6 +156,11 @@ public class SqliteDataReader : DbDataReader
         ValidateOrdinal(ordinal);
 
         ReadOnlySpan<byte> blob = Stmt.GetBlob(ordinal);
+        if (dataOffset < 0 || dataOffset > blob.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dataOffset));
+        }
+
         if (buffer is null)
         {
             return blob.Length;
@@ -183,6 +196,11 @@ public class SqliteDataReader : DbDataReader
         ValidateOrdinal(ordinal);
 
         string s = GetString(ordinal);
+        if (dataOffset < 0 || dataOffset > s.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dataOffset));
+        }
+
         if (buffer is null)
         {
             return s.Length;
@@ -211,7 +229,10 @@ public class SqliteDataReader : DbDataReader
         string? declaredType = Stmt.GetColumnDeclType(ordinal);
         if (!string.IsNullOrWhiteSpace(declaredType))
         {
-            return declaredType;
+            int parenIndex = declaredType.IndexOf('(');
+            return parenIndex >= 0
+                ? declaredType.Substring(0, parenIndex).Trim()
+                : declaredType;
         }
 
         if (!_readStarted)
@@ -254,12 +275,22 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Convert.ToDecimal(GetValue(ordinal), CultureInfo.InvariantCulture);
+        object value = GetValue(ordinal);
+        if (value is string text)
+        {
+            return decimal.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+
+        return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
     }
     public override double GetDouble(int ordinal)
     {
         EnsureHasRow();
         ValidateOrdinal(ordinal);
+        if (IsDBNull(ordinal))
+        {
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+        }
 
         return Stmt.GetDouble(ordinal);
     }
@@ -269,6 +300,11 @@ public class SqliteDataReader : DbDataReader
     public override Type GetFieldType(int ordinal)
     {
         EnsureOpen();
+        if (FieldCount == 0)
+        {
+            throw new InvalidOperationException(Resources.NoData);
+        }
+
         ValidateOrdinal(ordinal);
         EnsurePrefetched();
 
@@ -290,6 +326,9 @@ public class SqliteDataReader : DbDataReader
 
     public override T GetFieldValue<T>(int ordinal)
     {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
         object value = GetValue(ordinal);
         Type targetType = typeof(T);
         Type nonNullableType = Nullable.GetUnderlyingType(targetType) ?? targetType;
@@ -306,7 +345,10 @@ public class SqliteDataReader : DbDataReader
 
         if (targetType == typeof(Stream))
         {
-            return (T)(object)new MemoryStream((byte[])value, writable: false);
+            byte[] bytes = value is byte[] blob
+                ? blob
+                : System.Text.Encoding.UTF8.GetBytes(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+            return (T)(object)new MemoryStream(bytes, writable: false);
         }
 
         if (targetType == typeof(TextReader))
@@ -326,7 +368,12 @@ public class SqliteDataReader : DbDataReader
 
         if (nonNullableType == typeof(DateTimeOffset))
         {
-            return (T)(object)DateTimeOffset.Parse((string)value, CultureInfo.InvariantCulture);
+            if (value is string s)
+            {
+                return (T)(object)DateTimeOffset.Parse(s, CultureInfo.InvariantCulture);
+            }
+
+            return (T)(object)new DateTimeOffset(GetDateTime(ordinal));
         }
 
         if (nonNullableType == typeof(TimeSpan))
@@ -405,6 +452,10 @@ public class SqliteDataReader : DbDataReader
     {
         EnsureHasRow();
         ValidateOrdinal(ordinal);
+        if (IsDBNull(ordinal))
+        {
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+        }
 
         return Stmt.GetLong(ordinal);
     }
@@ -480,7 +531,21 @@ public class SqliteDataReader : DbDataReader
     }
 
     public override Stream GetStream(int ordinal)
-        => GetFieldValue<Stream>(ordinal);
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        if (IsDBNull(ordinal))
+        {
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+        }
+
+        object value = GetValue(ordinal);
+        byte[] bytes = value is byte[] blob
+            ? blob
+            : System.Text.Encoding.UTF8.GetBytes(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+        return new MemoryStream(bytes, writable: false);
+    }
 
     public override TextReader GetTextReader(int ordinal)
     {
@@ -495,6 +560,7 @@ public class SqliteDataReader : DbDataReader
     public override object GetValue(int ordinal)
     {
         EnsureHasRow();
+        ValidateOrdinal(ordinal);
 
         if (IsDBNull(ordinal)) return DBNull.Value;
         return Stmt.GetColumnType(ordinal) switch
@@ -511,6 +577,10 @@ public class SqliteDataReader : DbDataReader
     {
         EnsureHasRow();
         ArgumentNullException.ThrowIfNull(values);
+        if (values.Length < FieldCount)
+        {
+            throw new IndexOutOfRangeException();
+        }
 
         int count = Math.Min(values.Length, FieldCount);
         for (int i = 0; i < count; i++) values[i] = GetValue(i);
@@ -534,6 +604,7 @@ public class SqliteDataReader : DbDataReader
 
         while (true)
         {
+            AddChangesFromCurrentStatement();
             _stmt?.Dispose();
             _prefetched = false;
             _readStarted = false;
@@ -573,6 +644,7 @@ public class SqliteDataReader : DbDataReader
         schemaTable.Columns.Add(SchemaTableColumn.DataType, typeof(Type));
         schemaTable.Columns.Add(SchemaDataTypeNameColumn, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.AllowDBNull, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableColumn.ColumnSize, typeof(int));
         schemaTable.Columns.Add(SchemaIsKeyColumn, typeof(bool));
         schemaTable.Columns.Add(SchemaIsUniqueColumn, typeof(bool));
         schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
@@ -597,6 +669,7 @@ public class SqliteDataReader : DbDataReader
             row[SchemaTableColumn.DataType] = GetFieldType(ordinal);
             row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
             row[SchemaTableColumn.AllowDBNull] = true;
+            row[SchemaTableColumn.ColumnSize] = DBNull.Value;
             row[SchemaIsKeyColumn] = false;
             row[SchemaIsUniqueColumn] = false;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
@@ -624,6 +697,11 @@ public class SqliteDataReader : DbDataReader
             _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
         }
 
+        if (!_hasRow)
+        {
+            AddChangesFromCurrentStatement();
+        }
+
         if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
         {
             Close();
@@ -647,6 +725,11 @@ public class SqliteDataReader : DbDataReader
             _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
         }
 
+        if (!_hasRow)
+        {
+            AddChangesFromCurrentStatement();
+        }
+
         if (!_hasRow && _behavior.HasFlag(System.Data.CommandBehavior.SingleRow))
         {
             Close();
@@ -658,6 +741,9 @@ public class SqliteDataReader : DbDataReader
     public override void Close()
     {
         if (_closed) return;
+
+        DrainRemainingStatements();
+
         _closed = true;
         _stmt?.Dispose();
         _executionScope.Dispose();
@@ -717,12 +803,62 @@ public class SqliteDataReader : DbDataReader
         }
     }
 
+    private void AddChangesFromCurrentStatement()
+    {
+        if (_stmt is null)
+        {
+            return;
+        }
+
+        int changes = _session.Native.Changes();
+        if (changes > 0)
+        {
+            _recordsAffected = _recordsAffected < 0 ? changes : _recordsAffected + changes;
+        }
+    }
+
+    private void DrainRemainingStatements()
+    {
+        try
+        {
+            if (_stmt is not null)
+            {
+                while (_executionScope.Execute(Stmt.Step))
+                {
+                }
+
+                AddChangesFromCurrentStatement();
+            }
+
+            while (true)
+            {
+                _stmt?.Dispose();
+                _stmt = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState));
+                if (_stmt is null)
+                {
+                    break;
+                }
+
+                while (_executionScope.Execute(Stmt.Step))
+                {
+                }
+
+                AddChangesFromCurrentStatement();
+            }
+        }
+        catch
+        {
+            // Close/Dispose should not throw while draining trailing statements.
+        }
+    }
+
     private static DateTime JulianDayToDateTime(double julianDay)
     {
         const double unixEpochJulianDay = 2440587.5;
         double ticksSinceUnixEpoch = (julianDay - unixEpochJulianDay) * TimeSpan.TicksPerDay;
-        long roundedTicks = (long)Math.Round(ticksSinceUnixEpoch, MidpointRounding.AwayFromZero);
-        return DateTime.UnixEpoch.AddTicks(roundedTicks);
+        long roundedMilliseconds = (long)Math.Round(ticksSinceUnixEpoch / TimeSpan.TicksPerMillisecond, MidpointRounding.AwayFromZero);
+        DateTime utc = DateTime.UnixEpoch.AddMilliseconds(roundedMilliseconds);
+        return DateTime.SpecifyKind(utc, DateTimeKind.Unspecified);
     }
 
     private Type InferFieldType(int ordinal)
@@ -734,6 +870,7 @@ public class SqliteDataReader : DbDataReader
             4 => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
         };
+
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
     {
