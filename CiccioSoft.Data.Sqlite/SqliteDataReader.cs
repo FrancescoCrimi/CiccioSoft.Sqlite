@@ -234,6 +234,7 @@ public class SqliteDataReader : DbDataReader
             1 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetLong(ordinal) - 2440587.5),
             2 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetDouble(ordinal) - 2440587.5),
             3 => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
+            5 => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
             _ => throw new InvalidCastException(),
         };
     }
