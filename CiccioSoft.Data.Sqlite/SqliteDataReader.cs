@@ -126,8 +126,21 @@ public class SqliteDataReader : DbDataReader
     public override bool IsClosed => _closed;
     public override int RecordsAffected => -1;
 
-    public override bool GetBoolean(int ordinal) => GetInt32(ordinal) != 0;
-    public override byte GetByte(int ordinal) => (byte)GetInt32(ordinal);
+    public override bool GetBoolean(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Stmt.GetInt(ordinal) != 0;
+    }
+
+    public override byte GetByte(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return (byte)Stmt.GetInt(ordinal);
+    }
 
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
     {
@@ -155,7 +168,13 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return GetString(ordinal)[0];
+        return Stmt.GetColumnType(ordinal) switch
+        {
+            1 => (char)Stmt.GetInt(ordinal),
+            2 => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
+            3 => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
+            _ => throw new InvalidCastException(),
+        };
     }
 
     public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length)
@@ -182,6 +201,11 @@ public class SqliteDataReader : DbDataReader
     public override string GetDataTypeName(int ordinal)
     {
         EnsureOpen();
+        if (FieldCount == 0)
+        {
+            throw new InvalidOperationException(Resources.NoData);
+        }
+
         ValidateOrdinal(ordinal);
 
         string? declaredType = Stmt.GetColumnDeclType(ordinal);
@@ -200,8 +224,21 @@ public class SqliteDataReader : DbDataReader
         };
     }
 
-    public override DateTime GetDateTime(int ordinal) => DateTime.Parse(GetString(ordinal), System.Globalization.CultureInfo.InvariantCulture);
-    public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture);
+    public override DateTime GetDateTime(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture);
+    }
+
+    public override decimal GetDecimal(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Convert.ToDecimal(GetValue(ordinal), CultureInfo.InvariantCulture);
+    }
     public override double GetDouble(int ordinal)
     {
         EnsureHasRow();
@@ -233,7 +270,13 @@ public class SqliteDataReader : DbDataReader
         return GetFieldTypeFromDeclaration(ordinal);
     }
 
-    public override float GetFloat(int ordinal) => (float)GetDouble(ordinal);
+    public override float GetFloat(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return (float)Stmt.GetDouble(ordinal);
+    }
 
     public override T GetFieldValue<T>(int ordinal)
     {
@@ -301,8 +344,21 @@ public class SqliteDataReader : DbDataReader
         return (T)converted;
     }
 
-    public override Guid GetGuid(int ordinal) => Guid.Parse(GetString(ordinal));
-    public override short GetInt16(int ordinal) => (short)GetInt32(ordinal);
+    public override Guid GetGuid(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return Guid.Parse(GetString(ordinal));
+    }
+
+    public override short GetInt16(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        return (short)Stmt.GetInt(ordinal);
+    }
     public override int GetInt32(int ordinal)
     {
         EnsureHasRow();
@@ -334,12 +390,45 @@ public class SqliteDataReader : DbDataReader
 
     public override int GetOrdinal(string name)
     {
-        for (int i = 0; i < FieldCount; i++)
+        EnsureOpen();
+        if (FieldCount == 0)
         {
-            if (string.Equals(GetName(i), name, StringComparison.OrdinalIgnoreCase)) return i;
+            throw new InvalidOperationException(Resources.NoData);
         }
 
-        throw new IndexOutOfRangeException($"Column '{name}' not found.");
+        ArgumentNullException.ThrowIfNull(name);
+
+        int insensitiveIndex = -1;
+        string? insensitiveName = null;
+
+        for (int i = 0; i < FieldCount; i++)
+        {
+            string columnName = GetName(i);
+            if (string.Equals(columnName, name, StringComparison.Ordinal))
+            {
+                return i;
+            }
+
+            if (!string.Equals(columnName, name, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (insensitiveIndex >= 0)
+            {
+                throw new InvalidOperationException(Resources.AmbiguousColumnName(name, insensitiveName ?? string.Empty, columnName));
+            }
+
+            insensitiveIndex = i;
+            insensitiveName = columnName;
+        }
+
+        if (insensitiveIndex >= 0)
+        {
+            return insensitiveIndex;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(name), name, $"Column '{name}' not found.");
     }
 
     public override string GetString(int ordinal)
