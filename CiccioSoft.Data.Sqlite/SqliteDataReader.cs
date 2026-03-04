@@ -651,10 +651,22 @@ public class SqliteDataReader : DbDataReader
             bool isAliased = !string.Equals(columnName, baseColumnName, StringComparison.Ordinal);
 
             DataRow row = schemaTable.NewRow();
+            Type fieldType = GetFieldType(ordinal);
+            string dataTypeName = GetDataTypeName(ordinal);
+            if (fieldType == typeof(byte[]) && string.Equals(dataTypeName, "BLOB", StringComparison.Ordinal))
+            {
+                int sqliteType = Stmt.GetColumnType(ordinal);
+                if (sqliteType != 5)
+                {
+                    fieldType = TypeFromSqliteStorageClass(sqliteType);
+                    dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
+                }
+            }
+
             row[SchemaTableColumn.ColumnName] = columnName;
             row[SchemaTableColumn.ColumnOrdinal] = ordinal;
-            row[SchemaTableColumn.DataType] = GetFieldType(ordinal);
-            row[SchemaDataTypeNameColumn] = GetDataTypeName(ordinal);
+            row[SchemaTableColumn.DataType] = fieldType;
+            row[SchemaDataTypeNameColumn] = dataTypeName;
             row[SchemaTableColumn.AllowDBNull] = true;
             row[SchemaTableColumn.ColumnSize] = DBNull.Value;
             row[SchemaIsKeyColumn] = false;
@@ -856,6 +868,26 @@ public class SqliteDataReader : DbDataReader
             3 => typeof(string),
             4 => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
+        };
+
+    private static Type TypeFromSqliteStorageClass(int sqliteType)
+        => sqliteType switch
+        {
+            1 => typeof(long),
+            2 => typeof(double),
+            3 => typeof(string),
+            4 => typeof(byte[]),
+            _ => typeof(byte[]),
+        };
+
+    private static string DataTypeNameFromSqliteStorageClass(int sqliteType)
+        => sqliteType switch
+        {
+            1 => "INTEGER",
+            2 => "REAL",
+            3 => "TEXT",
+            4 => "BLOB",
+            _ => "BLOB",
         };
 
     private string GetDataTypeNameFromDeclaration(int ordinal)
