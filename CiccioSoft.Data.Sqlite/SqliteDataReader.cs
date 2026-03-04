@@ -649,6 +649,13 @@ public class SqliteDataReader : DbDataReader
 
             bool hasOrigin = !string.IsNullOrEmpty(baseColumnName) && !string.IsNullOrEmpty(baseTableName);
             bool isAliased = !string.Equals(columnName, baseColumnName, StringComparison.Ordinal);
+            if (isAliased)
+            {
+                baseColumnName = null;
+                baseTableName = null;
+                baseCatalogName = null;
+                hasOrigin = false;
+            }
 
             DataRow row = schemaTable.NewRow();
             Type fieldType = GetFieldType(ordinal);
@@ -660,6 +667,11 @@ public class SqliteDataReader : DbDataReader
                 {
                     fieldType = TypeFromSqliteStorageClass(sqliteType);
                     dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
+                }
+                else if (!hasOrigin)
+                {
+                    fieldType = typeof(long);
+                    dataTypeName = "INTEGER";
                 }
             }
 
