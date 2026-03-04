@@ -229,7 +229,13 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture);
+        return Stmt.GetColumnType(ordinal) switch
+        {
+            1 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetLong(ordinal) - 2440587.5),
+            2 => DateTime.UnixEpoch + TimeSpan.FromDays(Stmt.GetDouble(ordinal) - 2440587.5),
+            3 => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
+            _ => throw new InvalidCastException(),
+        };
     }
 
     public override decimal GetDecimal(int ordinal)
@@ -322,6 +328,30 @@ public class SqliteDataReader : DbDataReader
         if (nonNullableType == typeof(TimeSpan))
         {
             return (T)(object)TimeSpan.Parse((string)value, CultureInfo.InvariantCulture);
+        }
+
+        if (nonNullableType == typeof(DateOnly))
+        {
+            DateTime dateTime = value switch
+            {
+                long l => DateTime.UnixEpoch + TimeSpan.FromDays(l - 2440587.5),
+                double d => DateTime.UnixEpoch + TimeSpan.FromDays(d - 2440587.5),
+                string s => DateTime.Parse(s, CultureInfo.InvariantCulture),
+                _ => throw new InvalidCastException(),
+            };
+
+            return (T)(object)DateOnly.FromDateTime(dateTime);
+        }
+
+        if (nonNullableType == typeof(TimeOnly))
+        {
+            TimeOnly timeOnly = value switch
+            {
+                string s => TimeOnly.Parse(s, CultureInfo.InvariantCulture),
+                _ => TimeOnly.FromDateTime(GetDateTime(ordinal)),
+            };
+
+            return (T)(object)timeOnly;
         }
 
         if (nonNullableType == typeof(decimal))
@@ -462,6 +492,9 @@ public class SqliteDataReader : DbDataReader
 
     public override int GetValues(object[] values)
     {
+        EnsureHasRow();
+        ArgumentNullException.ThrowIfNull(values);
+
         int count = Math.Min(values.Length, FieldCount);
         for (int i = 0; i < count; i++) values[i] = GetValue(i);
         return count;
