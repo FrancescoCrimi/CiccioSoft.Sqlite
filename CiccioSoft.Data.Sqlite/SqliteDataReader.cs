@@ -13,6 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -267,14 +268,10 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        object value = GetValue(ordinal);
-        if (value is string text)
-        {
-            return decimal.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
-        }
-
-        return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+        string value = GetString(ordinal);
+        return decimal.Parse(value, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture);
     }
+
     public override double GetDouble(int ordinal)
     {
         EnsureHasRow();
@@ -417,7 +414,18 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Guid.Parse(GetString(ordinal));
+        var sqliteType = Stmt.GetColumnType(ordinal);
+        switch (sqliteType)
+        {
+            case 4:
+                ReadOnlySpan<byte> bytes = Stmt.GetBlob(ordinal);
+                return bytes.Length == 16
+                    ? new Guid(bytes)
+                    : new Guid(Encoding.UTF8.GetString(bytes));
+
+            default:
+                return new Guid(GetString(ordinal));
+        }
     }
 
     public override short GetInt16(int ordinal)
@@ -508,13 +516,9 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        string? value = Stmt.GetString(ordinal);
-        if (value is null)
-        {
-            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
-        }
-
-        return value;
+        return IsDBNull(ordinal)
+            ? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal))
+            : Stmt.GetString(ordinal)!;
     }
 
     public override Stream GetStream(int ordinal)
@@ -580,6 +584,7 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         return Stmt.GetColumnType(ordinal) == 5;
     }
+
     public override bool NextResult()
     {
         EnsureOpen();
@@ -593,6 +598,7 @@ public class SqliteDataReader : DbDataReader
         {
             AddChangesFromCurrentStatement();
             _stmt?.Dispose();
+            _stmt = null;  // ✅ AGGIUNTO: Sempre null prima di PrepareAndBindNext
             _prefetched = false;
             _readStarted = false;
             _hasRow = false;
