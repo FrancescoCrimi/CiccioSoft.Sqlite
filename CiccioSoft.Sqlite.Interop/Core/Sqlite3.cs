@@ -62,7 +62,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <exception cref="SqliteInteropException">Thrown if the database cannot be opened.</exception>
     public static Sqlite3 Open(string filename)
     {
-        return Open(filename, sqlite3.SQLITE_OPEN_READWRITE | sqlite3.SQLITE_OPEN_CREATE);
+        return Open(filename, SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create);
     }
 
     /// <summary>
@@ -74,11 +74,11 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <param name="vfsName">Optional VFS module name. Use <c>null</c> to use SQLite default VFS.</param>
     /// <returns>A new <see cref="Sqlite3"/> connection.</returns>
     /// <exception cref="SqliteInteropException">Thrown if the database cannot be opened.</exception>
-    public static Sqlite3 Open(string filename, int flags, bool useUri = false, string? vfsName = null)
+    public static Sqlite3 Open(string filename, SqliteOpenFlags flags, bool useUri = false, string? vfsName = null)
     {
         nint pDb = default;
 
-        int openFlags = useUri ? flags | sqlite3.SQLITE_OPEN_URI : flags;
+        SqliteOpenFlags openFlags = useUri ? flags | SqliteOpenFlags.Uri : flags;
 
         int filenameDataLength = Encoding.UTF8.GetByteCount(filename);
         int filenameTotalNeeded = filenameDataLength + 1;
@@ -110,7 +110,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             {
                 byte* pFilename = pBuffer;
                 byte* pVfs = vfsName is null ? null : pBuffer + filenameTotalNeeded;
-                int result = sqlite3.sqlite3_open_v2(pFilename, &pDb, openFlags, pVfs);
+                int result = sqlite3.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
 
                 // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
                 // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
