@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
-using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -195,21 +194,21 @@ public class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 return operation();
             }
-            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
-                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), SQLITE_INTERRUPT, ex.ExtendedErrorCode, ex);
+                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), (int)SqliteResult.Interrupt, ex.ExtendedErrorCode, ex);
             }
-            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SQLITE_INTERRUPT)
+            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
             catch (SqliteInteropException ex)
             {
-                throw new SqliteException(ex.Message, ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
             }
         }
 

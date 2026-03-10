@@ -618,7 +618,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 string message = $"Failed to retrieve metadata for column '{columnName}' in table '{tableName}'.";
                 byte* pErrorMsg = sqlite3.sqlite3_errmsg(_handle.DangerousGetHandle());
                 string nativeErrorMsg = Marshal.PtrToStringUTF8((nint)pErrorMsg) ?? "Unknown SQLite error";
-                throw new SqliteInteropException(message, rc, rc, nativeErrorMsg);
+                throw new SqliteInteropException(message, (SqliteResult)(rc & 0xFF), rc, nativeErrorMsg);
             }
         }
 
