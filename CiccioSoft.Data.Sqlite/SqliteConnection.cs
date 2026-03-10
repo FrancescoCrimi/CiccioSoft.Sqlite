@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
-using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -123,7 +122,7 @@ public class SqliteConnection : DbConnection
                 return;
 
             string dataSource = ResolveDataSource();
-            int openFlags = GetOpenFlags(dataSource);
+            SqliteOpenFlags openFlags = GetOpenFlags(dataSource);
 
             if (_settings.TryGetValue("Password", out object? password)
                 && !string.IsNullOrWhiteSpace(Convert.ToString(password)))
@@ -334,30 +333,30 @@ public class SqliteConnection : DbConnection
         return true;
     }
 
-    private int GetOpenFlags(string dataSource)
+    private SqliteOpenFlags GetOpenFlags(string dataSource)
     {
-        int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+        SqliteOpenFlags flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.FullMutex;
 
         if (_settings.TryGetValue("Mode", out object? modeValue))
         {
             string mode = Convert.ToString(modeValue) ?? string.Empty;
             if (string.Equals(mode, "ReadOnly", StringComparison.OrdinalIgnoreCase))
             {
-                flags = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
+                flags = SqliteOpenFlags.ReadOnly | SqliteOpenFlags.FullMutex;
             }
             else if (string.Equals(mode, "ReadWrite", StringComparison.OrdinalIgnoreCase))
             {
-                flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX;
+                flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.FullMutex;
             }
             else if (string.Equals(mode, "Memory", StringComparison.OrdinalIgnoreCase))
             {
-                flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY | SQLITE_OPEN_FULLMUTEX;
+                flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.Memory | SqliteOpenFlags.FullMutex;
             }
         }
 
         if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
         {
-            flags |= SQLITE_OPEN_URI;
+            flags |= SqliteOpenFlags.Uri;
         }
 
         if (_settings.TryGetValue("Cache", out object? cacheValue))
@@ -365,11 +364,11 @@ public class SqliteConnection : DbConnection
             string cache = Convert.ToString(cacheValue) ?? string.Empty;
             if (string.Equals(cache, "Shared", StringComparison.OrdinalIgnoreCase))
             {
-                flags |= SQLITE_OPEN_SHAREDCACHE;
+                flags |= SqliteOpenFlags.SharedCache;
             }
             else if (string.Equals(cache, "Private", StringComparison.OrdinalIgnoreCase))
             {
-                flags |= SQLITE_OPEN_PRIVATECACHE;
+                flags |= SqliteOpenFlags.PrivateCache;
             }
         }
 

@@ -38,7 +38,7 @@ internal static class SqliteConnectionPool
 
     private static readonly ConcurrentDictionary<string, PoolState> Pools = new(StringComparer.Ordinal);
 
-    public static SqliteSession Rent(string connectionString, string dataSource, int maxPoolSize, int openFlags)
+    public static SqliteSession Rent(string connectionString, string dataSource, int maxPoolSize, SqliteOpenFlags openFlags)
     {
         PoolState state = Pools.GetOrAdd(connectionString, _ => new PoolState());
         if (state.Bag.TryTake(out SqliteSession? session))
