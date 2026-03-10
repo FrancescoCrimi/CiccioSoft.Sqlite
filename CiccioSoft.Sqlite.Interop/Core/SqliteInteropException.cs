@@ -7,7 +7,7 @@ namespace CiccioSoft.Sqlite.Interop;
 /// </summary>
 public sealed class SqliteInteropException : Exception
 {
-    public SqliteInteropException(string message, int baseErrorCode, int extendedErrorCode, string nativeMessage)
+    public SqliteInteropException(string message, SqliteResult baseErrorCode, int extendedErrorCode, string nativeMessage)
         : base(message)
     {
         BaseErrorCode = baseErrorCode;
@@ -18,7 +18,7 @@ public sealed class SqliteInteropException : Exception
     /// <summary>
     /// Gets the base SQLite error code (lowest 8 bits).
     /// </summary>
-    public int BaseErrorCode { get; }
+    public SqliteResult BaseErrorCode { get; }
 
     /// <summary>
     /// Gets the extended SQLite error code.
@@ -30,4 +30,3 @@ public sealed class SqliteInteropException : Exception
     /// </summary>
     public string NativeMessage { get; }
 }
-

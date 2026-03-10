@@ -28,7 +28,7 @@ internal static unsafe class SqliteErrorHelper
             nativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
 
-        int baseCode = extendedCode & 0xFF;
+        SqliteResult baseCode = (SqliteResult)(extendedCode & 0xFF);
 
         return new SqliteInteropException(
             $"{operation} failed. SQLite base code: {baseCode}, extended code: {extendedCode}. Native message: {nativeMessage}",
