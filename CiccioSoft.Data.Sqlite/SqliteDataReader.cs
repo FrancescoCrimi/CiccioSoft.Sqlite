@@ -37,7 +37,8 @@ public class SqliteDataReader : DbDataReader
     private bool _prefetched;
     private bool _readStarted;
     private bool _closed;
-    private int _recordsAffected = -1;
+    private int _recordsAffected = -1; // -1 for unknown
+
 
     private SqliteDataReader(
         SqliteCommand command,
@@ -82,32 +83,7 @@ public class SqliteDataReader : DbDataReader
         }
     }
 
-    internal static async Task<SqliteDataReader> CreateAsync(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior, CancellationToken cancellationToken)
-    {
-        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, cancellationToken);
-            SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
-            Sqlite3Stmt? stmt;
-            try
-            {
-                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
-            }
-            catch
-            {
-                scope.Dispose();
-                throw;
-            }
 
-            return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
-        }
-        catch
-        {
-            session.Gate.Release();
-            throw;
-        }
-    }
 
 
     private Sqlite3Stmt Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
@@ -184,9 +160,9 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            1 => (char)Stmt.GetInt(ordinal),
-            2 => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
-            3 => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
+            SqliteColumnType.Integer => (char)Stmt.GetInt(ordinal),
+            SqliteColumnType.Float => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
+            SqliteColumnType.Text => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
             _ => throw new InvalidCastException(),
         };
     }
@@ -240,10 +216,10 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            1 => "INTEGER",
-            2 => "REAL",
-            3 => "TEXT",
-            4 => "BLOB",
+            SqliteColumnType.Integer => "INTEGER",
+            SqliteColumnType.Float => "REAL",
+            SqliteColumnType.Text => "TEXT",
+            SqliteColumnType.Blob => "BLOB",
             _ => declaredTypeName,
         };
     }
@@ -255,10 +231,10 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            1 => JulianDayToDateTime(Stmt.GetLong(ordinal)),
-            2 => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
-            3 => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
-            5 => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
+            SqliteColumnType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)),
+            SqliteColumnType.Float => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
+            SqliteColumnType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
+            SqliteColumnType.Null => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
             _ => throw new InvalidCastException(),
         };
     }
@@ -417,7 +393,7 @@ public class SqliteDataReader : DbDataReader
         var sqliteType = Stmt.GetColumnType(ordinal);
         switch (sqliteType)
         {
-            case 4:
+            case SqliteColumnType.Blob:
                 ReadOnlySpan<byte> bytes = Stmt.GetBlob(ordinal);
                 return bytes.Length == 16
                     ? new Guid(bytes)
@@ -556,10 +532,10 @@ public class SqliteDataReader : DbDataReader
         if (IsDBNull(ordinal)) return DBNull.Value;
         return Stmt.GetColumnType(ordinal) switch
         {
-            1 => Stmt.GetLong(ordinal),
-            2 => Stmt.GetDouble(ordinal),
-            3 => Stmt.GetString(ordinal) ?? string.Empty,
-            4 => Stmt.GetBlob(ordinal).ToArray(),
+            SqliteColumnType.Integer => Stmt.GetLong(ordinal),
+            SqliteColumnType.Float => Stmt.GetDouble(ordinal),
+            SqliteColumnType.Text => Stmt.GetString(ordinal) ?? string.Empty,
+            SqliteColumnType.Blob => Stmt.GetBlob(ordinal).ToArray(),
             _ => DBNull.Value,
         };
     }
@@ -582,7 +558,7 @@ public class SqliteDataReader : DbDataReader
     public override bool IsDBNull(int ordinal)
     {
         EnsureHasRow();
-        return Stmt.GetColumnType(ordinal) == 5;
+        return Stmt.GetColumnType(ordinal) == SqliteColumnType.Null;
     }
 
     public override bool NextResult()
@@ -668,8 +644,8 @@ public class SqliteDataReader : DbDataReader
             string dataTypeName = GetDataTypeName(ordinal);
             if (fieldType == typeof(byte[]) && string.Equals(dataTypeName, "BLOB", StringComparison.Ordinal))
             {
-                int sqliteType = Stmt.GetColumnType(ordinal);
-                if (sqliteType != 5)
+                SqliteColumnType sqliteType = Stmt.GetColumnType(ordinal);
+                if (sqliteType != SqliteColumnType.Null)
                 {
                     fieldType = TypeFromSqliteStorageClass(sqliteType);
                     dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
@@ -683,10 +659,10 @@ public class SqliteDataReader : DbDataReader
 
             row[SchemaTableColumn.ColumnName] = columnName;
             row[SchemaTableColumn.ColumnOrdinal] = ordinal;
+            row[SchemaTableColumn.ColumnSize] = DBNull.Value;
             row[SchemaTableColumn.DataType] = fieldType;
             row[SchemaDataTypeNameColumn] = dataTypeName;
             row[SchemaTableColumn.AllowDBNull] = true;
-            row[SchemaTableColumn.ColumnSize] = DBNull.Value;
             row[SchemaIsKeyColumn] = false;
             row[SchemaIsUniqueColumn] = false;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
@@ -701,6 +677,164 @@ public class SqliteDataReader : DbDataReader
         return schemaTable;
     }
 
+
+    // /// <summary>
+    // ///     Returns a System.Data.DataTable that describes the column metadata of the System.Data.Common.DbDataReader.
+    // /// </summary>
+    // /// <returns>A System.Data.DataTable that describes the column metadata.</returns>
+    // /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/metadata">Metadata</seealso>
+    // public override DataTable GetSchemaTable()
+    // {
+    //     EnsureOpen();
+
+    //     if (FieldCount == 0)
+    //     {
+    //         throw new InvalidOperationException(Resources.NoData);
+    //     }
+
+    //     var schemaTable = new DataTable("SchemaTable");
+
+    //     schemaTable.Columns.Add(SchemaTableColumn.ColumnName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.ColumnOrdinal, typeof(int));
+    //     schemaTable.Columns.Add(SchemaTableColumn.ColumnSize, typeof(int));
+    //     schemaTable.Columns.Add(SchemaTableColumn.NumericPrecision, typeof(short));
+    //     schemaTable.Columns.Add(SchemaTableColumn.NumericScale, typeof(short));
+    //     schemaTable.Columns.Add(SchemaTableColumn.DataType, typeof(Type));
+    //     schemaTable.Columns.Add(SchemaDataTypeNameColumn, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.IsLong, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableColumn.AllowDBNull, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableColumn.IsUnique, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableColumn.IsKey, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableOptionalColumn.IsAutoIncrement, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.BaseSchemaName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.BaseTableName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.BaseColumnName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseServerName, typeof(string));
+    //     schemaTable.Columns.Add(SchemaTableColumn.IsAliased, typeof(bool));
+    //     schemaTable.Columns.Add(SchemaTableColumn.IsExpression, typeof(bool));
+
+
+    //     for (int ordinal = 0; ordinal < FieldCount; ordinal++)
+    //     {
+    //         string columnName = GetName(ordinal);
+    //         string? baseColumnName = Stmt.GetColumnOriginName(ordinal);
+    //         string? baseTableName = Stmt.GetColumnTableName(ordinal);
+    //         string? baseCatalogName = Stmt.GetColumnDatabaseName(ordinal);
+
+    //         bool hasOrigin = !string.IsNullOrEmpty(baseColumnName) && !string.IsNullOrEmpty(baseTableName);
+    //         bool isAliased = !string.Equals(columnName, baseColumnName, StringComparison.Ordinal);
+    //         if (isAliased)
+    //         {
+    //             baseColumnName = null;
+    //             baseTableName = null;
+    //             baseCatalogName = null;
+    //             hasOrigin = false;
+    //         }
+
+    //         Type fieldType = GetFieldType(ordinal);
+    //         string dataTypeName = GetDataTypeName(ordinal);
+    //         if (fieldType == typeof(byte[]) && string.Equals(dataTypeName, "BLOB", StringComparison.Ordinal))
+    //         {
+    //             SqliteColumnType sqliteType = Stmt.GetColumnType(ordinal);
+    //             if (sqliteType != SqliteColumnType.Null)
+    //             {
+    //                 fieldType = TypeFromSqliteStorageClass(sqliteType);
+    //                 dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
+    //             }
+    //             else if (!hasOrigin)
+    //             {
+    //                 fieldType = typeof(long);
+    //                 dataTypeName = "INTEGER";
+    //             }
+    //         }
+
+    //         DataRow row = schemaTable.NewRow();
+    //         row[SchemaTableColumn.ColumnName] = columnName;
+    //         row[SchemaTableColumn.ColumnOrdinal] = ordinal;
+    //         row[SchemaTableColumn.ColumnSize] = -1;
+    //         row[SchemaTableColumn.NumericPrecision] = DBNull.Value;
+    //         row[SchemaTableColumn.NumericScale] = DBNull.Value;
+    //         row[SchemaTableOptionalColumn.BaseServerName] = _command.Connection!.DataSource;
+    //         row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
+    //         row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
+    //         row[SchemaTableColumn.BaseSchemaName] = DBNull.Value;
+    //         row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
+    //         row[SchemaTableColumn.DataType] = fieldType;
+    //         row[SchemaDataTypeNameColumn] = dataTypeName;
+    //         row[SchemaTableColumn.IsAliased] = isAliased;
+    //         row[SchemaTableColumn.IsExpression] = !hasOrigin;
+    //         row[SchemaTableColumn.IsLong] = DBNull.Value;
+
+    //         var eponymousVirtualTable = false;
+    //         if (baseTableName != null
+    //             && columnName != null)
+    //         {
+    //             using (var command = _command.Connection.CreateCommand())
+    //             {
+    //                 command.CommandText = new StringBuilder()
+    //                     .AppendLine("SELECT COUNT(*)")
+    //                     .AppendLine("FROM pragma_index_list($table) i, pragma_index_info(i.name) c")
+    //                     .AppendLine("WHERE \"unique\" = 1 AND c.name = $column AND")
+    //                     .AppendLine("NOT EXISTS (SELECT * FROM pragma_index_info(i.name) c2 WHERE c2.name != c.name);").ToString();
+    //                 command.Parameters.Add(new SqliteParameter("$table", baseTableName));
+    //                 command.Parameters.Add(new SqliteParameter("$column", columnName));
+
+    //                 var cnt = (long)command.ExecuteScalar()!;
+    //                 row[SchemaTableColumn.IsUnique] = !isAliased && cnt != 0;
+
+    //                 command.Parameters.Clear();
+    //                 var columnType = "typeof(\"" + columnName.Replace("\"", "\"\"") + "\")";
+    //                 command.CommandText = new StringBuilder()
+    //                     .AppendLine($"SELECT {columnType}")
+    //                     .AppendLine($"FROM \"{baseTableName.Replace("\"", "\"\"")}\"")
+    //                     .AppendLine($"WHERE {columnType} != 'null'")
+    //                     .AppendLine($"GROUP BY {columnType}")
+    //                     .AppendLine("ORDER BY count() DESC")
+    //                     .AppendLine("LIMIT 1;").ToString();
+
+    //                 var type = (string?)command.ExecuteScalar();
+    //                 row[SchemaTableColumn.DataType] =
+    //                     (type != null)
+    //                         ? GetFieldType(type)
+    //                         : TypeFromSqliteStorageClass(
+    //                             Sqlite3AffinityType(dataTypeName));
+
+    //                 command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE name = $name AND type IN ('table', 'view')";
+    //                 command.Parameters.Add(new SqliteParameter("$name", baseTableName));
+
+    //                 eponymousVirtualTable = (long)command.ExecuteScalar()! == 0L;
+    //             }
+
+    //             if (baseCatalogName != null
+    //                 && !eponymousVirtualTable)
+    //             {
+    //                 var rc = sqlite3_table_column_metadata(
+    //                     _command.Connection.Handle, baseCatalogName, baseTableName, columnName, out var dataType, out var collSeq,
+    //                     out var notNull, out var primaryKey, out var autoInc);
+    //                 SqliteException.ThrowExceptionForRC(rc, _command.Connection.Handle);
+
+    //                 row[SchemaTableColumn.IsKey] = primaryKey != 0;
+    //                 row[SchemaTableColumn.AllowDBNull] = isAliased || notNull == 0;
+    //                 row[SchemaTableOptionalColumn.IsAutoIncrement] = autoInc != 0;
+    //             }
+    //         }
+
+    //         schemaTable.Rows.Add(row);
+    //     }
+
+    //     return schemaTable;
+    // }
+
+
+
+
+
+
+
+
+
+
     public override bool Read()
     {
         EnsureOpen();
@@ -712,6 +846,10 @@ public class SqliteDataReader : DbDataReader
         else
         {
             _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
+            if (!_hasRow)
+            {
+                _prefetched = true;
+            }
         }
 
         if (!_hasRow)
@@ -740,6 +878,10 @@ public class SqliteDataReader : DbDataReader
         else
         {
             _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
+            if (!_hasRow)
+            {
+                _prefetched = true;
+            }
         }
 
         if (!_hasRow)
@@ -827,10 +969,14 @@ public class SqliteDataReader : DbDataReader
             return;
         }
 
-        int changes = _session.Native.Changes();
-        if (changes > 0)
+        // only count changes for non-query statements (column count == 0)
+        if (Stmt.ColumnCount() == 0)
         {
-            _recordsAffected = _recordsAffected < 0 ? changes : _recordsAffected + changes;
+            int changes = _session.Native.Changes();
+            if (changes > 0)
+            {
+                _recordsAffected = _recordsAffected < 0 ? changes : _recordsAffected + changes;
+            }
         }
     }
 
@@ -881,30 +1027,30 @@ public class SqliteDataReader : DbDataReader
     private Type InferFieldType(int ordinal)
         => Stmt.GetColumnType(ordinal) switch
         {
-            1 => typeof(long),
-            2 => typeof(double),
-            3 => typeof(string),
-            4 => typeof(byte[]),
+            SqliteColumnType.Integer => typeof(long),
+            SqliteColumnType.Float => typeof(double),
+            SqliteColumnType.Text => typeof(string),
+            SqliteColumnType.Blob => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
         };
 
-    private static Type TypeFromSqliteStorageClass(int sqliteType)
+    private static Type TypeFromSqliteStorageClass(SqliteColumnType sqliteType)
         => sqliteType switch
         {
-            1 => typeof(long),
-            2 => typeof(double),
-            3 => typeof(string),
-            4 => typeof(byte[]),
+            SqliteColumnType.Integer => typeof(long),
+            SqliteColumnType.Float => typeof(double),
+            SqliteColumnType.Text => typeof(string),
+            SqliteColumnType.Blob => typeof(byte[]),
             _ => typeof(byte[]),
         };
 
-    private static string DataTypeNameFromSqliteStorageClass(int sqliteType)
+    private static string DataTypeNameFromSqliteStorageClass(SqliteColumnType sqliteType)
         => sqliteType switch
         {
-            1 => "INTEGER",
-            2 => "REAL",
-            3 => "TEXT",
-            4 => "BLOB",
+            SqliteColumnType.Integer => "INTEGER",
+            SqliteColumnType.Float => "REAL",
+            SqliteColumnType.Text => "TEXT",
+            SqliteColumnType.Blob => "BLOB",
             _ => "BLOB",
         };
 
@@ -960,4 +1106,48 @@ public class SqliteDataReader : DbDataReader
 
         return typeof(string);
     }
+
+
+
+
+
+
+
+    internal static SqliteColumnType Sqlite3AffinityType(string dataTypeName)
+    {
+        if (dataTypeName == null) return SqliteColumnType.Blob;
+
+        const StringComparison sc = StringComparison.OrdinalIgnoreCase;
+
+        return dataTypeName switch
+        {
+            var s when s.Contains("INT", sc) => SqliteColumnType.Integer,
+            var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteColumnType.Text,
+            var s when s.Contains("BLOB", sc) => SqliteColumnType.Blob,
+            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteColumnType.Float,
+            _ => SqliteColumnType.Text
+        };
+    }
+
+
+    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)]
+    private static Type GetFieldType(string type)
+    {
+        switch (type)
+        {
+            case "integer":
+                return typeof(long);
+
+            case "real":
+                return typeof(double);
+
+            case "text":
+                return typeof(string);
+
+            default:
+                // Debug.Assert(type is "blob" or null, "Unexpected column type: " + type);
+                return typeof(byte[]);
+        }
+    }
+
 }

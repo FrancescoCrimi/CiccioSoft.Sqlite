@@ -132,41 +132,6 @@ public class SqliteCommand : DbCommand
         return reader.Read() ? reader.GetValue(0) : null;
     }
 
-    public override async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
-    {
-        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
-        ValidateTransaction(conn);
-        SqliteSession session = conn.GetSession();
-        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            using CommandExecutionScope scope = CreateExecutionScope(session, cancellationToken);
-            BatchExecutionState batchState = new(CommandText);
-            while (true)
-            {
-                using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
-                if (stmt is null)
-                {
-                    break;
-                }
-
-                while (scope.Execute(stmt.Step)) { }
-            }
-
-            return session.Native.Changes();
-        }
-        finally
-        {
-            session.Gate.Release();
-        }
-    }
-
-    public override async Task<object?> ExecuteScalarAsync(CancellationToken cancellationToken)
-    {
-        await using DbDataReader reader = await ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken).ConfigureAwait(false);
-        return await reader.ReadAsync(cancellationToken).ConfigureAwait(false) ? reader.GetValue(0) : null;
-    }
-
     public override void Prepare()
     {
         SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
@@ -184,24 +149,7 @@ public class SqliteCommand : DbCommand
         }
     }
 
-    public override async Task PrepareAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
 
-        SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
-        ValidateTransaction(conn);
-        SqliteSession session = conn.GetSession();
-        await session.Gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            using CommandExecutionScope scope = CreateExecutionScope(session, cancellationToken);
-            using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
-        }
-        finally
-        {
-            session.Gate.Release();
-        }
-    }
 
     internal CommandExecutionScope CreateExecutionScope(SqliteSession session, CancellationToken cancellationToken)
         => new(this, session, cancellationToken);
@@ -291,14 +239,6 @@ public class SqliteCommand : DbCommand
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
         ValidateTransaction(conn);
         return SqliteDataReader.Create(this, conn.GetSession(), behavior);
-    }
-
-    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
-        ValidateTransaction(conn);
-        return await SqliteDataReader.CreateAsync(this, conn.GetSession(), behavior, cancellationToken).ConfigureAwait(false);
     }
 
     internal sealed class BatchExecutionState
