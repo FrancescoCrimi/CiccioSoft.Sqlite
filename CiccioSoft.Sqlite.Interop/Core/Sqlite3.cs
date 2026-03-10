@@ -3,6 +3,7 @@ using System.Text;
 using System.Buffers;
 using CiccioSoft.Sqlite.Interop.Handles;
 using CiccioSoft.Sqlite.Interop.Native;
+using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Sqlite.Interop;
 
@@ -533,6 +534,102 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
     }
+
+
+
+    /// <summary>
+    /// Retrieves metadata information about a specific column in a table.
+    /// </summary>
+    /// <param name="tableName">The name of the table.</param>
+    /// <param name="columnName">The name of the column.</param>
+    /// <param name="dataType">Output: The declared data type of the column (e.g., "TEXT", "INTEGER", "REAL", "BLOB").</param>
+    /// <param name="collSeq">Output: The collating sequence (e.g., "BINARY", "NOCASE", "RTRIM").</param>
+    /// <param name="isNotNull">Output: Whether the column has a NOT NULL constraint.</param>
+    /// <param name="isPrimaryKey">Output: Whether the column is part of the primary key.</param>
+    /// <param name="isAutoIncrement">Output: Whether the column has the AUTOINCREMENT keyword.</param>
+    /// <remarks>
+    /// <para>
+    /// This method provides type-safe access to SQLite's table_column_metadata function.
+    /// It leverages zero-allocation marshalling techniques to minimize heap pressure.
+    /// </para>
+    /// <para>
+    /// The metadata is retrieved from the "main" database attachment by default.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if tableName or columnName is null.</exception>
+    /// <exception cref="SqliteInteropException">Thrown if the metadata cannot be retrieved.</exception>
+    public void GetTableColumnMetadata(
+        string tableName,
+        string columnName,
+        out string? dataType,
+        out string? collSeq,
+        out bool isNotNull,
+        out bool isPrimaryKey,
+        out bool isAutoIncrement)
+    {
+        ArgumentNullException.ThrowIfNull(tableName);
+        ArgumentNullException.ThrowIfNull(columnName);
+
+        // Output pointers from native call
+        byte* pDataType = null;
+        byte* pCollSeq = null;
+        int notNull = 0;
+        int primaryKey = 0;
+        int autoInc = 0;
+
+        // Optimize string encoding: use stackalloc for small strings
+        const int SMALL_STRING_THRESHOLD = 256;
+
+        int tableNameByteCount = Encoding.UTF8.GetByteCount(tableName) + 1;
+        int columnNameByteCount = Encoding.UTF8.GetByteCount(columnName) + 1;
+
+        Span<byte> tableNameBuffer = tableNameByteCount <= SMALL_STRING_THRESHOLD
+            ? stackalloc byte[tableNameByteCount]
+            : new byte[tableNameByteCount];
+
+        Span<byte> columnNameBuffer = columnNameByteCount <= SMALL_STRING_THRESHOLD
+            ? stackalloc byte[columnNameByteCount]
+            : new byte[columnNameByteCount];
+
+        // Encode strings to UTF-8 with null terminator
+        Encoding.UTF8.GetBytes(tableName, tableNameBuffer);
+        tableNameBuffer[tableNameByteCount - 1] = 0;
+
+        Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
+        columnNameBuffer[columnNameByteCount - 1] = 0;
+
+        // Call native function with proper fixed pointers
+        fixed (byte* pTableName = tableNameBuffer)
+        fixed (byte* pColumnName = columnNameBuffer)
+        {
+            int rc = sqlite3.sqlite3_table_column_metadata(
+                _handle.DangerousGetHandle(),
+                null, // "main" database
+                pTableName,
+                pColumnName,
+                &pDataType,
+                &pCollSeq,
+                &notNull,
+                &primaryKey,
+                &autoInc);
+
+            if (rc != sqlite3.SQLITE_OK)
+            {
+                string message = $"Failed to retrieve metadata for column '{columnName}' in table '{tableName}'.";
+                byte* pErrorMsg = sqlite3.sqlite3_errmsg(_handle.DangerousGetHandle());
+                string nativeErrorMsg = Marshal.PtrToStringUTF8((nint)pErrorMsg) ?? "Unknown SQLite error";
+                throw new SqliteInteropException(message, rc, rc, nativeErrorMsg);
+            }
+        }
+
+        // Marshal output pointers to managed strings
+        dataType = pDataType != null ? Marshal.PtrToStringUTF8((nint)pDataType) : null;
+        collSeq = pCollSeq != null ? Marshal.PtrToStringUTF8((nint)pCollSeq) : null;
+        isNotNull = notNull != 0;
+        isPrimaryKey = primaryKey != 0;
+        isAutoIncrement = autoInc != 0;
+    }
+
 
 
     public void Dispose() => _handle.Dispose();
