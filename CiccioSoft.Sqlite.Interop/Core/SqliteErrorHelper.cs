@@ -12,9 +12,9 @@ namespace CiccioSoft.Sqlite.Interop;
 
 internal static unsafe class SqliteErrorHelper
 {
-    public static void ThrowOnError(int result, nint db, string operation)
+    public static void ThrowOnError(SqliteResult result, nint db, string operation)
     {
-        if (result == sqlite3.SQLITE_OK)
+        if (result == SqliteResult.OK)
         {
             return;
         }
@@ -22,9 +22,9 @@ internal static unsafe class SqliteErrorHelper
         throw CreateException(result, db, operation);
     }
 
-    public static SqliteInteropException CreateException(int result, nint db, string operation)
+    public static SqliteInteropException CreateException(SqliteResult result, nint db, string operation)
     {
-        int extendedCode = result;
+        int extendedCode = (int)result;
         string nativeMessage = "Unknown SQLite error";
 
         if (db != nint.Zero)

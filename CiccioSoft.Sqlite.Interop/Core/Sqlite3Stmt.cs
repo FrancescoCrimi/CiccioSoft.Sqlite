@@ -44,9 +44,9 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public bool Step()
     {
         ThrowIfInvalid();
-        int res = sqlite3.sqlite3_step(_handle.DangerousGetHandle());
-        if (res == sqlite3.SQLITE_ROW) return true;
-        if (res == sqlite3.SQLITE_DONE) return false;
+        SqliteResult res = (SqliteResult)sqlite3.sqlite3_step(_handle.DangerousGetHandle());
+        if (res == SqliteResult.Row) return true;
+        if (res == SqliteResult.Done) return false;
 
         ThrowOnError(res, "SQLite step");
         return false;
@@ -69,7 +69,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void Reset()
     {
         ThrowIfInvalid();
-        int res = sqlite3.sqlite3_reset(_handle.DangerousGetHandle());
+        SqliteResult res = (SqliteResult)sqlite3.sqlite3_reset(_handle.DangerousGetHandle());
         ThrowOnError(res, "SQLite reset");
     }
 
@@ -96,7 +96,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void ClearBindings()
     {
         ThrowIfInvalid();
-        int res = sqlite3.sqlite3_clear_bindings(_handle.DangerousGetHandle());
+        SqliteResult res = (SqliteResult)sqlite3.sqlite3_clear_bindings(_handle.DangerousGetHandle());
         ThrowOnError(res, "SQLite clear bindings");
     }
 
@@ -444,7 +444,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindNull(int index)
     {
         ThrowIfInvalid();
-        CheckResult(sqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
+        CheckResult((SqliteResult)sqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
     }
 
     /// <summary>
@@ -455,7 +455,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindInt(int index, int value)
     {
         ThrowIfInvalid();
-        CheckResult(sqlite3.sqlite3_bind_int(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)sqlite3.sqlite3_bind_int(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -466,7 +466,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindLong(int index, long value)
     {
         ThrowIfInvalid();
-        CheckResult(sqlite3.sqlite3_bind_int64(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)sqlite3.sqlite3_bind_int64(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -477,7 +477,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindDouble(int index, double value)
     {
         ThrowIfInvalid();
-        CheckResult(sqlite3.sqlite3_bind_double(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)sqlite3.sqlite3_bind_double(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -508,7 +508,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
         if (s is null)
         {
-            CheckResult(sqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
+            CheckResult((SqliteResult)sqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
             return;
         }
 
@@ -530,7 +530,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
             {
                 // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
                 // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
-                int res = sqlite3.sqlite3_bind_text(
+                SqliteResult res = (SqliteResult)sqlite3.sqlite3_bind_text(
                     _handle.DangerousGetHandle(),
                     index,
                     pBuf,
@@ -579,7 +579,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
         fixed (byte* pData = data)
         {
-            int res = sqlite3.sqlite3_bind_blob(
+            SqliteResult res = (SqliteResult)sqlite3.sqlite3_bind_blob(
                 _handle.DangerousGetHandle(),
                 index,
                 pData,
@@ -595,12 +595,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     #region Private Methods
 
     // Piccolo helper per centralizzare il controllo degli errori
-    private void CheckResult(int res, int index)
+    private void CheckResult(SqliteResult res, int index)
     {
         ThrowOnError(res, $"SQLite bind parameter {index}");
     }
 
-    private void ThrowOnError(int result, string operation)
+    private void ThrowOnError(SqliteResult result, string operation)
     {
         SqliteErrorHelper.ThrowOnError(result, GetDbHandle(), operation);
     }
