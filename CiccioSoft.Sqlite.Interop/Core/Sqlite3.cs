@@ -110,11 +110,11 @@ public sealed unsafe class Sqlite3 : IDisposable
             {
                 byte* pFilename = pBuffer;
                 byte* pVfs = vfsName is null ? null : pBuffer + filenameTotalNeeded;
-                int result = sqlite3.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
+                SqliteResult result = (SqliteResult)sqlite3.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
 
                 // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
                 // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
-                if (result != sqlite3.SQLITE_OK)
+                if (result != SqliteResult.OK)
                 {
                     SqliteInteropException exception = SqliteErrorHelper.CreateException(result, pDb, "SQLite open");
 
@@ -178,7 +178,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             fixed (byte* pBuf = buffer)
             {
-                int result = sqlite3.sqlite3_exec(
+                SqliteResult result = (SqliteResult)sqlite3.sqlite3_exec(
                     _handle.DangerousGetHandle(),
                     pBuf,
                     null,
@@ -246,7 +246,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             {
                 // Chiamata nativa
                 nint pStmt = default;
-                int result = sqlite3.sqlite3_prepare_v3(
+                SqliteResult result = (SqliteResult)sqlite3.sqlite3_prepare_v3(
                     _handle.DangerousGetHandle(),
                     pBuf,
                     dataLength, // Lunghezza esatta dei dati
@@ -254,7 +254,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     &pStmt,
                     null);
 
-                if (result != sqlite3.SQLITE_OK)
+                if (result != SqliteResult.OK)
                 {
                     SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
 
@@ -314,7 +314,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 nint pStmt = default;
                 byte* pTail = null;
-                int result = sqlite3.sqlite3_prepare_v3(
+                SqliteResult result = (SqliteResult)sqlite3.sqlite3_prepare_v3(
                     _handle.DangerousGetHandle(),
                     pStart,
                     remainingLength,
@@ -322,7 +322,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     &pStmt,
                     &pTail);
 
-                if (result != sqlite3.SQLITE_OK)
+                if (result != SqliteResult.OK)
                 {
                     SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
                     if (pStmt != nint.Zero)
@@ -462,7 +462,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 int result = sqlite3.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
                 if (result < 0)
                 {
-                    SqliteErrorHelper.ThrowOnError(sqlite3.SQLITE_ERROR, _handle.DangerousGetHandle(), "SQLite db readonly");
+                    SqliteErrorHelper.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
                 }
 
                 return result != 0;
@@ -478,10 +478,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <summary>
     /// Returns the latest extended SQLite error code for this connection.
     /// </summary>
-    public int GetLastExtendedErrorCode()
+    public SqliteResult GetLastExtendedErrorCode()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
+        return (SqliteResult)sqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -502,7 +502,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteErrorHelper.ThrowOnError(
-            sqlite3.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
+            (SqliteResult)sqlite3.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
             _handle.DangerousGetHandle(),
             "SQLite busy timeout");
     }
@@ -515,7 +515,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteErrorHelper.ThrowOnError(
-            sqlite3.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
+            (SqliteResult)sqlite3.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
             _handle.DangerousGetHandle(),
             "SQLite extended result codes");
     }
@@ -602,7 +602,7 @@ public sealed unsafe class Sqlite3 : IDisposable
         fixed (byte* pTableName = tableNameBuffer)
         fixed (byte* pColumnName = columnNameBuffer)
         {
-            int rc = sqlite3.sqlite3_table_column_metadata(
+            SqliteResult rc = (SqliteResult)sqlite3.sqlite3_table_column_metadata(
                 _handle.DangerousGetHandle(),
                 null, // "main" database
                 pTableName,
@@ -613,12 +613,12 @@ public sealed unsafe class Sqlite3 : IDisposable
                 &primaryKey,
                 &autoInc);
 
-            if (rc != sqlite3.SQLITE_OK)
+            if (rc != SqliteResult.OK)
             {
                 string message = $"Failed to retrieve metadata for column '{columnName}' in table '{tableName}'.";
                 byte* pErrorMsg = sqlite3.sqlite3_errmsg(_handle.DangerousGetHandle());
                 string nativeErrorMsg = Marshal.PtrToStringUTF8((nint)pErrorMsg) ?? "Unknown SQLite error";
-                throw new SqliteInteropException(message, (SqliteResult)(rc & 0xFF), rc, nativeErrorMsg);
+                throw new SqliteInteropException(message, (SqliteResult)(((int)rc) & 0xFF), (int)rc, nativeErrorMsg);
             }
         }
 
