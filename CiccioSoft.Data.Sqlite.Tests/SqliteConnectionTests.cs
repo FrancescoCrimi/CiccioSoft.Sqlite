@@ -11,8 +11,8 @@ using System.IO;
 using System.Linq;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
+using CiccioSoft.Sqlite.Interop;
 using Xunit;
-using static CiccioSoft.Sqlite.Interop.Native.sqlite3;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
@@ -161,7 +161,7 @@ public class SqliteConnectionTests
         using var connection = new SqliteConnection("Data Source=file:data.db?mode=invalidmode");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
+        Assert.Equal((int)SqliteResult.Error, ex.SqliteErrorCode);
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class SqliteConnectionTests
             var ex = Assert.Throws<SqliteException>(
                 () => connection.ExecuteNonQuery("INSERT INTO Idomic VALUES ('arimfexendrapuse');"));
 
-            Assert.Equal(SQLITE_READONLY, ex.SqliteErrorCode);
+            Assert.Equal((int)SqliteResult.ReadOnly, ex.SqliteErrorCode);
         }
     }
 
@@ -221,7 +221,7 @@ public class SqliteConnectionTests
         using var connection = new SqliteConnection($"Data Source={path};Mode=ReadWrite");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
+        Assert.Equal((int)SqliteResult.CantOpen, ex.SqliteErrorCode);
     }
 
     [Fact]
@@ -245,15 +245,15 @@ public class SqliteConnectionTests
     [Fact]
     public void Open_works_when_password()
     {
-// #if E_SQLITE3 || WINSQLITE3
+        // #if E_SQLITE3 || WINSQLITE3
         Open_works_when_password_unsupported();
-// #elif E_SQLCIPHER || E_SQLITE3MC || SQLCIPHER
-//         Open_works_when_password_supported();
-// #elif SQLITE3
-//         Open_works_when_password_might_be_supported();
-// #else
-// #error Unexpected native library
-// #endif
+        // #elif E_SQLCIPHER || E_SQLITE3MC || SQLCIPHER
+        //         Open_works_when_password_supported();
+        // #elif SQLITE3
+        //         Open_works_when_password_might_be_supported();
+        // #else
+        // #error Unexpected native library
+        // #endif
     }
 
     private void Open_works_when_password_unsupported()
@@ -418,7 +418,7 @@ public class SqliteConnectionTests
         using var connection = new SqliteConnection($"Data Source=file:{fileName}?mode=rw");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
+        Assert.Equal((int)SqliteResult.CantOpen, ex.SqliteErrorCode);
     }
 
     [Fact]
