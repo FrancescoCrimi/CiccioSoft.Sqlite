@@ -210,7 +210,7 @@ public class SqliteConnection : DbConnection
     {
         lock (_syncRoot)
         {
-            EnsureOpen();
+            EnsureOpen(nameof(BeginTransaction));
             if (_hasActiveTransaction)
             {
                 throw new InvalidOperationException(Resources.ParallelTransactionsNotSupported);
