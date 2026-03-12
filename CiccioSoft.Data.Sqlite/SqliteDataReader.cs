@@ -650,6 +650,13 @@ public class SqliteDataReader : DbDataReader
                     fieldType = TypeFromSqliteStorageClass(sqliteType);
                     dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
                 }
+                else if (hasOrigin
+                    && TryInferOriginStorageClass(baseTableName!, baseColumnName!, out SqliteColumnType inferredType)
+                    && inferredType != SqliteColumnType.Null)
+                {
+                    fieldType = TypeFromSqliteStorageClass(inferredType);
+                    dataTypeName = DataTypeNameFromSqliteStorageClass(inferredType);
+                }
                 else if (!hasOrigin)
                 {
                     fieldType = typeof(long);
@@ -1053,6 +1060,33 @@ public class SqliteDataReader : DbDataReader
             SqliteColumnType.Blob => "BLOB",
             _ => "BLOB",
         };
+
+    private bool TryInferOriginStorageClass(string tableName, string columnName, out SqliteColumnType inferredType)
+    {
+        inferredType = SqliteColumnType.Null;
+
+        string escapedTableName = tableName.Replace("\"", "\"\"", StringComparison.Ordinal);
+        string escapedColumnName = columnName.Replace("\"", "\"\"", StringComparison.Ordinal);
+        string sql = $"SELECT typeof(\"{escapedColumnName}\") FROM \"{escapedTableName}\" WHERE \"{escapedColumnName}\" IS NOT NULL LIMIT 1;";
+
+        using Sqlite3Stmt stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
+        if (!_executionScope.Execute(stmt.Step))
+        {
+            return false;
+        }
+
+        string? sqliteTypeName = stmt.GetString(0);
+        inferredType = sqliteTypeName?.ToLowerInvariant() switch
+        {
+            "integer" => SqliteColumnType.Integer,
+            "real" => SqliteColumnType.Float,
+            "text" => SqliteColumnType.Text,
+            "blob" => SqliteColumnType.Blob,
+            _ => SqliteColumnType.Null,
+        };
+
+        return true;
+    }
 
     private string GetDataTypeNameFromDeclaration(int ordinal)
     {

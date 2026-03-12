@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
@@ -254,10 +255,10 @@ public class SqliteConnection : DbConnection
         }
     }
 
-    internal void EnsureOpen()
+    internal void EnsureOpen([CallerMemberName] string? operation = null)
     {
         if (_state != ConnectionState.Open || _session is null)
-            throw new InvalidOperationException("Connection is not open.");
+            throw new InvalidOperationException(Resources.CallRequiresOpenConnection(operation ?? "operation"));
     }
 
     internal void ClearActiveTransaction()
