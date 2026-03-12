@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
@@ -40,6 +41,8 @@ public class SqliteParameter : DbParameter
     private string _parameterName = string.Empty;
     private string _sourceColumn = string.Empty;
 
+    [DefaultValue("")]
+    [AllowNull]
     public override string ParameterName
     {
         get => _parameterName;
@@ -48,6 +51,8 @@ public class SqliteParameter : DbParameter
 
     public override int Size { get; set; }
 
+    [DefaultValue("")]
+    [AllowNull]
     public override string SourceColumn
     {
         get => _sourceColumn;

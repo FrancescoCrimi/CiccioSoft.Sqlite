@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
@@ -32,6 +33,9 @@ public class SqliteCommand : DbCommand
 
     private string _commandText = string.Empty;
 
+    [DefaultValue("")]
+    [RefreshProperties(RefreshProperties.All)]
+    [AllowNull]
     public override string CommandText
     {
         get => _commandText;

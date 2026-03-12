@@ -7,7 +7,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -45,6 +47,8 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         base[JournalModeKey] = string.Empty;
     }
 
+    [Browsable(false)]
+    [AllowNull]
     public override object this[string keyword]
     {
         get

@@ -5,8 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,6 +35,10 @@ public class SqliteConnection : DbConnection
         ConnectionString = connectionString;
     }
 
+    [DefaultValue("")]
+    [SettingsBindableAttribute(true)]
+    [RefreshProperties(RefreshProperties.All)]
+    [AllowNull]
     public override string ConnectionString
     {
         get => _connectionString;
