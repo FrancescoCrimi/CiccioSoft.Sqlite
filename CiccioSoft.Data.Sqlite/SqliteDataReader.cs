@@ -608,17 +608,24 @@ public class SqliteDataReader : DbDataReader
 
         DataTable schemaTable = new("SchemaTable");
 
+        // Keep the standard schema table shape to match DataTable.Load/DataAdapter expectations.
         schemaTable.Columns.Add(SchemaTableColumn.ColumnName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.ColumnOrdinal, typeof(int));
+        schemaTable.Columns.Add(SchemaTableColumn.ColumnSize, typeof(int));
+        schemaTable.Columns.Add(SchemaTableColumn.NumericPrecision, typeof(short));
+        schemaTable.Columns.Add(SchemaTableColumn.NumericScale, typeof(short));
         schemaTable.Columns.Add(SchemaTableColumn.DataType, typeof(Type));
         schemaTable.Columns.Add(SchemaDataTypeNameColumn, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.IsLong, typeof(bool));
         schemaTable.Columns.Add(SchemaTableColumn.AllowDBNull, typeof(bool));
-        schemaTable.Columns.Add(SchemaTableColumn.ColumnSize, typeof(int));
-        schemaTable.Columns.Add(SchemaIsKeyColumn, typeof(bool));
         schemaTable.Columns.Add(SchemaIsUniqueColumn, typeof(bool));
+        schemaTable.Columns.Add(SchemaIsKeyColumn, typeof(bool));
+        schemaTable.Columns.Add(SchemaTableOptionalColumn.IsAutoIncrement, typeof(bool));
         schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseCatalogName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableColumn.BaseSchemaName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.BaseTableName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.BaseColumnName, typeof(string));
+        schemaTable.Columns.Add(SchemaTableOptionalColumn.BaseServerName, typeof(string));
         schemaTable.Columns.Add(SchemaTableColumn.IsAliased, typeof(bool));
         schemaTable.Columns.Add(SchemaTableColumn.IsExpression, typeof(bool));
 
@@ -666,15 +673,21 @@ public class SqliteDataReader : DbDataReader
 
             row[SchemaTableColumn.ColumnName] = columnName;
             row[SchemaTableColumn.ColumnOrdinal] = ordinal;
-            row[SchemaTableColumn.ColumnSize] = DBNull.Value;
+            row[SchemaTableColumn.ColumnSize] = -1;
+            row[SchemaTableColumn.NumericPrecision] = DBNull.Value;
+            row[SchemaTableColumn.NumericScale] = DBNull.Value;
             row[SchemaTableColumn.DataType] = fieldType;
             row[SchemaDataTypeNameColumn] = dataTypeName;
+            row[SchemaTableColumn.IsLong] = DBNull.Value;
             row[SchemaTableColumn.AllowDBNull] = true;
             row[SchemaIsKeyColumn] = false;
             row[SchemaIsUniqueColumn] = false;
+            row[SchemaTableOptionalColumn.IsAutoIncrement] = false;
             row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
+            row[SchemaTableColumn.BaseSchemaName] = DBNull.Value;
             row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
             row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
+            row[SchemaTableOptionalColumn.BaseServerName] = _command.Connection?.DataSource ?? string.Empty;
             row[SchemaTableColumn.IsAliased] = isAliased;
             row[SchemaTableColumn.IsExpression] = !hasOrigin;
 
