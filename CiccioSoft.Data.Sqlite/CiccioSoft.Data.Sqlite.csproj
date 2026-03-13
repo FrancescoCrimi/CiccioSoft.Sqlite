@@ -10,7 +10,6 @@
     <PackageProjectUrl>https://docs.microsoft.com/dotnet/standard/data/sqlite/</PackageProjectUrl>
     <Description>
 CiccioSoft.Data.Sqlite is a lightweight ADO.NET provider for SQLite.
-
 Commonly Used Types:
 CiccioSoft.Data.Sqlite.SqliteCommand
 CiccioSoft.Data.Sqlite.SqliteConnection

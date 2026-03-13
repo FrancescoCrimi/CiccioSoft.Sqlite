@@ -206,7 +206,10 @@ public class SqliteConnection : DbConnection
         return GetSchema(normalizedCollectionName);
     }
 
-    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+    public new virtual SqliteTransaction BeginTransaction()
+        => BeginTransaction(IsolationLevel.Unspecified);
+
+    public new virtual SqliteTransaction BeginTransaction(IsolationLevel isolationLevel)
     {
         lock (_syncRoot)
         {
@@ -230,7 +233,10 @@ public class SqliteConnection : DbConnection
         }
     }
 
-    protected override DbCommand CreateDbCommand()
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+        => BeginTransaction(isolationLevel);
+
+    public new virtual SqliteCommand CreateCommand()
     {
         return new SqliteCommand
         {
@@ -238,6 +244,9 @@ public class SqliteConnection : DbConnection
             Transaction = _activeTransaction,
         };
     }
+
+    protected override DbCommand CreateDbCommand()
+        => CreateCommand();
 
     protected override void Dispose(bool disposing)
     {
