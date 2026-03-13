@@ -58,29 +58,20 @@ public class SqliteDataReader : DbDataReader
 
     internal static SqliteDataReader Create(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
     {
-        session.Gate.Wait();
+        SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
+        SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
+        Sqlite3Stmt? stmt;
         try
         {
-            SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
-            SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
-            Sqlite3Stmt? stmt;
-            try
-            {
-                stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
-            }
-            catch
-            {
-                scope.Dispose();
-                throw;
-            }
-
-            return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
+            stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
         }
         catch
         {
-            session.Gate.Release();
+            scope.Dispose();
             throw;
         }
+
+        return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
     }
 
 
@@ -926,7 +917,6 @@ public class SqliteDataReader : DbDataReader
         _closed = true;
         _stmt?.Dispose();
         _executionScope.Dispose();
-        _session.Gate.Release();
         if (_behavior.HasFlag(System.Data.CommandBehavior.CloseConnection))
         {
             _command.Connection?.Close();

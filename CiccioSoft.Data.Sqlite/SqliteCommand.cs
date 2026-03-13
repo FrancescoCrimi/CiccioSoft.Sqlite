@@ -105,28 +105,20 @@ public class SqliteCommand : DbCommand
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
         ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
-        session.Gate.Wait();
-        try
+        using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+        BatchExecutionState batchState = new(CommandText);
+        while (true)
         {
-            using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-            BatchExecutionState batchState = new(CommandText);
-            while (true)
+            using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
+            if (stmt is null)
             {
-                using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
-                if (stmt is null)
-                {
-                    break;
-                }
-
-                while (scope.Execute(stmt.Step)) { }
+                break;
             }
 
-            return session.Native.Changes();
+            while (scope.Execute(stmt.Step)) { }
         }
-        finally
-        {
-            session.Gate.Release();
-        }
+
+        return session.Native.Changes();
     }
 
     public override object? ExecuteScalar()
@@ -140,16 +132,8 @@ public class SqliteCommand : DbCommand
         SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
         ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
-        session.Gate.Wait();
-        try
-        {
-            using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-            using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
-        }
-        finally
-        {
-            session.Gate.Release();
-        }
+        using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
     }
 
 
@@ -191,6 +175,7 @@ public class SqliteCommand : DbCommand
             using CancellationTokenRegistration operationInterruptRegistration = operationCancellationToken.CanBeCanceled
                 ? operationCancellationToken.Register(() => _session.Native.Interrupt())
                 : default;
+            _session.Gate.Wait();
 
             try
             {
@@ -213,6 +198,10 @@ public class SqliteCommand : DbCommand
             catch (SqliteInteropException ex)
             {
                 throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+            }
+            finally
+            {
+                _session.Gate.Release();
             }
         }
 
