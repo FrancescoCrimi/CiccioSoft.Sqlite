@@ -20,8 +20,11 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteCommand : DbCommand
 {
+    private const uint SqlitePreparePersistentFlag = 0x01;
     private readonly SqliteParameterCollection _parameters = new();
+    private readonly object _statementCacheSync = new();
     private SqliteConnection? _connection;
+    private CachedStatement? _cachedStatement;
 
     public SqliteCommand() { }
 
@@ -39,7 +42,17 @@ public class SqliteCommand : DbCommand
     public override string CommandText
     {
         get => _commandText;
-        set => _commandText = value ?? string.Empty;
+        set
+        {
+            string normalized = value ?? string.Empty;
+            if (string.Equals(_commandText, normalized, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            InvalidateStatementCache();
+            _commandText = normalized;
+        }
     }
 
     private int _commandTimeout = 30;
@@ -73,13 +86,22 @@ public class SqliteCommand : DbCommand
     public new SqliteConnection? Connection
     {
         get => _connection;
-        set => _connection = value;
+        set
+        {
+            if (ReferenceEquals(_connection, value))
+            {
+                return;
+            }
+
+            InvalidateStatementCache();
+            _connection = value;
+        }
     }
 
     protected override DbConnection? DbConnection
     {
         get => _connection;
-        set => _connection = (SqliteConnection?)value;
+        set => Connection = (SqliteConnection?)value;
     }
 
     protected override DbParameterCollection DbParameterCollection => _parameters;
@@ -106,6 +128,17 @@ public class SqliteCommand : DbCommand
         ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+
+        if (IsSingleStatementCommand())
+        {
+            using CachedStatementLease statementLease = scope.Execute(() => AcquireCachedStatement(session));
+            Sqlite3Stmt statement = statementLease.Statement;
+            scope.Execute(() => BindParameters(statement, throwOnMissingParameter: true));
+
+            while (scope.Execute(statement.Step)) { }
+            return session.Native.Changes();
+        }
+
         BatchExecutionState batchState = new(CommandText);
         while (true)
         {
@@ -133,7 +166,13 @@ public class SqliteCommand : DbCommand
         ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText));
+        if (IsSingleStatementCommand())
+        {
+            using CachedStatementLease _ = scope.Execute(() => AcquireCachedStatement(session));
+            return;
+        }
+
+        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText, SqlitePreparePersistentFlag));
     }
 
 
@@ -253,14 +292,14 @@ public class SqliteCommand : DbCommand
 
     internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
     {
-        Sqlite3Stmt stmt = session.Native.Prepare(CommandText);
+        Sqlite3Stmt stmt = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
         BindParameters(stmt, throwOnMissingParameter: true);
         return stmt;
     }
 
     internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState)
     {
-        Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset);
+        Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
         if (stmt is null)
         {
@@ -400,6 +439,106 @@ public class SqliteCommand : DbCommand
         if (!ReferenceEquals(Transaction.Connection, connection))
         {
             throw new InvalidOperationException(Resources.TransactionConnectionMismatch);
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            InvalidateStatementCache();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private bool IsSingleStatementCommand()
+        => !CommandText.Contains(';');
+
+    private CachedStatementLease AcquireCachedStatement(SqliteSession session)
+    {
+        lock (_statementCacheSync)
+        {
+            if (_cachedStatement is null
+                || !ReferenceEquals(_cachedStatement.Session, session)
+                || !string.Equals(_cachedStatement.CommandText, CommandText, StringComparison.Ordinal)
+                || !_cachedStatement.TryAcquire())
+            {
+                if (_cachedStatement is { InUse: false })
+                {
+                    _cachedStatement.Statement.Dispose();
+                    _cachedStatement = null;
+                }
+
+                Sqlite3Stmt statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
+                _cachedStatement = new CachedStatement(session, CommandText, statement);
+                _cachedStatement.TryAcquire();
+            }
+
+            return new CachedStatementLease(_cachedStatement);
+        }
+    }
+
+    private void InvalidateStatementCache()
+    {
+        lock (_statementCacheSync)
+        {
+            if (_cachedStatement is { InUse: false })
+            {
+                _cachedStatement.Statement.Dispose();
+            }
+
+            _cachedStatement = null;
+        }
+    }
+
+    private sealed class CachedStatement
+    {
+        public CachedStatement(SqliteSession session, string commandText, Sqlite3Stmt statement)
+        {
+            Session = session;
+            CommandText = commandText;
+            Statement = statement;
+        }
+
+        public SqliteSession Session { get; }
+        public string CommandText { get; }
+        public Sqlite3Stmt Statement { get; }
+        public bool InUse { get; private set; }
+
+        public bool TryAcquire()
+        {
+            if (InUse)
+            {
+                return false;
+            }
+
+            InUse = true;
+            Statement.Reset();
+            Statement.ClearBindings();
+            return true;
+        }
+
+        public void Release()
+        {
+            InUse = false;
+        }
+    }
+
+    private readonly struct CachedStatementLease : IDisposable
+    {
+        private readonly CachedStatement _cached;
+
+        public CachedStatementLease(CachedStatement cached)
+        {
+            _cached = cached;
+        }
+
+        public Sqlite3Stmt Statement => _cached.Statement;
+
+        public void Dispose()
+        {
+            _cached.Release();
         }
     }
 }
