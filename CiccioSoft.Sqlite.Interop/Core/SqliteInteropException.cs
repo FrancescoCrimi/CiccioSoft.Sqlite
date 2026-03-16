@@ -13,12 +13,17 @@ namespace CiccioSoft.Sqlite.Interop;
 /// </summary>
 public sealed class SqliteInteropException : Exception
 {
-    public SqliteInteropException(string message, SqliteResult baseErrorCode, int extendedErrorCode, string nativeMessage)
+    public SqliteInteropException(
+        string message,
+        SqliteResult baseErrorCode,
+        SqliteExtendedErrorCode extendedErrorCode,
+        string nativeMessage)
         : base(message)
     {
         BaseErrorCode = baseErrorCode;
         ExtendedErrorCode = extendedErrorCode;
         NativeMessage = nativeMessage;
+        ExtendedErrorDescription = SqliteErrorHelper.GetExtendedErrorDescription(extendedErrorCode);
     }
 
     /// <summary>
@@ -29,7 +34,12 @@ public sealed class SqliteInteropException : Exception
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public int ExtendedErrorCode { get; }
+    public SqliteExtendedErrorCode ExtendedErrorCode { get; }
+
+    /// <summary>
+    /// Gets a human-readable message for the extended SQLite error code.
+    /// </summary>
+    public string ExtendedErrorDescription { get; }
 
     /// <summary>
     /// Gets the native message returned by SQLite.

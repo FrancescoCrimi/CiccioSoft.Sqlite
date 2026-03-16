@@ -152,7 +152,7 @@ public class SqliteConnection : DbConnection
             }
             catch (SqliteInteropException ex)
             {
-                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, ex.ExtendedErrorCode, ex);
+                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
             }
 
             OnStateChange(new StateChangeEventArgs(ConnectionState.Closed, ConnectionState.Open));
