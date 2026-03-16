@@ -484,10 +484,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <summary>
     /// Returns the latest extended SQLite error code for this connection.
     /// </summary>
-    public SqliteResult GetLastExtendedErrorCode()
+    public SqliteExtendedErrorCode GetLastExtendedErrorCode()
     {
         ThrowIfInvalid();
-        return (SqliteResult)sqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
+        return (SqliteExtendedErrorCode)sqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -621,10 +621,8 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             if (rc != SqliteResult.OK)
             {
-                string message = $"Failed to retrieve metadata for column '{columnName}' in table '{tableName}'.";
-                byte* pErrorMsg = sqlite3.sqlite3_errmsg(_handle.DangerousGetHandle());
-                string nativeErrorMsg = Marshal.PtrToStringUTF8((nint)pErrorMsg) ?? "Unknown SQLite error";
-                throw new SqliteInteropException(message, (SqliteResult)(((int)rc) & 0xFF), (int)rc, nativeErrorMsg);
+                string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
+                throw SqliteErrorHelper.CreateException(rc, _handle.DangerousGetHandle(), operation);
             }
         }
 

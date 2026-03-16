@@ -24,22 +24,37 @@ internal static unsafe class SqliteErrorHelper
 
     public static SqliteInteropException CreateException(SqliteResult result, nint db, string operation)
     {
-        int extendedCode = (int)result;
-        string nativeMessage = "Unknown SQLite error";
+        int extendedCodeValue;
+        string nativeMessage;
 
         if (db != nint.Zero)
         {
-            extendedCode = sqlite3.sqlite3_extended_errcode(db);
+            // Read extended code exactly once from the native connection.
+            extendedCodeValue = sqlite3.sqlite3_extended_errcode(db);
             byte* pErr = sqlite3.sqlite3_errmsg(db);
             nativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
+        else
+        {
+            extendedCodeValue = (int)result;
+            nativeMessage = "Unknown SQLite error";
+        }
 
-        SqliteResult baseCode = (SqliteResult)(extendedCode & 0xFF);
+        SqliteResult baseCode = (SqliteResult)(extendedCodeValue & 0xFF);
+        SqliteExtendedErrorCode extendedCode = (SqliteExtendedErrorCode)extendedCodeValue;
+        string extendedErrorDescription = GetExtendedErrorDescription(extendedCode);
 
         return new SqliteInteropException(
-            $"{operation} failed. SQLite base code: {baseCode}, extended code: {extendedCode}. Native message: {nativeMessage}",
+            $"{operation} failed. SQLite base code: {baseCode}, extended code: {extendedCode} ({extendedCodeValue}) - {extendedErrorDescription}. Native message: {nativeMessage}",
             baseCode,
             extendedCode,
             nativeMessage);
+    }
+
+    public static string GetExtendedErrorDescription(SqliteExtendedErrorCode extendedCode)
+    {
+        return Enum.IsDefined(typeof(SqliteExtendedErrorCode), extendedCode)
+            ? extendedCode.ToString()
+            : $"Unknown extended SQLite error code ({(int)extendedCode})";
     }
 }
