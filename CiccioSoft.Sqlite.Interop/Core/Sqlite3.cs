@@ -223,18 +223,18 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <exception cref="SqliteInteropException">Thrown if the SQL syntax is invalid or the statement cannot be prepared.</exception>
     public Sqlite3Stmt Prepare(string sql)
     {
-        return Prepare(sql, 0);
+        return Prepare(sql, SqlitePrepareFlags.None);
     }
 
     /// <summary>
     /// Compiles an SQL statement using <c>sqlite3_prepare_v3</c>, enabling explicit prepare flags.
     /// </summary>
     /// <param name="sql">The SQL query string to compile.</param>
-    /// <param name="prepareFlags">Flags such as <c>SQLITE_PREPARE_PERSISTENT</c> or <c>SQLITE_PREPARE_NO_VTAB</c>.</param>
+    /// <param name="prepareFlags">Flags such as <see cref="SqlitePrepareFlags.Persistent"/> or <see cref="SqlitePrepareFlags.NoVtab"/>.</param>
     /// <returns>A new <see cref="Sqlite3Stmt"/> instance wrapping the compiled statement.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
     /// <exception cref="SqliteInteropException">Thrown if the SQL syntax is invalid or the statement cannot be prepared.</exception>
-    public Sqlite3Stmt Prepare(string sql, uint prepareFlags)
+    public Sqlite3Stmt Prepare(string sql, SqlitePrepareFlags prepareFlags = SqlitePrepareFlags.None)
     {
         ThrowIfInvalid();
 
@@ -256,7 +256,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     _handle.DangerousGetHandle(),
                     pBuf,
                     dataLength, // Lunghezza esatta dei dati
-                    prepareFlags,
+                    (uint)prepareFlags,
                     &pStmt,
                     null);
 
@@ -287,14 +287,14 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <param name="sql">The full SQL batch text.</param>
     /// <param name="sqlByteOffset">The UTF-8 byte offset where statement preparation should start.</param>
     /// <param name="nextSqlByteOffset">The UTF-8 byte offset immediately after the prepared statement.</param>
-    /// <param name="prepareFlags">Flags such as <c>SQLITE_PREPARE_PERSISTENT</c> or <c>SQLITE_PREPARE_NO_VTAB</c>.</param>
+    /// <param name="prepareFlags">Flags such as <see cref="SqlitePrepareFlags.Persistent"/> or <see cref="SqlitePrepareFlags.NoVtab"/>.</param>
     /// <returns>
     /// A prepared statement if one is found at the given offset; otherwise <c>null</c> when only whitespace/comments remain.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="sqlByteOffset"/> is outside the SQL byte buffer range.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
     /// <exception cref="SqliteInteropException">Thrown if the statement cannot be prepared.</exception>
-    public Sqlite3Stmt? Prepare(string sql, int sqlByteOffset, out int nextSqlByteOffset, uint prepareFlags = 0)
+    public Sqlite3Stmt? Prepare(string sql, int sqlByteOffset, out int nextSqlByteOffset, SqlitePrepareFlags prepareFlags = SqlitePrepareFlags.None)
     {
         ThrowIfInvalid();
 
@@ -324,7 +324,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     _handle.DangerousGetHandle(),
                     pStart,
                     remainingLength,
-                    prepareFlags,
+                    (uint)prepareFlags,
                     &pStmt,
                     &pTail);
 

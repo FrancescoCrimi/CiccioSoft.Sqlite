@@ -20,7 +20,7 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteCommand : DbCommand
 {
-    private const uint SqlitePreparePersistentFlag = 0x01;
+    private const SqlitePrepareFlags SqlitePreparePersistentFlag = SqlitePrepareFlags.Persistent;
     private readonly SqliteParameterCollection _parameters = new();
     private readonly object _statementCacheSync = new();
     private SqliteConnection? _connection;
