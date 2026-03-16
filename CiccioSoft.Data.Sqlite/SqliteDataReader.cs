@@ -582,9 +582,7 @@ public class SqliteDataReader : DbDataReader
                 return true;
             }
 
-            while (_executionScope.Execute(Stmt.Step))
-            {
-            }
+            ExecuteCurrentStatementToEnd();
         }
     }
 
@@ -856,7 +854,7 @@ public class SqliteDataReader : DbDataReader
         }
         else
         {
-            _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
+            _hasRow = _stmt is not null && ExecuteCurrentStatementStep();
             if (!_hasRow)
             {
                 _prefetched = true;
@@ -888,7 +886,7 @@ public class SqliteDataReader : DbDataReader
         }
         else
         {
-            _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step, cancellationToken);
+            _hasRow = _stmt is not null && ExecuteCurrentStatementStep(cancellationToken);
             if (!_hasRow)
             {
                 _prefetched = true;
@@ -950,7 +948,7 @@ public class SqliteDataReader : DbDataReader
         if (_prefetched || _readStarted)
             return;
 
-        _hasRow = _stmt is not null && _executionScope.Execute(Stmt.Step);
+        _hasRow = _stmt is not null && ExecuteCurrentStatementStep();
         _prefetched = true;
     }
 
@@ -969,6 +967,35 @@ public class SqliteDataReader : DbDataReader
         if (ordinal < 0 || ordinal >= FieldCount)
         {
             throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
+        }
+    }
+
+    private bool ExecuteCurrentStatementStep(CancellationToken cancellationToken = default)
+    {
+        if (_stmt is null)
+        {
+            return false;
+        }
+
+        if (Stmt.IsReadOnly())
+        {
+            return _executionScope.Execute(Stmt.Step, cancellationToken);
+        }
+
+        SqliteConnection? connection = _command.Connection;
+        if (connection is null || connection.HasActiveTransaction())
+        {
+            return _executionScope.Execute(Stmt.Step, cancellationToken);
+        }
+
+        using IDisposable writerGate = connection.AcquireWriterGate(cancellationToken);
+        return _executionScope.Execute(Stmt.Step, cancellationToken);
+    }
+
+    private void ExecuteCurrentStatementToEnd(CancellationToken cancellationToken = default)
+    {
+        while (ExecuteCurrentStatementStep(cancellationToken))
+        {
         }
     }
 
@@ -996,9 +1023,7 @@ public class SqliteDataReader : DbDataReader
         {
             if (_stmt is not null)
             {
-                while (_executionScope.Execute(Stmt.Step))
-                {
-                }
+                ExecuteCurrentStatementToEnd();
 
                 AddChangesFromCurrentStatement();
             }
@@ -1012,9 +1037,7 @@ public class SqliteDataReader : DbDataReader
                     break;
                 }
 
-                while (_executionScope.Execute(Stmt.Step))
-                {
-                }
+                ExecuteCurrentStatementToEnd();
 
                 AddChangesFromCurrentStatement();
             }

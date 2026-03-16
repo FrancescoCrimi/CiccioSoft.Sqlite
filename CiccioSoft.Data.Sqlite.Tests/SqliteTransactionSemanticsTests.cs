@@ -5,6 +5,9 @@
 
 using System;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
@@ -89,5 +92,58 @@ public class SqliteTransactionSemanticsTests
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => transaction.Rollback());
 
         Assert.Equal(Resources.TransactionCompleted, ex.Message);
+    }
+
+    [Fact]
+    public async Task SingleWriterPattern_SerializesConcurrentWritersWithinProcess()
+    {
+        string dbPath = Path.Combine(AppContext.BaseDirectory, $"single-writer-{Guid.NewGuid():N}.db");
+        string cs = $"Data Source={dbPath};BusyTimeout=0;";
+
+        try
+        {
+            using SqliteConnection setupConnection = new(cs);
+            setupConnection.Open();
+            setupConnection.ExecuteNonQuery("PRAGMA journal_mode=WAL; CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT);");
+
+            using SqliteConnection writer1 = new(cs);
+            using SqliteConnection writer2 = new(cs);
+            writer1.Open();
+            writer2.Open();
+
+            using SqliteTransaction tx = (SqliteTransaction)writer1.BeginTransaction();
+            writer1.ExecuteNonQuery("INSERT INTO t(value) VALUES ('first');");
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Task secondWrite = Task.Run(() => writer2.ExecuteNonQuery("INSERT INTO t(value) VALUES ('second');"));
+
+            await Task.Delay(200);
+            tx.Commit();
+
+            await secondWrite;
+            stopwatch.Stop();
+
+            Assert.True(stopwatch.ElapsedMilliseconds >= 150);
+            Assert.Equal(2L, writer1.ExecuteScalar<long>("SELECT COUNT(*) FROM t;"));
+        }
+        finally
+        {
+            if (File.Exists(dbPath))
+            {
+                File.Delete(dbPath);
+            }
+
+            string walPath = dbPath + "-wal";
+            if (File.Exists(walPath))
+            {
+                File.Delete(walPath);
+            }
+
+            string shmPath = dbPath + "-shm";
+            if (File.Exists(shmPath))
+            {
+                File.Delete(shmPath);
+            }
+        }
     }
 }

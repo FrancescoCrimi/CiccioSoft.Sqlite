@@ -28,6 +28,7 @@ public class SqliteConnection : DbConnection
     private SqliteTransaction? _activeTransaction;
     private SqliteConnectionStringBuilder _settings = new();
     private string _dataSource = string.Empty;
+    private string _writerKey = string.Empty;
 
     public SqliteConnection() { }
 
@@ -51,6 +52,7 @@ public class SqliteConnection : DbConnection
                 _connectionString = value ?? string.Empty;
                 _settings = new SqliteConnectionStringBuilder { ConnectionString = _connectionString };
                 _dataSource = _settings.DataSource;
+                _writerKey = ResolveWriterKey(_connectionString, _dataSource);
             }
         }
     }
@@ -148,6 +150,7 @@ public class SqliteConnection : DbConnection
 
                 _session = session;
                 _dataSource = dataSource;
+                _writerKey = ResolveWriterKey(_connectionString, _dataSource);
                 _state = ConnectionState.Open;
             }
             catch (SqliteInteropException ex)
@@ -285,6 +288,39 @@ public class SqliteConnection : DbConnection
         {
             _activeTransaction = transaction;
         }
+    }
+
+
+    internal bool HasActiveTransaction()
+    {
+        lock (_syncRoot)
+        {
+            return _activeTransaction is not null;
+        }
+    }
+
+    internal IDisposable AcquireWriterGate(CancellationToken cancellationToken = default)
+    {
+        lock (_syncRoot)
+        {
+            EnsureOpen();
+            return SingleWriterCoordinator.Acquire(_writerKey, cancellationToken);
+        }
+    }
+
+    private static string ResolveWriterKey(string connectionString, string dataSource)
+    {
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            return $"cs:{connectionString}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(dataSource))
+        {
+            return $"ds:{dataSource}";
+        }
+
+        return "memory";
     }
 
 
