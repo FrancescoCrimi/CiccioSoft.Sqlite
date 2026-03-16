@@ -573,65 +573,76 @@ public sealed unsafe class Sqlite3 : IDisposable
         out bool isPrimaryKey,
         out bool isAutoIncrement)
     {
+        ThrowIfInvalid();
         ArgumentNullException.ThrowIfNull(tableName);
         ArgumentNullException.ThrowIfNull(columnName);
 
-        // Output pointers from native call
+        if (tableName.Length == 0)
+            throw new ArgumentException("Table name cannot be empty.", nameof(tableName));
+        if (columnName.Length == 0)
+            throw new ArgumentException("Column name cannot be empty.", nameof(columnName));
+
         byte* pDataType = null;
         byte* pCollSeq = null;
         int notNull = 0;
         int primaryKey = 0;
         int autoInc = 0;
 
-        // Optimize string encoding: use stackalloc for small strings
-        const int SMALL_STRING_THRESHOLD = 256;
-
+        const int smallStringThreshold = 256;
         int tableNameByteCount = Encoding.UTF8.GetByteCount(tableName) + 1;
         int columnNameByteCount = Encoding.UTF8.GetByteCount(columnName) + 1;
+        int totalNeeded = tableNameByteCount + columnNameByteCount;
 
-        Span<byte> tableNameBuffer = tableNameByteCount <= SMALL_STRING_THRESHOLD
-            ? stackalloc byte[tableNameByteCount]
-            : new byte[tableNameByteCount];
+        byte[]? pooled = null;
+        Span<byte> combinedBuffer = totalNeeded <= smallStringThreshold * 2
+            ? stackalloc byte[totalNeeded]
+            : (pooled = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
 
-        Span<byte> columnNameBuffer = columnNameByteCount <= SMALL_STRING_THRESHOLD
-            ? stackalloc byte[columnNameByteCount]
-            : new byte[columnNameByteCount];
-
-        // Encode strings to UTF-8 with null terminator
-        Encoding.UTF8.GetBytes(tableName, tableNameBuffer);
-        tableNameBuffer[tableNameByteCount - 1] = 0;
-
-        Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
-        columnNameBuffer[columnNameByteCount - 1] = 0;
-
-        // Call native function with proper fixed pointers
-        fixed (byte* pTableName = tableNameBuffer)
-        fixed (byte* pColumnName = columnNameBuffer)
+        try
         {
-            SqliteResult rc = (SqliteResult)sqlite3.sqlite3_table_column_metadata(
-                _handle.DangerousGetHandle(),
-                null, // "main" database
-                pTableName,
-                pColumnName,
-                &pDataType,
-                &pCollSeq,
-                &notNull,
-                &primaryKey,
-                &autoInc);
+            Span<byte> tableNameBuffer = combinedBuffer[..tableNameByteCount];
+            Span<byte> columnNameBuffer = combinedBuffer.Slice(tableNameByteCount, columnNameByteCount);
 
-            if (rc != SqliteResult.OK)
+            Encoding.UTF8.GetBytes(tableName, tableNameBuffer);
+            tableNameBuffer[^1] = 0;
+
+            Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
+            columnNameBuffer[^1] = 0;
+
+            nint dbHandle = _handle.DangerousGetHandle();
+
+            fixed (byte* pTableName = tableNameBuffer)
+            fixed (byte* pColumnName = columnNameBuffer)
             {
-                string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
-                throw SqliteErrorHelper.CreateException(rc, _handle.DangerousGetHandle(), operation);
-            }
-        }
+                SqliteResult rc = (SqliteResult)sqlite3.sqlite3_table_column_metadata(
+                    dbHandle,
+                    null,
+                    pTableName,
+                    pColumnName,
+                    &pDataType,
+                    &pCollSeq,
+                    &notNull,
+                    &primaryKey,
+                    &autoInc);
 
-        // Marshal output pointers to managed strings
-        dataType = pDataType != null ? Marshal.PtrToStringUTF8((nint)pDataType) : null;
-        collSeq = pCollSeq != null ? Marshal.PtrToStringUTF8((nint)pCollSeq) : null;
-        isNotNull = notNull != 0;
-        isPrimaryKey = primaryKey != 0;
-        isAutoIncrement = autoInc != 0;
+                if (rc != SqliteResult.OK)
+                {
+                    string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
+                    throw SqliteErrorHelper.CreateException(rc, dbHandle, operation);
+                }
+            }
+
+            dataType = pDataType != null ? Marshal.PtrToStringUTF8((nint)pDataType) : null;
+            collSeq = pCollSeq != null ? Marshal.PtrToStringUTF8((nint)pCollSeq) : null;
+            isNotNull = notNull != 0;
+            isPrimaryKey = primaryKey != 0;
+            isAutoIncrement = autoInc != 0;
+        }
+        finally
+        {
+            if (pooled != null)
+                ArrayPool<byte>.Shared.Return(pooled);
+        }
     }
 
 

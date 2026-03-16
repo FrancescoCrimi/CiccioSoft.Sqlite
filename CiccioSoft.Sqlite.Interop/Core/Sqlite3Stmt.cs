@@ -147,6 +147,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public int GetParameterIndex(string parameterName)
     {
         ThrowIfInvalid();
+        ArgumentNullException.ThrowIfNull(parameterName);
 
         int dataLength = Encoding.UTF8.GetByteCount(parameterName);
         int totalNeeded = dataLength + 1;
@@ -315,7 +316,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         // Chiediamo a SQLite la lunghezza esatta in byte
         int byteCount = sqlite3.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
 
-        // Decodifica veloce
+        if (byteCount == 0)
+        {
+            return string.Empty;
+        }
+
         return Encoding.UTF8.GetString(pText, byteCount);
     }
 
