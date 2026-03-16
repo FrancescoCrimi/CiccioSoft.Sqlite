@@ -28,6 +28,40 @@ internal sealed class SqliteSession : IDisposable
     }
 }
 
+internal static class SingleWriterCoordinator
+{
+    private sealed class Releaser : IDisposable
+    {
+        private readonly SemaphoreSlim _gate;
+        private bool _disposed;
+
+        public Releaser(SemaphoreSlim gate)
+        {
+            _gate = gate;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _gate.Release();
+        }
+    }
+
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> Gates = new(StringComparer.OrdinalIgnoreCase);
+
+    public static IDisposable Acquire(string writerKey, CancellationToken cancellationToken)
+    {
+        SemaphoreSlim gate = Gates.GetOrAdd(writerKey, _ => new SemaphoreSlim(1, 1));
+        gate.Wait(cancellationToken);
+        return new Releaser(gate);
+    }
+}
+
 internal static class SqliteConnectionPool
 {
     private sealed class PoolState

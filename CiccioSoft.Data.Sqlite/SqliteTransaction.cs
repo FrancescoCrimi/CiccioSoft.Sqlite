@@ -17,14 +17,25 @@ namespace CiccioSoft.Data.Sqlite;
 public class SqliteTransaction : DbTransaction
 {
     private readonly SqliteConnection _connection;
+    private readonly IDisposable _writerGate;
     private bool _completed;
 
     internal SqliteTransaction(SqliteConnection connection, IsolationLevel isolationLevel)
     {
         _connection = connection;
+        _writerGate = connection.AcquireWriterGate();
         IsolationLevel = NormalizeIsolationLevel(isolationLevel);
-        Execute(GetBeginStatement(IsolationLevel));
-        _connection.SetActiveTransaction(this);
+
+        try
+        {
+            Execute(GetBeginStatement(IsolationLevel));
+            _connection.SetActiveTransaction(this);
+        }
+        catch
+        {
+            _writerGate.Dispose();
+            throw;
+        }
     }
 
     public override IsolationLevel IsolationLevel { get; }
@@ -34,17 +45,31 @@ public class SqliteTransaction : DbTransaction
     public override void Commit()
     {
         EnsureActive();
-        Execute("COMMIT;");
-        _completed = true;
-        _connection.ClearActiveTransaction();
+        try
+        {
+            Execute("COMMIT;");
+            _completed = true;
+            _connection.ClearActiveTransaction();
+        }
+        finally
+        {
+            _writerGate.Dispose();
+        }
     }
 
     public override void Rollback()
     {
         EnsureActive();
-        Execute("ROLLBACK;");
-        _completed = true;
-        _connection.ClearActiveTransaction();
+        try
+        {
+            Execute("ROLLBACK;");
+            _completed = true;
+            _connection.ClearActiveTransaction();
+        }
+        finally
+        {
+            _writerGate.Dispose();
+        }
     }
 
     public override Task CommitAsync(CancellationToken cancellationToken = default)
@@ -71,6 +96,7 @@ public class SqliteTransaction : DbTransaction
         if (disposing)
         {
             _connection.ClearActiveTransaction();
+            _writerGate.Dispose();
         }
 
         base.Dispose(disposing);

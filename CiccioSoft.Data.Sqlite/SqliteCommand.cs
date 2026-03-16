@@ -135,7 +135,20 @@ public class SqliteCommand : DbCommand
             Sqlite3Stmt statement = statementLease.Statement;
             scope.Execute(() => BindParameters(statement, throwOnMissingParameter: true));
 
-            while (scope.Execute(statement.Step)) { }
+            if (statement.IsReadOnly())
+            {
+                while (scope.Execute(statement.Step)) { }
+            }
+            else if (conn.HasActiveTransaction())
+            {
+                while (scope.Execute(statement.Step)) { }
+            }
+            else
+            {
+                using IDisposable writerGate = conn.AcquireWriterGate();
+                while (scope.Execute(statement.Step)) { }
+            }
+
             return session.Native.Changes();
         }
 
@@ -148,7 +161,19 @@ public class SqliteCommand : DbCommand
                 break;
             }
 
-            while (scope.Execute(stmt.Step)) { }
+            if (stmt.IsReadOnly())
+            {
+                while (scope.Execute(stmt.Step)) { }
+            }
+            else if (conn.HasActiveTransaction())
+            {
+                while (scope.Execute(stmt.Step)) { }
+            }
+            else
+            {
+                using IDisposable writerGate = conn.AcquireWriterGate();
+                while (scope.Execute(stmt.Step)) { }
+            }
         }
 
         return session.Native.Changes();
