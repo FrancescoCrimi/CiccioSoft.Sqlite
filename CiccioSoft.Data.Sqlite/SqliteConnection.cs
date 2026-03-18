@@ -429,6 +429,7 @@ public class SqliteConnection : DbConnection
 
     private void ApplyConnectionSettings(Sqlite3 native)
     {
+        native.SetExtendedResultCodes(true);
         native.SetBusyTimeout(Math.Max(0, _settings.BusyTimeout));
 
         if (_settings.HasForeignKeys)

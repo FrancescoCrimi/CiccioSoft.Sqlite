@@ -243,6 +243,21 @@ public class SqliteConnectionTests
     }
 
     [Fact]
+    public void Open_enables_extended_result_codes()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        connection.ExecuteNonQuery("CREATE TABLE Person (Id INTEGER PRIMARY KEY, Name TEXT UNIQUE);");
+        connection.ExecuteNonQuery("INSERT INTO Person (Name) VALUES ('Waldo');");
+
+        var ex = Assert.Throws<SqliteException>(
+            () => connection.ExecuteNonQuery("INSERT INTO Person (Name) VALUES ('Waldo');"));
+
+        Assert.Equal((int)SqliteResult.Constraint, ex.SqliteErrorCode);
+        Assert.Equal((int)SqliteExtendedErrorCode.ConstraintUnique, ex.SqliteExtendedErrorCode);
+    }
+
+    [Fact]
     public void Open_works_when_password()
     {
         // #if E_SQLITE3 || WINSQLITE3
