@@ -359,6 +359,48 @@ public class SqliteConnectionTests
         Assert.Equal(1L, connection.ExecuteScalar<long>("PRAGMA recursive_triggers;"));
     }
 
+    [Fact]
+    public void Checkpoint_throws_when_closed()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+
+        var ex = Assert.Throws<InvalidOperationException>(() => connection.Checkpoint());
+
+        Assert.Equal(Resources.CallRequiresOpenConnection("Checkpoint"), ex.Message);
+    }
+
+    [Fact]
+    public void Checkpoint_works_in_wal_mode()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, $"wal-{Guid.NewGuid():N}.db");
+        using var connection = new SqliteConnection($"Data Source={path};Journal Mode=WAL");
+        connection.Open();
+        connection.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS Data(Value INTEGER);");
+        connection.ExecuteNonQuery("INSERT INTO Data(Value) VALUES (1);");
+
+        connection.Checkpoint();
+    }
+
+    [Fact]
+    public void Optimize_works()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        connection.ExecuteNonQuery("CREATE TABLE Data(Value INTEGER);");
+
+        connection.Optimize();
+    }
+
+    [Fact]
+    public async Task CheckpointAsync_throws_when_cancellation_requested()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await connection.CheckpointAsync(new CancellationToken(canceled: true)));
+    }
+
     // [Fact]
     // public void BackupDatabase_works()
     // {

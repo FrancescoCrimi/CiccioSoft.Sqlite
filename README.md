@@ -44,6 +44,7 @@ This repository is organized into two main layers:
 - Async methods are non-blocking for the caller and support cancellation via token-driven native interrupt where applicable.
 - `SqliteCommand.CommandTimeout` is enforced on the full command execution scope (statement preparation + execution/reader lifecycle), with native interrupt on timeout. `0` means no timeout, values greater than `0` are interpreted as seconds.
 - Connection PRAGMA-like settings are applied at open and can be configured using Microsoft.Data.Sqlite-compatible names: `Busy Timeout`/`busy_timeout`, `Foreign Keys`/`foreign_keys`, and `Journal Mode`/`journal_mode`.
+- In WAL mode, you can explicitly trigger maintenance with `SqliteConnection.Checkpoint(...)` (default `PASSIVE`) and `SqliteConnection.Optimize()` / async counterparts to keep `-wal` growth under control in long-running workloads.
 
 ## 🚀 Quick Start
 
