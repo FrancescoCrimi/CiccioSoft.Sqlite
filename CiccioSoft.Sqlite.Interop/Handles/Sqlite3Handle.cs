@@ -19,7 +19,7 @@ public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
     protected override bool ReleaseHandle()
     {
         // return SqliteNative.sqlite3_close_v2(handle) == SqliteNative.SQLITE_OK;
-        sqlite3.sqlite3_close_v2(handle);
+        NativeSqlite3.sqlite3_close_v2(handle);
         return true;
     }
 }

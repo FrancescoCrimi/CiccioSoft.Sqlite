@@ -116,7 +116,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             {
                 byte* pFilename = pBuffer;
                 byte* pVfs = vfsName is null ? null : pBuffer + filenameTotalNeeded;
-                SqliteResult result = (SqliteResult)sqlite3.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
+                SqliteResult result = (SqliteResult)NativeSqlite3.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
 
                 // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
                 // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
@@ -128,7 +128,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     // Dobbiamo chiudere pDb manualmente o tramite l'handle.
                     if (pDb != nint.Zero)
                     {
-                        sqlite3.sqlite3_close_v2(pDb);
+                        NativeSqlite3.sqlite3_close_v2(pDb);
                     }
 
                     throw exception;
@@ -184,7 +184,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             fixed (byte* pBuf = buffer)
             {
-                SqliteResult result = (SqliteResult)sqlite3.sqlite3_exec(
+                SqliteResult result = (SqliteResult)NativeSqlite3.sqlite3_exec(
                     _handle.DangerousGetHandle(),
                     pBuf,
                     null,
@@ -252,7 +252,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             {
                 // Chiamata nativa
                 nint pStmt = default;
-                SqliteResult result = (SqliteResult)sqlite3.sqlite3_prepare_v3(
+                SqliteResult result = (SqliteResult)NativeSqlite3.sqlite3_prepare_v3(
                     _handle.DangerousGetHandle(),
                     pBuf,
                     dataLength, // Lunghezza esatta dei dati
@@ -266,7 +266,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                     // Se pStmt è stato allocato nonostante l'errore, va chiuso.
                     if (pStmt != nint.Zero)
-                        sqlite3.sqlite3_finalize(pStmt);
+                        NativeSqlite3.sqlite3_finalize(pStmt);
 
                     throw exception;
                 }
@@ -320,7 +320,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 nint pStmt = default;
                 byte* pTail = null;
-                SqliteResult result = (SqliteResult)sqlite3.sqlite3_prepare_v3(
+                SqliteResult result = (SqliteResult)NativeSqlite3.sqlite3_prepare_v3(
                     _handle.DangerousGetHandle(),
                     pStart,
                     remainingLength,
@@ -332,7 +332,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 {
                     SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
                     if (pStmt != nint.Zero)
-                        sqlite3.sqlite3_finalize(pStmt);
+                        NativeSqlite3.sqlite3_finalize(pStmt);
 
                     throw exception;
                 }
@@ -362,7 +362,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public long LastInsertRowId()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_last_insert_rowid(_handle.DangerousGetHandle());
+        return NativeSqlite3.sqlite3_last_insert_rowid(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -372,7 +372,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public int Changes()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_changes(_handle.DangerousGetHandle());
+        return NativeSqlite3.sqlite3_changes(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -381,7 +381,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public long TotalChanges()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_total_changes64(_handle.DangerousGetHandle());
+        return NativeSqlite3.sqlite3_total_changes64(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -390,7 +390,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public bool IsAutoCommit()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_get_autocommit(_handle.DangerousGetHandle()) != 0;
+        return NativeSqlite3.sqlite3_get_autocommit(_handle.DangerousGetHandle()) != 0;
     }
 
     /// <summary>
@@ -411,7 +411,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
         if (schemaName is null)
         {
-            return sqlite3.sqlite3_txn_state(_handle.DangerousGetHandle(), null);
+            return NativeSqlite3.sqlite3_txn_state(_handle.DangerousGetHandle(), null);
         }
 
         int dataLength = Encoding.UTF8.GetByteCount(schemaName);
@@ -429,7 +429,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             fixed (byte* pSchema = buffer)
             {
-                return sqlite3.sqlite3_txn_state(_handle.DangerousGetHandle(), pSchema);
+                return NativeSqlite3.sqlite3_txn_state(_handle.DangerousGetHandle(), pSchema);
             }
         }
         finally
@@ -465,7 +465,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             fixed (byte* pSchema = buffer)
             {
-                int result = sqlite3.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
+                int result = NativeSqlite3.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
                 if (result < 0)
                 {
                     SqliteErrorHelper.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
@@ -487,7 +487,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public SqliteExtendedErrorCode GetLastExtendedErrorCode()
     {
         ThrowIfInvalid();
-        return (SqliteExtendedErrorCode)sqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
+        return (SqliteExtendedErrorCode)NativeSqlite3.sqlite3_extended_errcode(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -497,7 +497,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public int GetLastErrorOffset()
     {
         ThrowIfInvalid();
-        return sqlite3.sqlite3_error_offset(_handle.DangerousGetHandle());
+        return NativeSqlite3.sqlite3_error_offset(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -508,7 +508,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteErrorHelper.ThrowOnError(
-            (SqliteResult)sqlite3.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
+            (SqliteResult)NativeSqlite3.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
             _handle.DangerousGetHandle(),
             "SQLite busy timeout");
     }
@@ -521,7 +521,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteErrorHelper.ThrowOnError(
-            (SqliteResult)sqlite3.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
+            (SqliteResult)NativeSqlite3.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
             _handle.DangerousGetHandle(),
             "SQLite extended result codes");
     }
@@ -532,7 +532,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void Interrupt()
     {
         ThrowIfInvalid();
-        sqlite3.sqlite3_interrupt(_handle.DangerousGetHandle());
+        NativeSqlite3.sqlite3_interrupt(_handle.DangerousGetHandle());
     }
 
 
@@ -614,7 +614,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)
             {
-                SqliteResult rc = (SqliteResult)sqlite3.sqlite3_table_column_metadata(
+                SqliteResult rc = (SqliteResult)NativeSqlite3.sqlite3_table_column_metadata(
                     dbHandle,
                     null,
                     pTableName,

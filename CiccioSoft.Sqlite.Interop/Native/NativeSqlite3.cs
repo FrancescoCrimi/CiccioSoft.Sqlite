@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Sqlite.Interop.Native
 {
-    internal static unsafe partial class sqlite3
+    internal static unsafe partial class NativeSqlite3
     {
         [DllImport("e_sqlite3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         [return: NativeTypeName("const char *")]
