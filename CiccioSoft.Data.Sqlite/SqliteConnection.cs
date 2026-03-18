@@ -169,6 +169,56 @@ public class SqliteConnection : DbConnection
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Executes <c>PRAGMA wal_checkpoint(PASSIVE)</c> on the current connection.
+    /// </summary>
+    public virtual void Checkpoint()
+        => Checkpoint(SqliteWalCheckpointMode.Passive);
+
+    /// <summary>
+    /// Executes a WAL checkpoint using the requested mode.
+    /// </summary>
+    public virtual void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    {
+        using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
+    }
+
+    /// <summary>
+    /// Asynchronously executes <c>PRAGMA wal_checkpoint(PASSIVE)</c>.
+    /// </summary>
+    public virtual Task CheckpointAsync(CancellationToken cancellationToken = default)
+        => CheckpointAsync(SqliteWalCheckpointMode.Passive, cancellationToken);
+
+    /// <summary>
+    /// Asynchronously executes a WAL checkpoint using the requested mode.
+    /// </summary>
+    public virtual Task CheckpointAsync(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Checkpoint(mode, cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Executes <c>PRAGMA optimize</c> for lightweight planner/statistics maintenance.
+    /// </summary>
+    public virtual void Optimize(CancellationToken cancellationToken = default)
+    {
+        using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
+    }
+
+    /// <summary>
+    /// Asynchronously executes <c>PRAGMA optimize</c>.
+    /// </summary>
+    public virtual Task OptimizeAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Optimize(cancellationToken);
+        return Task.CompletedTask;
+    }
+
     public override DataTable GetSchema()
     {
         return GetSchema(DbMetaDataCollectionNames.MetaDataCollections);
@@ -322,6 +372,34 @@ public class SqliteConnection : DbConnection
 
         return "memory";
     }
+
+    private void ExecuteSessionPragma(string sql, CancellationToken cancellationToken)
+    {
+        SqliteSession session = GetSession();
+        session.Gate.Wait(cancellationToken);
+        try
+        {
+            session.Native.Execute(sql);
+        }
+        catch (SqliteInteropException ex)
+        {
+            throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
+    }
+
+    private static string ToCheckpointPragma(SqliteWalCheckpointMode mode)
+        => mode switch
+        {
+            SqliteWalCheckpointMode.Passive => "PASSIVE",
+            SqliteWalCheckpointMode.Full => "FULL",
+            SqliteWalCheckpointMode.Restart => "RESTART",
+            SqliteWalCheckpointMode.Truncate => "TRUNCATE",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unsupported WAL checkpoint mode."),
+        };
 
 
     private static bool TryNormalizeCollectionName(string? collectionName, out string normalizedCollectionName)
