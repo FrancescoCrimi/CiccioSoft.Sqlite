@@ -4,10 +4,10 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-using CiccioSoft.Sqlite.Interop.Native;
+using CiccioSoft.Data.Sqlite.Interop.Native;
 using Microsoft.Win32.SafeHandles;
 
-namespace CiccioSoft.Sqlite.Interop.Handles;
+namespace CiccioSoft.Data.Sqlite.Interop.Handles;
 
 public sealed class Sqlite3StmtHandle : SafeHandleZeroOrMinusOneIsInvalid
 {

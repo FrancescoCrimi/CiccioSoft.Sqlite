@@ -7,7 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Sqlite.Interop.Native
+namespace CiccioSoft.Data.Sqlite.Interop.Native
 {
     internal static unsafe partial class NativeSqlite3
     {

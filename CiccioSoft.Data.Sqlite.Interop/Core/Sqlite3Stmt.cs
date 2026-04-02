@@ -8,10 +8,10 @@ using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
-using CiccioSoft.Sqlite.Interop.Handles;
-using CiccioSoft.Sqlite.Interop.Native;
+using CiccioSoft.Data.Sqlite.Interop.Handles;
+using CiccioSoft.Data.Sqlite.Interop.Native;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Data.Sqlite.Interop;
 
 public sealed unsafe class Sqlite3Stmt : IDisposable
 {

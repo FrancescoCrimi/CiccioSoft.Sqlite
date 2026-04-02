@@ -12,7 +12,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace CiccioSoft.Sqlite.Interop.Example;
+namespace CiccioSoft.Data.Sqlite.Interop.Example;
 
 public record ImageRow(int Id, string? Nome, byte[] Image);
 

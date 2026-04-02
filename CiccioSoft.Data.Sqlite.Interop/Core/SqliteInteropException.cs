@@ -6,7 +6,7 @@
 
 using System;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Data.Sqlite.Interop;
 
 /// <summary>
 /// Represents an error returned by the native SQLite interop layer.

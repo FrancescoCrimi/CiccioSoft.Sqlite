@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CiccioSoft.Sqlite.Interop.Example;
+namespace CiccioSoft.Data.Sqlite.Interop.Example;
 
 public record UserRow(int Id, string? Nome);
 

@@ -24,7 +24,7 @@ CiccioSoft.Data.Sqlite.SqliteTransaction
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CiccioSoft.Sqlite.Interop\CiccioSoft.Sqlite.Interop.csproj" />
+    <ProjectReference Include="../CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj" />
   </ItemGroup>
 
 

@@ -6,9 +6,9 @@
 
 using System;
 using System.Runtime.InteropServices;
-using CiccioSoft.Sqlite.Interop.Native;
+using CiccioSoft.Data.Sqlite.Interop.Native;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Data.Sqlite.Interop;
 
 internal static unsafe class SqliteErrorHelper
 {

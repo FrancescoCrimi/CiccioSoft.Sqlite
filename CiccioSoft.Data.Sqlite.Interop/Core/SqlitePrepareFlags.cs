@@ -6,7 +6,7 @@
 
 using System;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Data.Sqlite.Interop;
 
 [Flags]
 public enum SqlitePrepareFlags : uint

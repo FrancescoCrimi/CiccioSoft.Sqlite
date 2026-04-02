@@ -7,11 +7,11 @@
 using System;
 using System.Text;
 using System.Buffers;
-using CiccioSoft.Sqlite.Interop.Handles;
-using CiccioSoft.Sqlite.Interop.Native;
+using CiccioSoft.Data.Sqlite.Interop.Handles;
+using CiccioSoft.Data.Sqlite.Interop.Native;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Data.Sqlite.Interop;
 
 /// <summary>
 /// Provides a high-performance, low-allocation wrapper for a SQLite database connection.
