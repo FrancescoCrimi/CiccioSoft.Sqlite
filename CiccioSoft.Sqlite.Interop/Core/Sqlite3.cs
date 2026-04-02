@@ -535,6 +535,12 @@ public sealed unsafe class Sqlite3 : IDisposable
         NativeSqlite3.sqlite3_interrupt(_handle.DangerousGetHandle());
     }
 
+    public string LibVersion()
+    {
+        byte* pLibVersion = NativeSqlite3.sqlite3_libversion();
+        return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
+    }
+
 
     private void ThrowIfInvalid()
     {

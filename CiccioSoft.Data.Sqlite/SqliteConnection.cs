@@ -18,6 +18,11 @@ using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
+/// <summary>
+/// Represents a connection to a SQLite database.
+/// Intelligent defaults: WAL enabled, Foreign Keys ON, Shared Cache for in-memory.
+/// True async support with native interrupt.
+/// </summary>
 public class SqliteConnection : DbConnection
 {
     private readonly object _syncRoot = new();
@@ -61,7 +66,15 @@ public class SqliteConnection : DbConnection
 
     public override string DataSource => _dataSource;
 
-    public override string ServerVersion => "3.0.0";
+    // public override string ServerVersion => "3.0.0";
+    public override string ServerVersion
+    {
+        get
+        {
+            EnsureOpen();
+            return _session!.Native.LibVersion();
+        }
+    }
 
     public override ConnectionState State
     {
@@ -510,19 +523,31 @@ public class SqliteConnection : DbConnection
         native.SetExtendedResultCodes(true);
         native.SetBusyTimeout(Math.Max(0, _settings.BusyTimeout));
 
-        if (_settings.HasForeignKeys)
+        // Intelligent default: Foreign Keys ON if not specified
+        bool foreignKeysSpecified = _settings.HasForeignKeys;
+        bool foreignKeysValue = foreignKeysSpecified ? (_settings.ForeignKeys ?? false) : true;        
+        native.Execute($"PRAGMA foreign_keys={(foreignKeysValue ? "ON" : "OFF")};");
+        
+        // Intelligent default: Journal Mode WAL if not specified, except for in-memory
+        bool isInMemory = _settings.IsInMemoryMode();
+        if (!_settings.HasJournalMode && !isInMemory)
         {
-            native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys == true ? "ON" : "OFF")};");
+            native.Execute("PRAGMA journal_mode=WAL;");
         }
-
-        if (_settings.HasJournalMode && !string.IsNullOrWhiteSpace(_settings.JournalMode))
+        else if (_settings.HasJournalMode && !string.IsNullOrWhiteSpace(_settings.JournalMode))
         {
             native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
         }
-
-        if (_settings.HasRecursiveTriggers)
+        else if (isInMemory)
         {
-            native.Execute($"PRAGMA recursive_triggers={(_settings.RecursiveTriggers == true ? "ON" : "OFF")};");
+            // In-memory: WAL not supported, force DELETE
+            native.Execute("PRAGMA journal_mode=DELETE;");
+        }
+
+        // Recursive triggers if specified
+        if (_settings.RecursiveTriggers.HasValue)
+        {
+            native.Execute($"PRAGMA recursive_triggers={(_settings.RecursiveTriggers.Value ? "ON" : "OFF")};");
         }
     }
 
@@ -545,17 +570,20 @@ public class SqliteConnection : DbConnection
             return dataSource;
         }
 
-        if (_settings.TryGetValue("Mode", out object? modeValue)
-            && string.Equals(Convert.ToString(modeValue), "Memory", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrEmpty(dataSource))
+        // Intelligent default for Mode=Memory: if user specified Mode=Memory but not Cache=Shared,
+        // we force Shared cache.
+        if (_settings.IsInMemoryMode() && !string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
         {
             string cacheSuffix = string.Empty;
-            if (_settings.TryGetValue("Cache", out object? cacheValue)
-                && string.Equals(Convert.ToString(cacheValue), "Shared", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(_settings.Cache) || 
+                string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
             {
                 cacheSuffix = "&cache=shared";
             }
-
+            else if (string.Equals(_settings.Cache, "Private", StringComparison.OrdinalIgnoreCase))
+            {
+                cacheSuffix = "&cache=private";
+            }
             return $"file:{dataSource}?mode=memory{cacheSuffix}";
         }
 

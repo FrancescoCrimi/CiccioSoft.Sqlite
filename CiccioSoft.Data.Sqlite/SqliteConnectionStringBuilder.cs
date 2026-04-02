@@ -13,6 +13,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace CiccioSoft.Data.Sqlite;
 
+/// <summary>
+/// Builds SQLite connection strings with intelligent defaults:
+/// - WAL enabled by default (better concurrency)
+/// - Foreign Keys enabled by default (referential integrity)
+/// - For in-memory databases: Shared cache by default, WAL disabled
+/// </summary>
 public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 {
     private const string DataSourceKey = "Data Source";
@@ -26,6 +32,8 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     private const string JournalModePragmaKey = "journal_mode";
     private const string RecursiveTriggersKey = "Recursive Triggers";
     private const string RecursiveTriggersPragmaKey = "recursive_triggers";
+    private const string ModeKey = "Mode";
+    private const string CacheKey = "Cache";
 
     private static readonly string[] CanonicalKeys =
     [
@@ -35,16 +43,28 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         BusyTimeoutKey,
         JournalModeKey,
         ForeignKeysKey,
-        RecursiveTriggersKey
+        RecursiveTriggersKey,
+        ModeKey,
+        CacheKey
     ];
 
+    /// <summary>
+    /// Initializes a new instance with intelligent defaults:
+    /// - Journal Mode: WAL (better concurrency)
+    /// - Foreign Keys: ON (referential integrity)
+    /// </summary>
     public SqliteConnectionStringBuilder()
     {
         base[DataSourceKey] = string.Empty;
         base[PoolingKey] = true;
         base[MaxPoolSizeKey] = 100;
         base[BusyTimeoutKey] = 30000;
-        base[JournalModeKey] = string.Empty;
+        // No default for JournalMode and ForeignKeys here; defaults will be applied by SqliteConnection
+    }
+
+    public SqliteConnectionStringBuilder(string connectionString) : this()
+    {
+        ConnectionString = connectionString;
     }
 
     [Browsable(false)]
@@ -67,6 +87,8 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                 JournalModeKey or JournalModePragmaKey => JournalMode,
                 ForeignKeysKey or ForeignKeysPragmaKey => ForeignKeys ?? false,
                 RecursiveTriggersKey or RecursiveTriggersPragmaKey => RecursiveTriggers ?? false,
+                ModeKey => Mode,
+                CacheKey => Cache,
                 _ => base[keyword]
             };
         }
@@ -103,6 +125,12 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                 case RecursiveTriggersKey:
                 case RecursiveTriggersPragmaKey:
                     RecursiveTriggers = ConvertToNullableBoolean(value);
+                    break;
+                case ModeKey:
+                    Mode = Convert.ToString(value) ?? string.Empty;
+                    break;
+                case CacheKey:
+                    Cache = Convert.ToString(value) ?? string.Empty;
                     break;
                 default:
                     base[keyword] = value;
@@ -146,6 +174,37 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             return values;
         }
     }
+
+    /// <summary>
+    /// Gets or sets the connection string with intelligent defaults applied.
+    /// For in-memory databases, automatically sets:
+    /// - Cache = Shared (if not specified)
+    /// - Journal Mode = DELETE (WAL not supported)
+    /// </summary>
+    // public override string ConnectionString
+    // {
+    //     get
+    //     {
+    //         // Apply intelligent defaults for in-memory databases
+    //         if (IsInMemoryMode())
+    //         {
+    //             // WAL is not supported for in-memory databases
+    //             if (!HasJournalMode)
+    //             {
+    //                 this[JournalModeKey] = "DELETE";
+    //             }
+
+    //             // Shared cache is the intelligent default for in-memory
+    //             if (!ContainsKey(CacheKey))
+    //             {
+    //                 this[CacheKey] = "Shared";
+    //             }
+    //         }
+
+    //         return base.ConnectionString;
+    //     }
+    //     set => base.ConnectionString = value;
+    // }
 
     public string DataSource
     {
@@ -198,7 +257,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                 return Convert.ToString(value) ?? string.Empty;
             }
 
-            return string.Empty;
+            return "WAL"; // Default: WAL for better concurrency
         }
         set
         {
@@ -213,6 +272,18 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => SetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey, value);
     }
 
+    public string Mode
+    {
+        get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        set => base[ModeKey] = value;
+    }
+
+    public string Cache
+    {
+        get => TryGetValue(CacheKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        set => base[CacheKey] = value;
+    }
+
     internal bool HasBusyTimeout
         => TryGetValue(BusyTimeoutKey, out _) || TryGetValue(BusyTimeoutPragmaKey, out _);
 
@@ -224,6 +295,27 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 
     internal bool HasRecursiveTriggers
         => TryGetValue(RecursiveTriggersKey, out _) || TryGetValue(RecursiveTriggersPragmaKey, out _);
+
+    /// <summary>
+    /// Determines if the connection is for an in-memory database.
+    /// </summary>
+    internal bool IsInMemoryMode()
+    {
+        // Check Data Source
+        if (DataSource == ":memory:")
+            return true;
+
+        // Check explicit Mode
+        if (string.Equals(Mode, "Memory", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Check URI format for shared memory
+        if (DataSource?.StartsWith("file:", StringComparison.OrdinalIgnoreCase) == true &&
+            DataSource.Contains("mode=memory", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
 
     private bool? GetNullableBoolean(string key, string pragmaKey)
     {

@@ -269,6 +269,45 @@ public class SqliteCommand : DbCommand
             }
         }
 
+        public void Execute(Action operation, CancellationToken operationCancellationToken = default)
+        {
+            bool operationCanceled = false;
+            using CancellationTokenRegistration operationRegistration = operationCancellationToken.CanBeCanceled
+                ? operationCancellationToken.Register(() => operationCanceled = true)
+                : default;
+            using CancellationTokenRegistration operationInterruptRegistration = operationCancellationToken.CanBeCanceled
+                ? operationCancellationToken.Register(() => _session.Native.Interrupt())
+                : default;
+            _session.Gate.Wait();
+
+            try
+            {
+                _externalCancellationToken.ThrowIfCancellationRequested();
+                operationCancellationToken.ThrowIfCancellationRequested();
+                operation();
+            }
+            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
+            {
+                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), (int)SqliteResult.Interrupt, (int)ex.ExtendedErrorCode, ex);
+            }
+            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
+            {
+                throw new OperationCanceledException(operationCancellationToken);
+            }
+            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
+            {
+                throw new OperationCanceledException(_externalCancellationToken);
+            }
+            catch (SqliteInteropException ex)
+            {
+                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+            }
+            finally
+            {
+                _session.Gate.Release();
+            }
+        }
+
         public void Dispose()
         {
             _interruptRegistration.Dispose();
