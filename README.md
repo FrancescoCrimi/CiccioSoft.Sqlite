@@ -17,7 +17,7 @@ Whether you're learning about database interop, P/Invoke bindings, or how to des
 
 This repository is organized into two main layers:
 
-### 1. **CiccioSoft.Sqlite.Interop** (Raw Binding Layer)
+### 1. **CiccioSoft.Data.Sqlite.Interop** (Raw Binding Layer)
 - Pure P/Invoke raw bindings to SQLite
 - Low-level, unmanaged FFI (Foreign Function Interface)
 - Minimal abstraction over native SQLite C library
@@ -25,7 +25,7 @@ This repository is organized into two main layers:
 
 ### 2. **CiccioSoft.Data.Sqlite** (OOP Abstraction Layer)
 - Idiomatic C# object-oriented wrapper
-- Higher-level abstractions built on top of `CiccioSoft.Sqlite.Interop`
+- Higher-level abstractions built on top of `CiccioSoft.Data.Sqlite.Interop`
 - Type-safe operations and modern C# patterns
 - More accessible API for typical database tasks
 
@@ -121,15 +121,15 @@ dotnet build
 
 ### Basic Usage
 
-#### Using the Raw Interop Layer (CiccioSoft.Sqlite.Interop)
+#### Using the Raw Interop Layer (CiccioSoft.Data.Sqlite.Interop)
 
 ```csharp
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Data.Sqlite.Interop;
 
 // Direct SQLite API access
-var db = sqlite3.open("mydata.db");
+using var db = Sqlite3.Open("mydata.db");
 // ... raw SQLite operations
-sqlite3.close(db);
+// disposed automatically at end of scope
 ```
 
 #### Using the OOP Layer (CiccioSoft.Data.Sqlite)
@@ -156,17 +156,17 @@ while (reader.Read())
 
 ```
 CiccioSoft.Data.Sqlite/
-├── CiccioSoft.Sqlite.Interop/           # Raw P/Invoke bindings
-│   ├── sqlite3.cs                       # Native function declarations
+├── CiccioSoft.Data.Sqlite.Interop/           # Raw P/Invoke bindings
+│   ├── NativeSqlite3.cs                 # Native function declarations
 │   └── *.cs                             # Interop helpers
 ├── CiccioSoft.Data.Sqlite/              # OOP abstraction layer
 │   ├── SqliteConnection.cs              # Connection management
 │   ├── SqliteCommand.cs                 # Command execution
 │   ├── SqliteDataReader.cs              # Result reading
 │   └── *.cs                             # Additional abstractions
-├── CiccioSoft.Sqlite.Interop.Example/   # Example applications
+├── CiccioSoft.Data.Sqlite.Interop.Example/   # Example applications
 │   └── Program.cs                       # Usage examples
-├── CiccioSoft.Data.Sqlite.sln           # Solution file
+├── CiccioSoft.Data.Sqlite.slnx          # Solution file
 ├── LICENSE                              # MIT License
 └── README.md                            # This file
 ```
@@ -190,7 +190,7 @@ CiccioSoft.Data.Sqlite/
 
 ## 📖 Examples
 
-For practical examples and use cases, see the [CiccioSoft.Sqlite.Interop.Example](./CiccioSoft.Sqlite.Interop.Example/) project.
+For practical examples and use cases, see the [CiccioSoft.Data.Sqlite.Interop.Example](./CiccioSoft.Data.Sqlite.Interop.Example/) project.
 
 ### Example: Creating a Table
 
@@ -280,7 +280,7 @@ This project is not intended for production use, but rather as an educational to
 
 ## 🙋 Questions & Support
 
-- 📚 Check out the [CiccioSoft.Sqlite.Interop.Example](./CiccioSoft.Sqlite.Interop.Example/) for practical examples
+- 📚 Check out the [CiccioSoft.Data.Sqlite.Interop.Example](./CiccioSoft.Data.Sqlite.Interop.Example/) for practical examples
 - 📬 Open an [Issue](https://github.com/FrancescoCrimi/CiccioSoft.Data.Sqlite/issues) for questions or problems
 - 💬 Start a [Discussion](https://github.com/FrancescoCrimi/CiccioSoft.Data.Sqlite/discussions) for ideas and feedback
 
