@@ -46,6 +46,61 @@ This repository is organized into two main layers:
 - Connection PRAGMA-like settings are applied at open and can be configured using Microsoft.Data.Sqlite-compatible names: `Busy Timeout`/`busy_timeout`, `Foreign Keys`/`foreign_keys`, and `Journal Mode`/`journal_mode`.
 - In WAL mode, you can explicitly trigger maintenance with `SqliteConnection.Checkpoint(...)` (default `PASSIVE`) and `SqliteConnection.Optimize()` / async counterparts to keep `-wal` growth under control in long-running workloads.
 
+## 🔬 ADO.NET Provider Deep Dive (Defaults + Async)
+
+This provider intentionally ships with **opinionated defaults** to reduce accidental misconfiguration in everyday ADO.NET usage.
+
+### Default behaviors at `Open()`
+
+When a connection is opened, the provider applies these defaults unless explicitly overridden in the connection string:
+
+- **Foreign keys ON by default** (`PRAGMA foreign_keys=ON`), to enforce referential integrity.
+- **WAL journal mode by default** (`PRAGMA journal_mode=WAL`) for file-backed databases, to improve reader/writer concurrency.
+- **Busy timeout default = 30s** (`Busy Timeout=30000` ms), to reduce transient lock failures under contention.
+
+For in-memory scenarios, behavior is intentionally adapted:
+
+- WAL is not used for in-memory databases.
+- The provider forces `journal_mode=DELETE` for in-memory connections.
+- In `Mode=Memory` configurations, the provider favors shared-cache URI behavior for named memory databases.
+
+### How to override defaults
+
+You can override these defaults explicitly in the connection string:
+
+```ini
+Data Source=app.db;Foreign Keys=False;Journal Mode=DELETE;Busy Timeout=5000
+```
+
+Aliases compatible with common SQLite conventions are also accepted:
+
+- `foreign_keys` (alias of `Foreign Keys`)
+- `journal_mode` (alias of `Journal Mode`)
+- `busy_timeout` (alias of `Busy Timeout`)
+
+### Async model: what “true async” means here
+
+SQLite itself is a native embedded engine with synchronous stepping semantics. In this provider, async support is implemented as **cooperative ADO.NET async** with:
+
+- asynchronous ADO.NET method surface (`OpenAsync`, command async methods via DbCommand, `ReadAsync`, `CheckpointAsync`, `OptimizeAsync`);
+- cancellation token propagation;
+- native `sqlite3_interrupt` usage to stop ongoing work on timeout/cancellation.
+
+In practical terms:
+
+- async calls are cancellable and integrate correctly with `CancellationToken`;
+- `CommandTimeout` is enforced across full command lifecycle and translated into native interrupt;
+- execution on the same connection is still serialized by design (safety-first over unsafe parallel stepping on a single native handle).
+
+### WAL lifecycle operations exposed by the provider
+
+Beyond enabling WAL, the provider exposes explicit maintenance APIs:
+
+- `SqliteConnection.Checkpoint()` / `CheckpointAsync(...)` with selectable modes (`PASSIVE`, `FULL`, `RESTART`, `TRUNCATE`);
+- `SqliteConnection.Optimize()` / `OptimizeAsync()` for lightweight planner/statistics maintenance.
+
+These are useful in long-running applications where you want deterministic WAL file management and periodic planner optimization.
+
 ## 🚀 Quick Start
 
 ### Requirements
@@ -196,7 +251,7 @@ Many thanks to the maintainers and contributors of these projects for their valu
 - [x] Example applications
 - [ ] Connection pooling
 - [ ] Transaction support enhancements
-- [ ] Async operations
+- [x] Async ADO.NET surface with cancellation/interrupt semantics
 - [ ] Entity Framework Core integration (future consideration)
 
 ## 🤝 Contributing
