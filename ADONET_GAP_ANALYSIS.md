@@ -95,9 +95,10 @@ Valutazione:
 
 Questi punti non sono regressioni, ma possibili evoluzioni per una copertura “enterprise-grade” ancora più ampia:
 
-1. **Factory completeness**
-   - `SqliteFactory` espone connection/command/parameter/builder, ma non `DbDataAdapter` o `DbCommandBuilder`.
-   - Impatto: scenari legacy DataSet/DataAdapter possono richiedere componenti aggiuntivi.
+1. **Factory completeness (perimetro intenzionale)**
+   - `SqliteFactory` espone connection/command/parameter/builder e **non** include `DbDataAdapter`/`DbCommandBuilder`.
+   - Decisione di prodotto: `DataAdapter` è considerato legacy e fuori scope (in linea con l'impostazione moderna anche di `Microsoft.Data.Sqlite`).
+   - Impatto: scenari DataSet/DataAdapter richiedono un layer applicativo dedicato o migrazione a pattern data reader/ORM.
 
 2. **Metadata fidelity avanzata in `GetSchemaTable()`**
    - Campi come `IsKey`/`IsUnique` risultano oggi impostati in modo conservativo (default) e non sempre inferiti dal catalogo.
@@ -108,13 +109,12 @@ Questi punti non sono regressioni, ma possibili evoluzioni per una copertura “
 
 ## Priorità consigliata (nuova roadmap)
 
-1. **P1**: completare il perimetro `DbProviderFactory` con `DataAdapter`/`CommandBuilder` (se target di compatibilità richiesto).
-2. **P1**: arricchire inferenza chiavi/unicità in `GetSchemaTable()`.
-3. **P2**: rifinire ulteriormente `DbParameterCollection` per edge case e parity con provider ADO.NET storici.
-4. **P2**: verifica periodica di coerenza tra contratti runtime e test (eccezioni/tipi/messaggi).
+1. **P1**: arricchire inferenza chiavi/unicità in `GetSchemaTable()`.
+2. **P2**: rifinire ulteriormente `DbParameterCollection` per edge case e parity con provider ADO.NET storici.
+3. **P2**: verifica periodica di coerenza tra contratti runtime e test (eccezioni/tipi/messaggi).
 
 ## Conclusione
 
 Il provider è oggi in uno stato **molto più vicino a un ADO.NET provider general-purpose** rispetto al report precedente: i gap funzionali più critici risultano coperti e testati in modo esteso.
 
-Le attività rimanenti sono prevalentemente di **completamento ecosistema** e **finitura contrattuale**, più che di core functionality.
+Le attività rimanenti sono prevalentemente di **finitura contrattuale** (metadata/edge case), più che di core functionality; il perimetro `DataAdapter` resta intenzionalmente escluso.
