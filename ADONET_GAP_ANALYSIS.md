@@ -1,126 +1,120 @@
-# Analisi gap ADO.NET (vendor-neutral) per `CiccioSoft.Data.Sqlite`
+# Ri-analisi gap ADO.NET (vendor-neutral) per `CiccioSoft.Data.Sqlite`
 
-Obiettivo: evidenziare le funzionalità mancanti **non specifiche di SQLite** per arrivare a una copertura più completa dei contratti ADO.NET usati da ORM/librerie data-access.
+Data analisi: **3 aprile 2026**.
 
-## Stato attuale (base già presente)
+Obiettivo: verificare lo stato attuale del provider rispetto ai contratti ADO.NET generici (non specifici SQLite), aggiornando la precedente analisi.
 
-Il provider implementa già i blocchi fondamentali:
-- `DbConnection` con `Open/Close/OpenAsync`, stato, factory command/transaction.
-- `DbCommand` con esecuzione sync/async, `Prepare`, `Cancel`, parametri.
-- `DbDataReader` con lettura tipizzata, indicizzazione per nome/ordinale, `Read/ReadAsync`.
-- `DbTransaction` con `Commit/Rollback` sync/async e isolamento base.
-- `DbProviderFactory` già presente nel progetto e testato.
+## Sintesi esecutiva
 
-## Gap principali rispetto a un provider ADO.NET “general purpose”
+Rispetto alla fotografia precedente, il provider è maturato in modo significativo: i principali gap P0/P1 individuati in precedenza risultano oggi **coperti** (o coperti con policy esplicita e test dedicati).
 
-## 1) Contratto `DbCommand.CommandType` incompleto
+In particolare:
+- `CommandType` è ora vincolato a `Text` con rifiuto esplicito degli altri valori.
+- `CommandTimeout` è applicato con un meccanismo reale di timeout/cancel via `Interrupt`.
+- La coerenza `Command.Transaction` è validata in esecuzione/prepare.
+- `ParameterDirection` ha una policy esplicita: solo `Input` in esecuzione.
+- `DbDataReader.NextResult()` supporta batch/multi-result set.
+- `DbDataReader.GetSchemaTable()` è implementato con una shape utile e allineata al contratto ADO.NET.
 
-**Problema**
-`SqliteCommand` espone `CommandType`, ma l’esecuzione non cambia comportamento: non c’è validazione/gestione esplicita di `StoredProcedure` e `TableDirect`.
+## Stato attuale per area (delta rispetto al precedente report)
 
-**Perché è ADO.NET core**
-Molti provider gestiscono esplicitamente questi valori (anche solo lanciando eccezioni coerenti). Lasciare proprietà “inerte” può creare incompatibilità con ORM e utility cross-provider.
+## 1) `DbCommand.CommandType` — **RISOLTO**
 
-**Raccomandazione**
-- Supportare solo `CommandType.Text`.
-- Per altri valori: `NotSupportedException` esplicita e testata.
+Stato corrente:
+- `SqliteCommand.CommandType` accetta solo `CommandType.Text`.
+- Valori diversi vengono rifiutati con `NotSupportedException` e messaggio risorsa dedicato.
 
-## 2) `CommandTimeout` non applicato in modo robusto
+Valutazione:
+- Contratto chiaro e prevedibile lato consumer cross-provider.
 
-**Problema**
-`CommandTimeout` è presente ma non viene tradotto in un meccanismo di timeout per singolo comando (l’esecuzione è legata a `Step()` senza enforcement temporale).
+## 2) `CommandTimeout` enforcement — **RISOLTO**
 
-**Perché è ADO.NET core**
-Timeout prevedibile è un requisito comune cross-provider per resilienza applicativa.
+Stato corrente:
+- Ogni esecuzione crea una `CommandExecutionScope` che collega cancellazione esterna e timeout interno.
+- In caso di timeout viene invocato `Interrupt` e sollevata `SqliteException` con messaggio semantico di timeout.
 
-**Raccomandazione**
-- Applicare timeout per comando (timer + `Interrupt`, o policy equivalente).
-- Uniformare comportamento sync/async e documentare semantica timeout.
+Valutazione:
+- Comportamento robusto sia su `Execute*` sia durante lo stepping del reader.
 
-## 3) Semantica transazionale su `DbCommand.Transaction` da irrobustire
+## 3) Semantica `Command.Transaction` — **RISOLTO**
 
-**Problema**
-La proprietà `Transaction` esiste ma non si vedono controlli rigorosi su:
-- transazione completata,
-- transazione su connessione differente,
-- connessione chiusa.
+Stato corrente:
+- Prima delle operazioni viene validata la transazione.
+- Sono gestiti i casi di transazione completata e mismatch di connessione.
 
-**Perché è ADO.NET core**
-Il legame command/transaction è uno dei punti più sensibili per ORM e unit-of-work.
+Valutazione:
+- Contratto transaction/connection ora solido per ORM/unit-of-work.
 
-**Raccomandazione**
-- Validare coerenza `command.Connection` ↔ `command.Transaction.Connection` prima di execute/prepare.
-- Fallire con `InvalidOperationException` coerente.
+## 4) `ParameterDirection` — **RISOLTO (policy di non supporto esplicito)**
 
-## 4) Parametri: copertura limitata a input (manca semantica output/return)
+Stato corrente:
+- `SqliteParameter` ammette i valori `Input/Output/InputOutput/ReturnValue` a livello proprietà.
+- In fase di bind comando, qualunque direzione diversa da `Input` viene rifiutata esplicitamente.
 
-**Problema**
-`SqliteParameter` espone `Direction`, ma la pipeline di bind tratta solo input; non c’è ciclo di valorizzazione output/return.
+Valutazione:
+- Policy coerente e trasparente: output/return non supportati in execute.
 
-**Perché è ADO.NET core (vendor-neutral)**
-Anche quando il backend non supporta stored procedure, i provider in genere:
-- o supportano parzialmente output,
-- o rifiutano con errore esplicito coerente.
+## 5) `DbDataReader.GetSchemaTable()` — **RISOLTO (implementazione base avanzata)**
 
-**Raccomandazione**
-- Definire policy chiara: supporto o rifiuto esplicito per `Output/InputOutput/ReturnValue`.
-- Aggiungere test di comportamento.
+Stato corrente:
+- Metodo implementato con colonne metadata standard (`ColumnName`, `ColumnOrdinal`, `DataType`, base table/column, alias/expression, ecc.).
+- Include inferenze tipo utili in scenari SQLite dinamici.
 
-## 5) `DbDataReader.GetSchemaTable()` / metadati avanzati
+Valutazione:
+- Copertura adeguata per `DataTable.Load`, tooling, mapper e casi legacy.
 
-**Problema**
-Il reader implementa API base, ma non espone un `GetSchemaTable()` ricco (metadati colonna standard ADO.NET).
+## 6) Multi-result set (`NextResult`) — **RISOLTO**
 
-**Perché è ADO.NET core**
-Tooling, mapper legacy, ETL e alcuni ORM usano `GetSchemaTable()` per inferenza.
+Stato corrente:
+- `NextResult()` attraversa gli statement successivi e salta i DML senza result-set.
+- Gestisce correttamente fine batch/errori/close.
 
-**Raccomandazione**
-- Implementare `GetSchemaTable()` con subset utile (ColumnName, ColumnOrdinal, DataType, AllowDBNull, IsKey se disponibile, ecc.).
-- Testare presenza/consistenza colonne metadato standard.
+Valutazione:
+- Comportamento allineato alle aspettative pratiche ADO.NET.
 
-## 6) Multi-result set (`NextResult`) e batch SQL
+## 7) `DbParameterCollection` hardening — **PARZIALMENTE RISOLTO**
 
-**Problema**
-`NextResult()` ritorna sempre `false`.
+Miglioramenti presenti:
+- Validazione robusta tipo parametro (`SqliteParameter` obbligatorio, no null).
+- Normalizzazione prefissi (`@`, `:`, `$`) per lookup coerente.
 
-**Perché è ADO.NET core (in pratica)**
-Molte librerie inviano batch multi-statement e si aspettano scorrimento result-set.
+Gap residui (non bloccanti):
+- Nessuna policy forte sui nomi duplicati oltre alla logica attuale di lista.
+- Eccezioni/semantiche su alcuni edge case restano “minimali” rispetto ai provider storici più maturi.
 
-**Raccomandazione**
-- Se non si supporta multi-result: errore/limitazione documentata e testata.
-- Preferibile: supporto progressivo `NextResult` per statement multipli.
+## 8) Async model — **RISOLTO (no `Task.Run` di facciata)**
 
-## 7) `DbParameterCollection` – robustezza contrattuale
+Stato corrente:
+- `OpenAsync` e `ReadAsync` sono implementati in modalità cooperativa (completamento immediato + cancellazione), senza wrapper `Task.Run`.
+- Il controllo del cancel/timeout passa dal meccanismo comune di scope + interrupt.
 
-**Problema**
-La collezione è funzionale ma minimale (casting diretto, eccezioni poco uniformi, validazioni tipo/nome limitate).
+Valutazione:
+- Migliorata prevedibilità e assenza di offload artificiale su thread pool.
 
-**Perché è ADO.NET core**
-Molto codice riflessivo/generico si appoggia a comportamenti standard della collection.
+## Gap residui (nuova fotografia)
 
-**Raccomandazione**
-- Migliorare validazioni input (`null`, tipo non `DbParameter`, nomi duplicati/edge case).
-- Allineare eccezioni a pattern `DbParameterCollection`.
+Questi punti non sono regressioni, ma possibili evoluzioni per una copertura “enterprise-grade” ancora più ampia:
 
-## 8) Async: evitare dipendenza eccessiva da `Task.Run`
+1. **Factory completeness**
+   - `SqliteFactory` espone connection/command/parameter/builder, ma non `DbDataAdapter` o `DbCommandBuilder`.
+   - Impatto: scenari legacy DataSet/DataAdapter possono richiedere componenti aggiuntivi.
 
-**Problema**
-`OpenAsync`/`ReadAsync` usano `Task.Run`.
+2. **Metadata fidelity avanzata in `GetSchemaTable()`**
+   - Campi come `IsKey`/`IsUnique` risultano oggi impostati in modo conservativo (default) e non sempre inferiti dal catalogo.
+   - Impatto: alcuni tool di generazione schema potrebbero voler maggiore precisione.
 
-**Perché è rilevante cross-provider**
-Non è un bug, ma limita scalabilità e prevedibilità in contesti ad alto throughput.
+3. **Allineamento test/contratto eccezioni su `CommandType`**
+   - Nel codice produzione il rifiuto usa `NotSupportedException`; verificare che i test riflettano esattamente questa scelta semantica.
 
-**Raccomandazione**
-- Dove possibile, preferire async cooperativo senza thread dedicato.
-- Mantenere cancellazione coerente con `Interrupt`.
+## Priorità consigliata (nuova roadmap)
 
-## Priorità consigliata (roadmap)
+1. **P1**: completare il perimetro `DbProviderFactory` con `DataAdapter`/`CommandBuilder` (se target di compatibilità richiesto).
+2. **P1**: arricchire inferenza chiavi/unicità in `GetSchemaTable()`.
+3. **P2**: rifinire ulteriormente `DbParameterCollection` per edge case e parity con provider ADO.NET storici.
+4. **P2**: verifica periodica di coerenza tra contratti runtime e test (eccezioni/tipi/messaggi).
 
-1. **P0**: `CommandType` contract + validazioni `Transaction` + policy `ParameterDirection`.
-2. **P1**: enforcement `CommandTimeout` e test robusti sync/async.
-3. **P1**: `GetSchemaTable()` base e hardening `DbParameterCollection`.
-4. **P2**: multi-result (`NextResult`) e miglioramento async non-blocking.
+## Conclusione
 
-## Criterio di accettazione minimo (vendor-neutral)
+Il provider è oggi in uno stato **molto più vicino a un ADO.NET provider general-purpose** rispetto al report precedente: i gap funzionali più critici risultano coperti e testati in modo esteso.
 
-Una volta completati i punti P0/P1, il provider copre in modo più affidabile la maggior parte delle aspettative ADO.NET generiche senza aggiungere feature specifiche SQLite.
+Le attività rimanenti sono prevalentemente di **completamento ecosistema** e **finitura contrattuale**, più che di core functionality.
