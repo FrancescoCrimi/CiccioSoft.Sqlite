@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -11,81 +11,6 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
-
-internal sealed class SqliteSession : IDisposable
-{
-    public Sqlite3 Native { get; }
-    public SemaphoreSlim Gate { get; } = new(1, 1);
-
-    public SqliteSession(Sqlite3 native)
-    {
-        Native = native;
-    }
-
-    public void Dispose()
-    {
-        Gate.Dispose();
-        Native.Dispose();
-    }
-
-    /// <summary>
-    /// Checks if the underlying connection is still valid.
-    /// </summary>
-    public bool IsValid()
-    {
-        try
-        {
-            // Execute a lightweight query to test the connection
-            Native.Execute("SELECT 1");
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-}
-
-internal static class SingleWriterCoordinator
-{
-    private sealed class Releaser : IDisposable
-    {
-        private readonly SemaphoreSlim _gate;
-        private bool _disposed;
-
-        public Releaser(SemaphoreSlim gate)
-        {
-            _gate = gate;
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            _gate.Release();
-        }
-    }
-
-    private static readonly ConcurrentDictionary<string, SemaphoreSlim> Gates = new(StringComparer.OrdinalIgnoreCase);
-
-    public static IDisposable Acquire(string writerKey, CancellationToken cancellationToken)
-    {
-        SemaphoreSlim gate = Gates.GetOrAdd(writerKey, _ => new SemaphoreSlim(1, 1));
-        gate.Wait(cancellationToken);
-        return new Releaser(gate);
-    }
-
-    public static async Task<IDisposable> AcquireAsync(string writerKey, CancellationToken cancellationToken)
-    {
-        SemaphoreSlim gate = Gates.GetOrAdd(writerKey, _ => new SemaphoreSlim(1, 1));
-        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        return new Releaser(gate);
-    }
-}
 
 internal static class SqliteConnectionPool
 {

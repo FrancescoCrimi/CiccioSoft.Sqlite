@@ -11,8 +11,10 @@ using System.IO;
 using System.Linq;
 using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Data.Sqlite.Interop;
 using Xunit;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
