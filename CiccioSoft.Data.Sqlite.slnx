@@ -6,6 +6,7 @@
   </Configurations>
   <Project Path="CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj" />
   <Project Path="CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj" />
+  <Project Path="CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests/CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests.csproj" />
   <Project Path="CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj" />
   <Project Path="CiccioSoft.Data.Sqlite.Interop.Example/CiccioSoft.Data.Sqlite.Interop.Example.csproj" />
   <!-- <Project Path="CiccioSoft.Data.Sqlite.Interop.Benchmark/CiccioSoft.Data.Sqlite.Interop.Benchmark.csproj" /> -->

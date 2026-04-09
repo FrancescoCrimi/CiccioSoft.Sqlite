@@ -1,6 +1,6 @@
 # Ri-analisi gap ADO.NET (vendor-neutral) per `CiccioSoft.Data.Sqlite`
 
-Data analisi: **3 aprile 2026**.
+Data analisi: **9 aprile 2026**.
 
 Obiettivo: verificare lo stato attuale del provider rispetto ai contratti ADO.NET generici (non specifici SQLite), aggiornando la precedente analisi.
 

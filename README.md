@@ -1,11 +1,11 @@
 # CiccioSoft.Data.Sqlite
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![.NET Version](https://img.shields.io/badge/.NET-9.0-purple.svg)
+![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)
 ![Language](https://img.shields.io/badge/language-C%23-brightgreen.svg)
 ![Status](https://img.shields.io/badge/status-Educational%20Project-orange.svg)
 
-A lightweight, educational SQLite data access library for .NET 9, featuring a two-layer architecture with raw P/Invoke bindings and idiomatic C# abstractions.
+A lightweight, educational SQLite data access library for .NET 10, featuring a two-layer architecture with raw P/Invoke bindings and idiomatic C# abstractions.
 
 ## 📚 About This Project
 
@@ -13,25 +13,37 @@ A lightweight, educational SQLite data access library for .NET 9, featuring a tw
 
 Whether you're learning about database interop, P/Invoke bindings, or how to design a clean data access library, this project serves as an educational reference implementation.
 
-## 🎯 Project Structure
+## 🎯 Project Focus
 
-This repository is organized into two main layers:
+This provider is designed with a strong emphasis on **truly asynchronous operations** (no `Task.Run` wrappers) and **WAL journaling enabled by default** for file-backed databases. These choices prioritize performance, concurrency, and modern async patterns in ADO.NET usage.
+
+This repository is organized into multiple projects, each with its own README:
 
 ### 1. **CiccioSoft.Data.Sqlite.Interop** (Raw Binding Layer)
 - Pure P/Invoke raw bindings to SQLite
 - Low-level, unmanaged FFI (Foreign Function Interface)
 - Minimal abstraction over native SQLite C library
 - Direct SQLite API exposure for advanced use cases
+- [📖 Project README](CiccioSoft.Data.Sqlite.Interop/README.md)
 
 ### 2. **CiccioSoft.Data.Sqlite** (OOP Abstraction Layer)
 - Idiomatic C# object-oriented wrapper
 - Higher-level abstractions built on top of `CiccioSoft.Data.Sqlite.Interop`
 - Type-safe operations and modern C# patterns
 - More accessible API for typical database tasks
+- [📖 Project README](CiccioSoft.Data.Sqlite/README.md)
+
+### 3. **CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests** (Test Suite)
+- Comprehensive tests for async and concurrency features
+- Validation of WAL journaling benefits
+- Cancellation token and timeout testing
+- [📖 Project README](CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests/README.md)
 
 ## ✨ Key Features
 
-- 🔗 **Two-Layer Architecture**: Clear separation of concerns between raw bindings and managed abstractions
+- � **Truly Asynchronous**: All async methods are cooperative (no `Task.Run`), supporting cancellation via `CancellationToken` and native interrupt for timeouts.
+- 📊 **WAL Journaling by Default**: File-backed databases use WAL mode out-of-the-box for better reader/writer concurrency.
+- �🔗 **Two-Layer Architecture**: Clear separation of concerns between raw bindings and managed abstractions
 - 🎓 **Educational Focus**: Designed for learning and understanding database interop patterns
 - ⚡ **Competitive Performance**: Performance comparable to [SQLitePCL.raw](https://github.com/ericsink/SQLitePCL.raw) and [Microsoft.Data.Sqlite](https://github.com/dotnet/efcore/tree/main/src/Microsoft.Data.Sqlite.Core)
 - 🪶 **Lightweight**: Minimal dependencies, focused scope
