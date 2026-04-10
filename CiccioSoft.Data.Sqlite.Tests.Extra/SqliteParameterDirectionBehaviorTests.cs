@@ -9,7 +9,7 @@ using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite.Tests.Extra;
 
 public class SqliteParameterDirectionBehaviorTests
 {
