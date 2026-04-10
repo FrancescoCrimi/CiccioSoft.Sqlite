@@ -1,4 +1,4 @@
-# CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests
+# CiccioSoft.Data.Sqlite.Tests.Extra
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)
@@ -50,7 +50,7 @@ The provider implements "cooperative async" for SQLite operations:
 ## Running Tests
 
 ```bash
-dotnet test CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests.csproj
+dotnet test CiccioSoft.Data.Sqlite.Tests.Extra.csproj
 ```
 
 ## Dependencies

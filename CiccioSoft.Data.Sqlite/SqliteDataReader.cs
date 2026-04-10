@@ -565,7 +565,7 @@ public class SqliteDataReader : DbDataReader
         {
             AddChangesFromCurrentStatement();
             _stmt?.Dispose();
-            _stmt = null;  // ✅ AGGIUNTO: Sempre null prima di PrepareAndBindNext
+            _stmt = null;  // Sempre null prima di PrepareAndBindNext
             _prefetched = false;
             _readStarted = false;
             _hasRow = false;

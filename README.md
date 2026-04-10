@@ -33,11 +33,11 @@ This repository is organized into multiple projects, each with its own README:
 - More accessible API for typical database tasks
 - [📖 Project README](CiccioSoft.Data.Sqlite/README.md)
 
-### 3. **CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests** (Test Suite)
+### 3. **CiccioSoft.Data.Sqlite.Tests.Extra** (Test Suite)
 - Comprehensive tests for async and concurrency features
 - Validation of WAL journaling benefits
 - Cancellation token and timeout testing
-- [📖 Project README](CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests/README.md)
+- [📖 Project README](CiccioSoft.Data.Sqlite.Tests.Extra/README.md)
 
 ## ✨ Key Features
 

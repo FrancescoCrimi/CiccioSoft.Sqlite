@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.AsyncConcurrency.Tests;
+namespace CiccioSoft.Data.Sqlite.Tests.Extra;
 
 /// <summary>
 /// Test suite per verificare le funzionalità asincrone e di concorrenza del provider CiccioSoft.Data.Sqlite.
