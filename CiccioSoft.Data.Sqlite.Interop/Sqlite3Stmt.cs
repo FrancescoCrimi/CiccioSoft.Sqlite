@@ -8,10 +8,23 @@ using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
-using CiccioSoft.Data.Sqlite.Interop.Handles;
 using CiccioSoft.Data.Sqlite.Interop.Native;
+using Microsoft.Win32.SafeHandles;
 
 namespace CiccioSoft.Data.Sqlite.Interop;
+
+public sealed class Sqlite3StmtHandle : SafeHandleZeroOrMinusOneIsInvalid
+{
+    // public Sqlite3StmtHandle() : base(true) { }
+    internal Sqlite3StmtHandle(nint handle) : base(true)
+    {
+        SetHandle(handle);
+    }
+    protected override bool ReleaseHandle()
+    {
+        return NativeSqlite3.sqlite3_finalize(handle) == NativeSqlite3.SQLITE_OK;
+    }
+}
 
 public sealed unsafe class Sqlite3Stmt : IDisposable
 {

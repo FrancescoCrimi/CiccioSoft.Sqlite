@@ -1,20 +1,17 @@
-// Copyright (c) 2026 Francesco Crimi
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file or at
-// https://opensource.org/licenses/MIT.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
-using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
-public class SqliteDataReaderTests
+public class SqliteDataReaderTest
 {
     [Fact]
     public void Depth_returns_zero()
@@ -155,10 +152,13 @@ public class SqliteDataReaderTests
         {
             connection.Open();
 
-            connection.ExecuteNonQuery("CREATE TABLE A (ID INTEGER PRIMARY KEY,VALUE BLOB); INSERT INTO A (ID, VALUE) VALUES (1,x'01020304');");
-            connection.ExecuteNonQuery("CREATE TABLE B (ID INTEGER PRIMARY KEY,FATHER_ID INTEGER NOT NULL,VALUE BLOB); INSERT INTO B (ID,FATHER_ID, VALUE) VALUES (1000,1,x'05060708');");
+            connection.ExecuteNonQuery(
+                "CREATE TABLE A (ID INTEGER PRIMARY KEY,VALUE BLOB); INSERT INTO A (ID, VALUE) VALUES (1,x'01020304');");
+            connection.ExecuteNonQuery(
+                "CREATE TABLE B (ID INTEGER PRIMARY KEY,FATHER_ID INTEGER NOT NULL,VALUE BLOB); INSERT INTO B (ID,FATHER_ID, VALUE) VALUES (1000,1,x'05060708');");
 
-            using (var reader = connection.ExecuteReader(@"SELECT 
+            using (var reader = connection.ExecuteReader(
+                       @"SELECT 
                                                 A.ID as AID,
                                                 A.VALUE as AVALUE,
                                                 B.ID as BID,
@@ -179,9 +179,8 @@ public class SqliteDataReaderTests
                 Assert.Equal([0x02, 0x03], abuff);
 
                 var bbuff = new byte[2];
-                reader.GetBytes(3, 1, bbuff, 0, bbuff.Length);  //this was failing. now should be fixed
+                reader.GetBytes(3, 1, bbuff, 0, bbuff.Length); //this was failing. now should be fixed
                 Assert.Equal([0x06, 0x07], bbuff);
-
             }
         }
     }
@@ -336,8 +335,7 @@ public class SqliteDataReaderTests
                 Assert.True(hasData);
 
                 var buffer = new char[1];
-                var ex = Assert.Throws<ArgumentOutOfRangeException>(
-                    () => reader.GetChars(0, 5, buffer, 0, buffer.Length));
+                var ex = Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetChars(0, 5, buffer, 0, buffer.Length));
                 Assert.Equal("dataOffset", ex.ParamName);
             }
         }
@@ -458,10 +456,10 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("CREATE TABLE DataTable (Id INTEGER, Data BLOB);", "SELECT rowid, Data FROM DataTable WHERE Id = 5")]
-    [InlineData("CREATE TABLE DataTable (Id INTEGER PRIMARY KEY, Data BLOB);", "SELECT rowid, Data FROM DataTable WHERE Id = 5")]
-    [InlineData("CREATE TABLE DataTable (Id INTEGER PRIMARY KEY, Data BLOB);", "SELECT Id, Data FROM DataTable WHERE Id = 5")]
+    [Theory,
+     InlineData("CREATE TABLE DataTable (Id INTEGER, Data BLOB);", "SELECT rowid, Data FROM DataTable WHERE Id = 5"),
+     InlineData("CREATE TABLE DataTable (Id INTEGER PRIMARY KEY, Data BLOB);", "SELECT rowid, Data FROM DataTable WHERE Id = 5"),
+     InlineData("CREATE TABLE DataTable (Id INTEGER PRIMARY KEY, Data BLOB);", "SELECT Id, Data FROM DataTable WHERE Id = 5")]
     public void GetStream_Blob_works(string createTableCmd, string selectCmd)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -478,7 +476,7 @@ public class SqliteDataReaderTests
                 Assert.True(reader.Read());
                 using (var sourceStream = reader.GetStream(1))
                 {
-                    Assert.IsAssignableFrom<Stream>(sourceStream);
+                    Assert.IsType<SqliteBlob>(sourceStream);
                     var buffer = new byte[4];
                     var bytesRead = sourceStream.Read(buffer, 0, 4);
                     Assert.Equal(4, bytesRead);
@@ -505,7 +503,7 @@ public class SqliteDataReaderTests
                 Assert.True(reader.Read());
                 using (var sourceStream = reader.GetStream(1))
                 {
-                    Assert.IsAssignableFrom<Stream>(sourceStream);
+                    Assert.IsType<SqliteBlob>(sourceStream);
                     var buffer = new byte[4];
                     var bytesRead = sourceStream.Read(buffer, 0, 4);
                     Assert.Equal(4, bytesRead);
@@ -561,7 +559,7 @@ public class SqliteDataReaderTests
                 Assert.True(reader.Read());
                 using (var sourceStream = reader.GetStream(3))
                 {
-                    Assert.IsAssignableFrom<Stream>(sourceStream);
+                    Assert.IsType<SqliteBlob>(sourceStream);
                     var buffer = new byte[4];
                     var bytesRead = sourceStream.Read(buffer, 0, 4);
                     Assert.Equal(4, bytesRead);
@@ -637,7 +635,7 @@ public class SqliteDataReaderTests
 
                 using (var textReader = reader.GetTextReader(1))
                 {
-                    Assert.IsAssignableFrom<Stream>(Assert.IsType<StreamReader>(textReader).BaseStream);
+                    Assert.IsType<SqliteBlob>(Assert.IsType<StreamReader>(textReader).BaseStream);
                     Assert.Equal("test", textReader.ReadToEnd());
                 }
             }
@@ -649,21 +647,32 @@ public class SqliteDataReaderTests
         => GetX_works(
             "SELECT '2014-04-15 10:47:16';",
             r => r.GetDateTime(0),
-            new DateTime(2014, 4, 15, 10, 47, 16));
+            new DateTime(2014, 4, 15, 10, 47, 16),
+            a => Assert.Equal(DateTimeKind.Unspecified, a.Kind));
+
+    [Fact]
+    public void GetDateTime_works_with_text_with_offset()
+        => GetX_works(
+            "SELECT '2014-04-15 10:47:16+03:00';",
+            r => r.GetDateTime(0),
+            new DateTime(2014, 4, 15, 7, 47, 16),
+            a => Assert.Equal(DateTimeKind.Utc, a.Kind));
 
     [Fact]
     public void GetDateTime_works_with_real()
         => GetX_works(
             "SELECT julianday('2013-10-07 08:23:19.120');",
             r => r.GetDateTime(0),
-            new DateTime(2013, 10, 7, 8, 23, 19, 120));
+            new DateTime(2013, 10, 7, 8, 23, 19, 120),
+            a => Assert.Equal(DateTimeKind.Unspecified, a.Kind));
 
     [Fact]
     public void GetDateTime_works_with_integer()
         => GetX_works(
             "SELECT CAST(julianday('2013-10-07 12:00') AS INTEGER);",
             r => r.GetDateTime(0),
-            new DateTime(2013, 10, 7, 12, 0, 0));
+            new DateTime(2013, 10, 7, 12, 0, 0),
+            a => Assert.Equal(DateTimeKind.Unspecified, a.Kind));
 
     [Fact]
     public void GetDateTime_throws_when_null()
@@ -678,66 +687,85 @@ public class SqliteDataReaderTests
         => X_throws_when_non_query(r => r.GetDateTime(0));
 
     [Fact]
-    public void GetDateTimeOffset_works_with_text()
+    public void GetDateTimeOffset_works_with_text_no_offset()
         => GetX_works(
             "SELECT '2014-04-15 10:47:16';",
-            r => new DateTimeOffset(r.GetDateTime(0)),
-            new DateTimeOffset(new DateTime(2014, 4, 15, 10, 47, 16)));
+            r => ((SqliteDataReader)r).GetDateTimeOffset(0),
+            new DateTimeOffset(2014, 4, 15, 10, 47, 16, TimeSpan.Zero),
+            a => Assert.Equal(TimeSpan.Zero, a.Offset));
+
+    [Fact]
+    public void GetDateTimeOffset_works_with_text_zulu()
+        => GetX_works(
+            "SELECT '2014-04-15 10:47:16Z';",
+            r => ((SqliteDataReader)r).GetDateTimeOffset(0),
+            new DateTimeOffset(2014, 4, 15, 10, 47, 16, TimeSpan.Zero),
+            a => Assert.Equal(TimeSpan.Zero, a.Offset));
+
+    [Fact]
+    public void GetDateTimeOffset_works_with_text_with_offset()
+        => GetX_works(
+            "SELECT '2014-04-15 12:47:16+02:00';",
+            r => ((SqliteDataReader)r).GetDateTimeOffset(0),
+            new DateTimeOffset(2014, 4, 15, 12, 47, 16, TimeSpan.FromHours(2)),
+            a => Assert.Equal(TimeSpan.FromHours(2), a.Offset));
 
     [Fact]
     public void GetDateTimeOffset_works_with_real()
         => GetX_works(
             "SELECT julianday('2013-10-07 08:23:19.120');",
-            r => new DateTimeOffset(r.GetDateTime(0)),
-            new DateTimeOffset(new DateTime(2013, 10, 7, 8, 23, 19, 120)));
+            r => ((SqliteDataReader)r).GetDateTimeOffset(0),
+            new DateTimeOffset(2013, 10, 7, 8, 23, 19, 120, TimeSpan.Zero),
+            a => Assert.Equal(TimeSpan.Zero, a.Offset));
 
     [Fact]
     public void GetDateTimeOffset_works_with_integer()
         => GetX_works(
             "SELECT CAST(julianday('2013-10-07 12:00') AS INTEGER);",
-            r => new DateTimeOffset(r.GetDateTime(0)),
-            new DateTimeOffset(new DateTime(2013, 10, 7, 12, 0, 0)));
+            r => ((SqliteDataReader)r).GetDateTimeOffset(0),
+            new DateTimeOffset(2013, 10, 7, 12, 0, 0, TimeSpan.Zero),
+            a => Assert.Equal(TimeSpan.Zero, a.Offset));
 
     [Fact]
     public void GetDateTimeOffset_throws_when_closed()
-        => X_throws_when_closed(r => r.GetDateTime(0), nameof(SqliteDataReader.GetDateTime));
+        => X_throws_when_closed(r => r.GetDateTimeOffset(0), nameof(SqliteDataReader.GetDateTimeOffset));
 
     [Fact]
     public void GetDateTimeOffset_throws_when_non_query()
-        => X_throws_when_non_query(r => r.GetDateTime(0));
+        => X_throws_when_non_query(r => r.GetDateTimeOffset(0));
 
     [Fact]
     public void GetTimeSpan_works_with_text()
         => GetX_works(
             "SELECT '12:06:29';",
-            r => TimeSpan.Parse(r.GetString(0)),
+            r => ((SqliteDataReader)r).GetTimeSpan(0),
             new TimeSpan(12, 06, 29));
 
     [Fact]
     public void GetTimeSpan_works_with_real()
         => GetX_works(
             "SELECT julianday('2013-10-12 09:25:22.120') - julianday('2013-10-07 08:23:19');",
-            r => TimeSpan.FromDays(r.GetDouble(0)),
+            r => ((SqliteDataReader)r).GetTimeSpan(0),
             TimeSpan.FromDays(5.04309166688472));
 
     [Fact]
     public void GetTimeSpan_works_with_integer()
         => GetX_works(
             "SELECT CAST(julianday('2017-08-31') - julianday('1776-07-04') AS INTEGER);",
-            r => TimeSpan.FromDays(r.GetInt64(0)),
+            r => ((SqliteDataReader)r).GetTimeSpan(0),
             new TimeSpan(88081, 0, 0, 0));
 
     [Fact]
     public void GetTimeSpan_throws_when_closed()
-        => X_throws_when_closed(r => r.GetString(0), nameof(SqliteDataReader.GetString));
+        => X_throws_when_closed(r => r.GetTimeSpan(0), nameof(SqliteDataReader.GetTimeSpan));
 
     [Fact]
     public void GetTimeSpan_throws_when_non_query()
-        => X_throws_when_non_query(r => r.GetString(0));
+        => X_throws_when_non_query(r => r.GetTimeSpan(0));
 
     [Fact]
     public void GetDateTimeOffset_throws_when_null()
-        => GetX_throws_when_null(r => new DateTimeOffset(r.GetDateTime(0)));
+        => GetX_throws_when_null(r => ((SqliteDataReader)r).GetDateTimeOffset(0));
 
 #if NET6_0_OR_GREATER
     [Fact]
@@ -765,12 +793,12 @@ public class SqliteDataReaderTests
             new TimeOnly(13, 10, 15, 500));
 #endif
 
-    [Theory]
-    [InlineData("SELECT 1;", "INTEGER")]
-    [InlineData("SELECT 3.14;", "REAL")]
-    [InlineData("SELECT 'test';", "TEXT")]
-    [InlineData("SELECT X'7E57';", "BLOB")]
-    [InlineData("SELECT NULL;", "BLOB")]
+    [Theory,
+     InlineData("SELECT 1;", "INTEGER"),
+     InlineData("SELECT 3.14;", "REAL"),
+     InlineData("SELECT 'test';", "TEXT"),
+     InlineData("SELECT X'7E57';", "BLOB"),
+     InlineData("SELECT NULL;", "BLOB")]
     public void GetDataTypeName_works(string sql, string expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -824,9 +852,9 @@ public class SqliteDataReaderTests
     public void GetDataTypeName_throws_when_non_query()
         => X_throws_when_non_query(r => r.GetDataTypeName(0));
 
-    [Theory]
-    [InlineData("3.14", 3.14)]
-    [InlineData("1.0e-2", 0.01)]
+    [Theory,
+     InlineData("3.14", 3.14),
+     InlineData("1.0e-2", 0.01)]
     public void GetDecimal_works(string input, decimal expected)
         => GetX_works(
             "SELECT '" + input + "';",
@@ -847,8 +875,7 @@ public class SqliteDataReaderTests
 
     [Fact]
     public void GetDouble_throws_when_null()
-        => GetX_throws_when_null(
-            r => r.GetDouble(0));
+        => GetX_throws_when_null(r => r.GetDouble(0));
 
     [Fact]
     public void GetDouble_throws_when_closed()
@@ -875,20 +902,20 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("SELECT 1;", true)]
-    [InlineData("SELECT 1;", (byte)1)]
-    [InlineData("SELECT 1;", (char)1)]
-    [InlineData("SELECT 3.14;", 3.14)]
-    [InlineData("SELECT 3;", 3f)]
-    [InlineData("SELECT 1;", 1)]
-    [InlineData("SELECT 1;", 1L)]
-    [InlineData("SELECT 1;", (sbyte)1)]
-    [InlineData("SELECT 1;", (short)1)]
-    [InlineData("SELECT 'test';", "test")]
-    [InlineData("SELECT 1;", 1u)]
-    [InlineData("SELECT 1;", 1ul)]
-    [InlineData("SELECT 1;", (ushort)1)]
+    [Theory,
+     InlineData("SELECT 1;", true),
+     InlineData("SELECT 1;", (byte)1),
+     InlineData("SELECT 1;", (char)1),
+     InlineData("SELECT 3.14;", 3.14),
+     InlineData("SELECT 3;", 3f),
+     InlineData("SELECT 1;", 1),
+     InlineData("SELECT 1;", 1L),
+     InlineData("SELECT 1;", (sbyte)1),
+     InlineData("SELECT 1;", (short)1),
+     InlineData("SELECT 'test';", "test"),
+     InlineData("SELECT 1;", 1u),
+     InlineData("SELECT 1;", 1ul),
+     InlineData("SELECT 1;", (ushort)1)]
     public void GetFieldValue_works<T>(string sql, T expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -918,8 +945,7 @@ public class SqliteDataReaderTests
 
     [Fact]
     public void GetFieldValue_of_byteArray_throws_when_null()
-        => GetX_throws_when_null(
-            r => r.GetFieldValue<byte[]>(0));
+        => GetX_throws_when_null(r => r.GetFieldValue<byte[]>(0));
 
     [Fact]
     public void GetFieldValue_of_DateTime_works()
@@ -1045,14 +1071,14 @@ public class SqliteDataReaderTests
     public void GetFieldValue_throws_when_non_query()
         => X_throws_when_non_query(r => r.GetFieldValue<long>(0));
 
-    [Theory]
-    [InlineData(byte.MinValue)]
-    [InlineData(char.MinValue)]
-    [InlineData(int.MinValue)]
-    [InlineData(sbyte.MinValue)]
-    [InlineData(short.MinValue)]
-    [InlineData(uint.MinValue)]
-    [InlineData(ushort.MinValue)]
+    [Theory,
+     InlineData(byte.MinValue),
+     InlineData(char.MinValue),
+     InlineData(int.MinValue),
+     InlineData(sbyte.MinValue),
+     InlineData(short.MinValue),
+     InlineData(uint.MinValue),
+     InlineData(ushort.MinValue)]
     public void GetFieldValue_throws_on_overflow<T>(T minValue)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -1070,12 +1096,12 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("SELECT 1;", typeof(long))]
-    [InlineData("SELECT 3.14;", typeof(double))]
-    [InlineData("SELECT 'test';", typeof(string))]
-    [InlineData("SELECT X'7E57';", typeof(byte[]))]
-    [InlineData("SELECT NULL;", typeof(byte[]))]
+    [Theory,
+     InlineData("SELECT 1;", typeof(long)),
+     InlineData("SELECT 3.14;", typeof(double)),
+     InlineData("SELECT 'test';", typeof(string)),
+     InlineData("SELECT X'7E57';", typeof(byte[])),
+     InlineData("SELECT NULL;", typeof(byte[]))]
     public void GetFieldType_works(string sql, Type expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -1089,27 +1115,26 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("TEXT", typeof(string))]
-    [InlineData("CHARACTER(20)", typeof(string))]
-    [InlineData("NVARCHAR(100)", typeof(string))]
-    [InlineData("CLOB", typeof(string))]
-    [InlineData("INTEGER", typeof(long))]
-    [InlineData("BIGINT", typeof(long))]
-    [InlineData("UNSIGNED BIG INT", typeof(long))]
-    [InlineData("REAL", typeof(double))]
-    [InlineData("DOUBLE", typeof(double))]
-    [InlineData("FLOAT", typeof(double))]
-    [InlineData("BLOB", typeof(byte[]))]
-    [InlineData("", typeof(byte[]))]
-    [InlineData("NUMERIC", typeof(string))]
-    [InlineData("DATETIME", typeof(string))]
+    [Theory,
+     InlineData("TEXT", typeof(string)),
+     InlineData("CHARACTER(20)", typeof(string)),
+     InlineData("NVARCHAR(100)", typeof(string)),
+     InlineData("CLOB", typeof(string)),
+     InlineData("INTEGER", typeof(long)),
+     InlineData("BIGINT", typeof(long)),
+     InlineData("UNSIGNED BIG INT", typeof(long)),
+     InlineData("REAL", typeof(double)),
+     InlineData("DOUBLE", typeof(double)),
+     InlineData("FLOAT", typeof(double)),
+     InlineData("BLOB", typeof(byte[])),
+     InlineData("", typeof(byte[])),
+     InlineData("NUMERIC", typeof(string)),
+     InlineData("DATETIME", typeof(string))]
     public void GetFieldType_works_on_NULL(string type, Type expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
             connection.Open();
-            connection.ExecuteNonQuery("DROP TABLE IF EXISTS Test;");
             connection.ExecuteNonQuery($"CREATE TABLE Test(Value {type});");
 
             using (var reader = connection.ExecuteReader("SELECT Value FROM Test;"))
@@ -1165,10 +1190,10 @@ public class SqliteDataReaderTests
     public void GetFieldType_throws_when_non_query()
         => X_throws_when_non_query(r => r.GetFieldType(0));
 
-    [Theory]
-    [InlineData("3", 3f)]
-    [InlineData("9e999", float.PositiveInfinity)]
-    [InlineData("-9e999", float.NegativeInfinity)]
+    [Theory,
+     InlineData("3", 3f),
+     InlineData("9e999", float.PositiveInfinity),
+     InlineData("-9e999", float.NegativeInfinity)]
     public void GetFloat_works(string val, float result)
         => GetX_works(
             "SELECT " + val,
@@ -1183,12 +1208,12 @@ public class SqliteDataReaderTests
     public void GetFloat_throws_when_non_query()
         => X_throws_when_non_query(r => r.GetFloat(0));
 
-    [Theory]
-    [InlineData("2.0", 2.0)]
-    [InlineData("9e999", double.PositiveInfinity)]
-    [InlineData("-9e999", double.NegativeInfinity)]
-    [InlineData("'3.14'", 3.14)]
-    [InlineData("'1.2e-03'", 0.0012)]
+    [Theory,
+     InlineData("2.0", 2.0),
+     InlineData("9e999", double.PositiveInfinity),
+     InlineData("-9e999", double.NegativeInfinity),
+     InlineData("'3.14'", 3.14),
+     InlineData("'1.2e-03'", 0.0012)]
     public void GetDouble_works(string val, double result)
         => GetX_works(
             "SELECT " + val,
@@ -1271,8 +1296,7 @@ public class SqliteDataReaderTests
 
     [Fact]
     public void GetInt64_throws_when_null()
-        => GetX_throws_when_null(
-            r => r.GetInt64(0));
+        => GetX_throws_when_null(r => r.GetInt64(0));
 
     [Fact]
     public void GetInt64_throws_when_non_query()
@@ -1404,8 +1428,7 @@ public class SqliteDataReaderTests
 
     [Fact]
     public void GetString_throws_when_null()
-        => GetX_throws_when_null(
-            r => r.GetString(0));
+        => GetX_throws_when_null(r => r.GetString(0));
 
     [Fact]
     public void GetString_throws_when_closed()
@@ -1415,10 +1438,10 @@ public class SqliteDataReaderTests
     public void GetString_throws_when_non_query()
         => X_throws_when_non_query(r => r.GetString(0));
 
-    [Theory]
-    [InlineData("SELECT 1;", 1L)]
-    [InlineData("SELECT 3.14;", 3.14)]
-    [InlineData("SELECT 'test';", "test")]
+    [Theory,
+     InlineData("SELECT 1;", 1L),
+     InlineData("SELECT 3.14;", 3.14),
+     InlineData("SELECT 'test';", "test")]
     public void GetValue_works(string sql, object expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -1650,10 +1673,10 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("SELECT 1 AS Id;", "Id", 1L)]
-    [InlineData("SELECT 1 AS Id;", "id", 1L)]
-    [InlineData("SELECT 1 AS Id, 2 AS id;", "id", 2L)]
+    [Theory,
+     InlineData("SELECT 1 AS Id;", "Id", 1L),
+     InlineData("SELECT 1 AS Id;", "id", 1L),
+     InlineData("SELECT 1 AS Id, 2 AS id;", "id", 2L)]
     public void Item_by_name_works(string query, string column, long expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -1762,14 +1785,16 @@ public class SqliteDataReaderTests
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
+            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
+
             var sql = @"
                     SELECT 1;
-                    SELECT missing_function('An error');
+                    SELECT throw('An error');
                     INSERT INTO Test VALUES (1);";
             using (var reader = connection.ExecuteReader(sql))
             {
                 var ex = Assert.Throws<SqliteException>(() => reader.NextResult());
-                Assert.Contains("missing_function", ex.Message);
+                Assert.Contains("An error", ex.Message);
             }
 
             Assert.Equal(0L, connection.ExecuteScalar<long>("SELECT count() FROM Test;"));
@@ -1953,49 +1978,113 @@ public class SqliteDataReaderTests
             connection.Open();
             connection.ExecuteNonQuery(
                 "CREATE TABLE Person (ID INTEGER PRIMARY KEY, FirstName TEXT, LastName TEXT NOT NULL, Code INT UNIQUE);");
+            connection.ExecuteNonQuery("INSERT INTO Person VALUES(101, 'John', 'Dee', 123);");
+            connection.ExecuteNonQuery("INSERT INTO Person VALUES(105, 'Jane', 'Doe', 456);");
 
             using (var reader = connection.ExecuteReader("SELECT LastName, ID, Code, ID+1 AS IncID FROM Person;"))
             {
                 var schema = reader.GetSchemaTable();
-
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.ColumnName));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.ColumnOrdinal));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.DataType));
-                Assert.True(schema.Columns.Contains("DataTypeName"));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.AllowDBNull));
+                Assert.True(schema.Columns.Contains("ColumnName"));
+                Assert.True(schema.Columns.Contains("ColumnOrdinal"));
+                Assert.True(schema.Columns.Contains("ColumnSize"));
+                Assert.True(schema.Columns.Contains("NumericPrecision"));
+                Assert.True(schema.Columns.Contains("NumericScale"));
+                Assert.True(schema.Columns.Contains("IsUnique"));
                 Assert.True(schema.Columns.Contains("IsKey"));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.BaseTableName));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.BaseColumnName));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.IsAliased));
-                Assert.True(schema.Columns.Contains(SchemaTableColumn.IsExpression));
+                Assert.True(schema.Columns.Contains("BaseServerName"));
+                Assert.True(schema.Columns.Contains("BaseCatalogName"));
+                Assert.True(schema.Columns.Contains("BaseColumnName"));
+                Assert.True(schema.Columns.Contains("BaseSchemaName"));
+                Assert.True(schema.Columns.Contains("BaseTableName"));
+                Assert.True(schema.Columns.Contains("DataType"));
+                Assert.True(schema.Columns.Contains("DataTypeName"));
+                Assert.True(schema.Columns.Contains("AllowDBNull"));
+                Assert.True(schema.Columns.Contains("IsAliased"));
+                Assert.True(schema.Columns.Contains("IsExpression"));
+                Assert.True(schema.Columns.Contains("IsAutoIncrement"));
+                Assert.True(schema.Columns.Contains("IsLong"));
 
                 Assert.Equal(4, schema.Rows.Count);
 
-                Assert.Equal("LastName", schema.Rows[0][SchemaTableColumn.ColumnName]);
-                Assert.Equal(0, schema.Rows[0][SchemaTableColumn.ColumnOrdinal]);
-                Assert.Equal(typeof(string), schema.Rows[0][SchemaTableColumn.DataType]);
+                Assert.Equal("LastName", schema.Rows[0]["ColumnName"]);
+                Assert.Equal(0, schema.Rows[0]["ColumnOrdinal"]);
+                Assert.Equal(-1, schema.Rows[0]["ColumnSize"]);
+                Assert.Equal(DBNull.Value, schema.Rows[0]["NumericPrecision"]);
+                Assert.Equal(DBNull.Value, schema.Rows[0]["NumericScale"]);
+                Assert.False((bool)schema.Rows[0]["IsUnique"]);
+                Assert.False((bool)schema.Rows[0]["IsKey"]);
+                Assert.Equal("", schema.Rows[0]["BaseServerName"]);
+                Assert.Equal("main", schema.Rows[0]["BaseCatalogName"]);
+                Assert.Equal("LastName", schema.Rows[0]["BaseColumnName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[0]["BaseSchemaName"]);
+                Assert.Equal("Person", schema.Rows[0]["BaseTableName"]);
+                Assert.Equal(typeof(string), schema.Rows[0]["DataType"]);
                 Assert.Equal("TEXT", schema.Rows[0]["DataTypeName"]);
-                Assert.Equal("Person", schema.Rows[0][SchemaTableColumn.BaseTableName]);
-                Assert.Equal("LastName", schema.Rows[0][SchemaTableColumn.BaseColumnName]);
-                Assert.False((bool)schema.Rows[0][SchemaTableColumn.IsAliased]);
-                Assert.False((bool)schema.Rows[0][SchemaTableColumn.IsExpression]);
+                Assert.False((bool)schema.Rows[0]["AllowDBNull"]);
+                Assert.False((bool)schema.Rows[0]["IsAliased"]);
+                Assert.False((bool)schema.Rows[0]["IsExpression"]);
+                Assert.False((bool)schema.Rows[0]["IsAutoIncrement"]);
+                Assert.Equal(DBNull.Value, schema.Rows[0]["IsLong"]);
 
-                Assert.Equal("ID", schema.Rows[1][SchemaTableColumn.ColumnName]);
-                Assert.Equal(1, schema.Rows[1][SchemaTableColumn.ColumnOrdinal]);
-                Assert.Equal(typeof(long), schema.Rows[1][SchemaTableColumn.DataType]);
+                Assert.Equal("ID", schema.Rows[1]["ColumnName"]);
+                Assert.Equal(1, schema.Rows[1]["ColumnOrdinal"]);
+                Assert.Equal(-1, schema.Rows[1]["ColumnSize"]);
+                Assert.Equal(DBNull.Value, schema.Rows[1]["NumericPrecision"]);
+                Assert.Equal(DBNull.Value, schema.Rows[1]["NumericScale"]);
+                Assert.False((bool)schema.Rows[1]["IsUnique"]);
+                Assert.True((bool)schema.Rows[1]["IsKey"]);
+                Assert.Equal("", schema.Rows[1]["BaseServerName"]);
+                Assert.Equal("main", schema.Rows[1]["BaseCatalogName"]);
+                Assert.Equal("ID", schema.Rows[1]["BaseColumnName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[1]["BaseSchemaName"]);
+                Assert.Equal("Person", schema.Rows[1]["BaseTableName"]);
+                Assert.Equal(typeof(long), schema.Rows[1]["DataType"]);
                 Assert.Equal("INTEGER", schema.Rows[1]["DataTypeName"]);
+                Assert.True((bool)schema.Rows[1]["AllowDBNull"]);
+                Assert.False((bool)schema.Rows[1]["IsAliased"]);
+                Assert.False((bool)schema.Rows[1]["IsExpression"]);
+                Assert.False((bool)schema.Rows[1]["IsAutoIncrement"]);
+                Assert.Equal(DBNull.Value, schema.Rows[1]["IsLong"]);
 
-                Assert.Equal("Code", schema.Rows[2][SchemaTableColumn.ColumnName]);
-                Assert.Equal(2, schema.Rows[2][SchemaTableColumn.ColumnOrdinal]);
-                Assert.Equal(typeof(long), schema.Rows[2][SchemaTableColumn.DataType]);
+                Assert.Equal("Code", schema.Rows[2]["ColumnName"]);
+                Assert.Equal(2, schema.Rows[2]["ColumnOrdinal"]);
+                Assert.Equal(-1, schema.Rows[2]["ColumnSize"]);
+                Assert.Equal(DBNull.Value, schema.Rows[2]["NumericPrecision"]);
+                Assert.Equal(DBNull.Value, schema.Rows[2]["NumericScale"]);
+                Assert.True((bool)schema.Rows[2]["IsUnique"]);
+                Assert.False((bool)schema.Rows[2]["IsKey"]);
+                Assert.Equal("", schema.Rows[2]["BaseServerName"]);
+                Assert.Equal("main", schema.Rows[2]["BaseCatalogName"]);
+                Assert.Equal("Code", schema.Rows[2]["BaseColumnName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[2]["BaseSchemaName"]);
+                Assert.Equal("Person", schema.Rows[2]["BaseTableName"]);
+                Assert.Equal(typeof(long), schema.Rows[2]["DataType"]);
                 Assert.Equal("INT", schema.Rows[2]["DataTypeName"]);
+                Assert.True((bool)schema.Rows[2]["AllowDBNull"]);
+                Assert.False((bool)schema.Rows[2]["IsAliased"]);
+                Assert.False((bool)schema.Rows[2]["IsExpression"]);
+                Assert.False((bool)schema.Rows[2]["IsAutoIncrement"]);
+                Assert.Equal(DBNull.Value, schema.Rows[2]["IsLong"]);
 
-                Assert.Equal("IncID", schema.Rows[3][SchemaTableColumn.ColumnName]);
-                Assert.Equal(3, schema.Rows[3][SchemaTableColumn.ColumnOrdinal]);
-                Assert.Equal(typeof(long), schema.Rows[3][SchemaTableColumn.DataType]);
+                Assert.Equal("IncID", schema.Rows[3]["ColumnName"]);
+                Assert.Equal(3, schema.Rows[3]["ColumnOrdinal"]);
+                Assert.Equal(-1, schema.Rows[3]["ColumnSize"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["NumericPrecision"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["NumericScale"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["IsUnique"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["IsKey"]);
+                Assert.Equal("", schema.Rows[3]["BaseServerName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["BaseCatalogName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["BaseColumnName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["BaseSchemaName"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["BaseTableName"]);
+                Assert.Equal(typeof(long), schema.Rows[3]["DataType"]);
                 Assert.Equal("INTEGER", schema.Rows[3]["DataTypeName"]);
-                Assert.True((bool)schema.Rows[3][SchemaTableColumn.IsAliased]);
-                Assert.True((bool)schema.Rows[3][SchemaTableColumn.IsExpression]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["AllowDBNull"]);
+                Assert.True((bool)schema.Rows[3]["IsAliased"]);
+                Assert.True((bool)schema.Rows[3]["IsExpression"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["IsAutoIncrement"]);
+                Assert.Equal(DBNull.Value, schema.Rows[3]["IsLong"]);
             }
         }
     }
@@ -2095,13 +2184,13 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("(0), (1), ('A')", typeof(long))]
-    [InlineData("('Z'), (1), ('A')", typeof(string))]
-    [InlineData("(0.1), (0.01), ('A')", typeof(double))]
-    [InlineData("(X'7E57'), (X'577E'), ('A')", typeof(byte[]))]
-    [InlineData("(NULL), (NULL), (NULL)", typeof(byte[]))]
-    [InlineData("(NULL), ('A'), ('B')", typeof(string))]
+    [Theory,
+     InlineData("(0), (1), ('A')", typeof(long)),
+     InlineData("('Z'), (1), ('A')", typeof(string)),
+     InlineData("(0.1), (0.01), ('A')", typeof(double)),
+     InlineData("(X'7E57'), (X'577E'), ('A')", typeof(byte[])),
+     InlineData("(NULL), (NULL), (NULL)", typeof(byte[])),
+     InlineData("(NULL), ('A'), ('B')", typeof(string))]
     public void GetSchemaTable_DataType_works(string values, Type expectedType)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -2119,27 +2208,26 @@ public class SqliteDataReaderTests
         }
     }
 
-    [Theory]
-    [InlineData("TEXT", typeof(string))]
-    [InlineData("CHARACTER(20)", typeof(string))]
-    [InlineData("NVARCHAR(100)", typeof(string))]
-    [InlineData("CLOB", typeof(string))]
-    [InlineData("INTEGER", typeof(long))]
-    [InlineData("BIGINT", typeof(long))]
-    [InlineData("UNSIGNED BIG INT", typeof(long))]
-    [InlineData("REAL", typeof(double))]
-    [InlineData("DOUBLE", typeof(double))]
-    [InlineData("FLOAT", typeof(double))]
-    [InlineData("BLOB", typeof(byte[]))]
-    [InlineData("", typeof(byte[]))]
-    [InlineData("NUMERIC", typeof(string))]
-    [InlineData("DATETIME", typeof(string))]
+    [Theory,
+     InlineData("TEXT", typeof(string)),
+     InlineData("CHARACTER(20)", typeof(string)),
+     InlineData("NVARCHAR(100)", typeof(string)),
+     InlineData("CLOB", typeof(string)),
+     InlineData("INTEGER", typeof(long)),
+     InlineData("BIGINT", typeof(long)),
+     InlineData("UNSIGNED BIG INT", typeof(long)),
+     InlineData("REAL", typeof(double)),
+     InlineData("DOUBLE", typeof(double)),
+     InlineData("FLOAT", typeof(double)),
+     InlineData("BLOB", typeof(byte[])),
+     InlineData("", typeof(byte[])),
+     InlineData("NUMERIC", typeof(string)),
+     InlineData("DATETIME", typeof(string))]
     public void GetSchemaTable_DataType_works_on_empty_table(string type, Type expected)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
             connection.Open();
-            connection.ExecuteNonQuery("DROP TABLE IF EXISTS Test;");
             connection.ExecuteNonQuery($"CREATE TABLE Test(Value {type});");
 
             using (var reader = connection.ExecuteReader("SELECT Value FROM Test;"))
@@ -2167,6 +2255,8 @@ public class SqliteDataReaderTests
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
+            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
+
             var reader = connection.ExecuteReader(
                 @"
                     SELECT 1;
@@ -2185,10 +2275,12 @@ public class SqliteDataReaderTests
             connection.Open();
 
             connection.ExecuteNonQuery("CREATE TABLE Test(Value);");
+            connection.CreateFunction<string, long>("throw", message => throw new Exception(message));
+
             var reader = connection.ExecuteReader(
                 @"
                     SELECT 1;
-                    SELECT missing_function('An error');
+                    SELECT throw('An error');
                     INSERT INTO Test VALUES (1);");
             ((IDisposable)reader).Dispose();
 
@@ -2204,7 +2296,7 @@ public class SqliteDataReaderTests
             connection.Open();
 
             connection.ExecuteNonQuery(
-        """
+                """
         CREATE TABLE Member (
           ID INTEGER,
           Lastname TEXT NOT NULL,
@@ -2229,7 +2321,7 @@ public class SqliteDataReaderTests
         INSERT INTO Member (Lastname, Firstname, Type, Hidden) VALUES ('Müller', 'Willhelm', NULL, 0);
         """);
 
-            string sql =
+            var sql =
                 """
                 SELECT
                   Member.ID AS ID,
@@ -2261,7 +2353,7 @@ public class SqliteDataReaderTests
             connection.Open();
 
             connection.ExecuteNonQuery(
-        """
+                """
         CREATE TABLE "characters" (
         	"id"	INTEGER,
         	"name"	TEXT UNIQUE,
@@ -2283,7 +2375,7 @@ public class SqliteDataReaderTests
         INSERT INTO guilds (id, name) VALUES (1, 'Testers');
         """);
 
-            string sql =
+            var sql =
                 """
                 SELECT guilds.name as guildName, characters.name as charName FROM guilds
                 LEFT JOIN characters
@@ -2301,7 +2393,7 @@ public class SqliteDataReaderTests
         }
     }
 
-    private static void GetX_works<T>(string sql, Func<DbDataReader, T> action, T expected)
+    private static void GetX_works<T>(string sql, Func<DbDataReader, T> action, T expected, Action<T>? extraAssertions = null)
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
@@ -2312,7 +2404,9 @@ public class SqliteDataReaderTests
                 var hasData = reader.Read();
 
                 Assert.True(hasData);
-                Assert.Equal(expected, action(reader));
+                var value = action(reader);
+                Assert.Equal(expected, value);
+                extraAssertions?.Invoke(value);
             }
         }
     }

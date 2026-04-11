@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite.Tests.Extra;
 
 public class SqliteConnectionStringBuilderTests
 {

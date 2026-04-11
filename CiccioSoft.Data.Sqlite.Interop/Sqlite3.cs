@@ -7,11 +7,26 @@
 using System;
 using System.Text;
 using System.Buffers;
-using CiccioSoft.Data.Sqlite.Interop.Handles;
 using CiccioSoft.Data.Sqlite.Interop.Native;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace CiccioSoft.Data.Sqlite.Interop;
+
+public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
+{
+    // public Sqlite3Handle() : base(true) { }
+    internal Sqlite3Handle(nint handle) : base(true)
+    {
+        SetHandle(handle);
+    }
+    protected override bool ReleaseHandle()
+    {
+        // return SqliteNative.sqlite3_close_v2(handle) == SqliteNative.SQLITE_OK;
+        NativeSqlite3.sqlite3_close_v2(handle);
+        return true;
+    }
+}
 
 /// <summary>
 /// Provides a high-performance, low-allocation wrapper for a SQLite database connection.
