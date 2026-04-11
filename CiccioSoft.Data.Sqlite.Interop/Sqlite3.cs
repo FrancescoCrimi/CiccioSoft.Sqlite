@@ -556,6 +556,71 @@ public sealed unsafe class Sqlite3 : IDisposable
         return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
     }
 
+    public Sqlite3Backup InitBackup(Sqlite3 source)
+    {
+        return InitBackup("main", source, "main");
+    }
+
+    public Sqlite3Backup InitBackup(string destinationDatabaseName, Sqlite3 source, string sourceDatabaseName = "main")
+    {
+        ThrowIfInvalid();
+        ArgumentNullException.ThrowIfNull(source);
+        source.ThrowIfInvalid();
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDatabaseName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceDatabaseName);
+
+        int destinationBytes = Encoding.UTF8.GetByteCount(destinationDatabaseName);
+        int sourceBytes = Encoding.UTF8.GetByteCount(sourceDatabaseName);
+        int destinationTotalNeeded = destinationBytes + 1;
+        int sourceTotalNeeded = sourceBytes + 1;
+        int totalNeeded = destinationTotalNeeded + sourceTotalNeeded;
+
+        byte[]? pooled = null;
+        Span<byte> buffer = totalNeeded <= 256
+            ? stackalloc byte[totalNeeded]
+            : (pooled = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
+
+        try
+        {
+            Span<byte> destinationBuffer = buffer[..destinationTotalNeeded];
+            Span<byte> sourceBuffer = buffer.Slice(destinationTotalNeeded, sourceTotalNeeded);
+
+            Encoding.UTF8.GetBytes(destinationDatabaseName, destinationBuffer);
+            destinationBuffer[destinationBytes] = 0;
+
+            Encoding.UTF8.GetBytes(sourceDatabaseName, sourceBuffer);
+            sourceBuffer[sourceBytes] = 0;
+
+            fixed (byte* pDest = destinationBuffer)
+            fixed (byte* pSource = sourceBuffer)
+            {
+                nint destinationHandle = _handle.DangerousGetHandle();
+                nint sourceHandle = source._handle.DangerousGetHandle();
+
+                nint backupHandle = NativeSqlite3.sqlite3_backup_init(
+                    destinationHandle,
+                    pDest,
+                    sourceHandle,
+                    pSource);
+
+                if (backupHandle == nint.Zero)
+                {
+                    throw SqliteErrorHelper.CreateException(
+                        (SqliteResult)NativeSqlite3.sqlite3_errcode(destinationHandle),
+                        destinationHandle,
+                        "SQLite backup init");
+                }
+
+                return new Sqlite3Backup(new Sqlite3BackupHandle(backupHandle));
+            }
+        }
+        finally
+        {
+            if (pooled != null)
+                ArrayPool<byte>.Shared.Return(pooled);
+        }
+    }
+
 
     private void ThrowIfInvalid()
     {
