@@ -46,6 +46,7 @@ public enum SqliteExtendedErrorCode
     ErrorMissingCollSeq = SqliteResult.Error | (1 << 8),
     ErrorRetry = SqliteResult.Error | (2 << 8),
     ErrorSnapshot = SqliteResult.Error | (3 << 8),
+
     IOErrRead = SqliteResult.IOErr | (1 << 8),
     IOErrShortRead = SqliteResult.IOErr | (2 << 8),
     IOErrWrite = SqliteResult.IOErr | (3 << 8),
@@ -80,27 +81,34 @@ public enum SqliteExtendedErrorCode
     IOErrData = SqliteResult.IOErr | (32 << 8),
     IOErrCorruptFs = SqliteResult.IOErr | (33 << 8),
     IOErrInPage = SqliteResult.IOErr | (34 << 8),
+
     LockedSharedCache = SqliteResult.Locked | (1 << 8),
     LockedVtab = SqliteResult.Locked | (2 << 8),
+
     BusyRecovery = SqliteResult.Busy | (1 << 8),
     BusySnapshot = SqliteResult.Busy | (2 << 8),
     BusyTimeout = SqliteResult.Busy | (3 << 8),
+
     CantOpenNoTempDir = SqliteResult.CantOpen | (1 << 8),
     CantOpenIsDir = SqliteResult.CantOpen | (2 << 8),
     CantOpenFullPath = SqliteResult.CantOpen | (3 << 8),
     CantOpenConvPath = SqliteResult.CantOpen | (4 << 8),
     CantOpenDirtyWal = SqliteResult.CantOpen | (5 << 8),
     CantOpenSymlink = SqliteResult.CantOpen | (6 << 8),
+
     CorruptVtab = SqliteResult.Corrupt | (1 << 8),
     CorruptSequence = SqliteResult.Corrupt | (2 << 8),
     CorruptIndex = SqliteResult.Corrupt | (3 << 8),
+
     ReadOnlyRecovery = SqliteResult.ReadOnly | (1 << 8),
     ReadOnlyCantLock = SqliteResult.ReadOnly | (2 << 8),
     ReadOnlyRollback = SqliteResult.ReadOnly | (3 << 8),
     ReadOnlyDbMoved = SqliteResult.ReadOnly | (4 << 8),
     ReadOnlyCantInit = SqliteResult.ReadOnly | (5 << 8),
     ReadOnlyDirectory = SqliteResult.ReadOnly | (6 << 8),
+
     AbortRollback = SqliteResult.Abort | (2 << 8),
+
     ConstraintCheck = SqliteResult.Constraint | (1 << 8),
     ConstraintCommitHook = SqliteResult.Constraint | (2 << 8),
     ConstraintForeignKey = SqliteResult.Constraint | (3 << 8),
@@ -113,11 +121,15 @@ public enum SqliteExtendedErrorCode
     ConstraintRowId = SqliteResult.Constraint | (10 << 8),
     ConstraintPinned = SqliteResult.Constraint | (11 << 8),
     ConstraintDataType = SqliteResult.Constraint | (12 << 8),
+
     NoticeRecoverWal = SqliteResult.Notice | (1 << 8),
     NoticeRecoverRollback = SqliteResult.Notice | (2 << 8),
     NoticeRbu = SqliteResult.Notice | (3 << 8),
+
     WarningAutoIndex = SqliteResult.Warning | (1 << 8),
+
     AuthUser = SqliteResult.Auth | (1 << 8),
+
     OkLoadPermanently = SqliteResult.OK | (1 << 8),
     OkSymlink = SqliteResult.OK | (2 << 8)
 }

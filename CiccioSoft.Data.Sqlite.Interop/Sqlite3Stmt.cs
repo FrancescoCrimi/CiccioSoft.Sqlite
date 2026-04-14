@@ -391,11 +391,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// SQLite uses dynamic typing; the type of a column may change from row to row. 
     /// Call this after <see cref="Step"/> to determine which <c>Get</c> method to use.
     /// </remarks>
-    public SqliteColumnType GetColumnType(int index)
+    public SqliteType GetColumnType(int index)
     {
         ThrowIfInvalid();
         int rc = NativeSqlite3.sqlite3_column_type(_handle.DangerousGetHandle(), index);
-        return (SqliteColumnType)rc;
+        return (SqliteType)rc;
     }
 
     /// <summary>

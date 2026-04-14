@@ -151,9 +151,9 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            SqliteColumnType.Integer => (char)Stmt.GetInt(ordinal),
-            SqliteColumnType.Float => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
-            SqliteColumnType.Text => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
+            SqliteType.Integer => (char)Stmt.GetInt(ordinal),
+            SqliteType.Float => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
+            SqliteType.Text => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
             _ => throw new InvalidCastException(),
         };
     }
@@ -207,10 +207,10 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            SqliteColumnType.Integer => "INTEGER",
-            SqliteColumnType.Float => "REAL",
-            SqliteColumnType.Text => "TEXT",
-            SqliteColumnType.Blob => "BLOB",
+            SqliteType.Integer => "INTEGER",
+            SqliteType.Float => "REAL",
+            SqliteType.Text => "TEXT",
+            SqliteType.Blob => "BLOB",
             _ => declaredTypeName,
         };
     }
@@ -222,10 +222,10 @@ public class SqliteDataReader : DbDataReader
 
         return Stmt.GetColumnType(ordinal) switch
         {
-            SqliteColumnType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)),
-            SqliteColumnType.Float => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
-            SqliteColumnType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
-            SqliteColumnType.Null => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
+            SqliteType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)),
+            SqliteType.Float => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
+            SqliteType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
+            SqliteType.Null => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
             _ => throw new InvalidCastException(),
         };
     }
@@ -384,7 +384,7 @@ public class SqliteDataReader : DbDataReader
         var sqliteType = Stmt.GetColumnType(ordinal);
         switch (sqliteType)
         {
-            case SqliteColumnType.Blob:
+            case SqliteType.Blob:
                 ReadOnlySpan<byte> bytes = Stmt.GetBlob(ordinal);
                 return bytes.Length == 16
                     ? new Guid(bytes)
@@ -523,10 +523,10 @@ public class SqliteDataReader : DbDataReader
         if (IsDBNull(ordinal)) return DBNull.Value;
         return Stmt.GetColumnType(ordinal) switch
         {
-            SqliteColumnType.Integer => Stmt.GetLong(ordinal),
-            SqliteColumnType.Float => Stmt.GetDouble(ordinal),
-            SqliteColumnType.Text => Stmt.GetString(ordinal) ?? string.Empty,
-            SqliteColumnType.Blob => Stmt.GetBlob(ordinal).ToArray(),
+            SqliteType.Integer => Stmt.GetLong(ordinal),
+            SqliteType.Float => Stmt.GetDouble(ordinal),
+            SqliteType.Text => Stmt.GetString(ordinal) ?? string.Empty,
+            SqliteType.Blob => Stmt.GetBlob(ordinal).ToArray(),
             _ => DBNull.Value,
         };
     }
@@ -549,7 +549,7 @@ public class SqliteDataReader : DbDataReader
     public override bool IsDBNull(int ordinal)
     {
         EnsureHasRow();
-        return Stmt.GetColumnType(ordinal) == SqliteColumnType.Null;
+        return Stmt.GetColumnType(ordinal) == SqliteType.Null;
     }
 
     public override bool NextResult()
@@ -640,15 +640,15 @@ public class SqliteDataReader : DbDataReader
             string dataTypeName = GetDataTypeName(ordinal);
             if (fieldType == typeof(byte[]) && string.Equals(dataTypeName, "BLOB", StringComparison.Ordinal))
             {
-                SqliteColumnType sqliteType = Stmt.GetColumnType(ordinal);
-                if (sqliteType != SqliteColumnType.Null)
+                SqliteType sqliteType = Stmt.GetColumnType(ordinal);
+                if (sqliteType != SqliteType.Null)
                 {
                     fieldType = TypeFromSqliteStorageClass(sqliteType);
                     dataTypeName = DataTypeNameFromSqliteStorageClass(sqliteType);
                 }
                 else if (hasOrigin
-                    && TryInferOriginStorageClass(baseTableName!, baseColumnName!, out SqliteColumnType inferredType)
-                    && inferredType != SqliteColumnType.Null)
+                    && TryInferOriginStorageClass(baseTableName!, baseColumnName!, out SqliteType inferredType)
+                    && inferredType != SqliteType.Null)
                 {
                     fieldType = TypeFromSqliteStorageClass(inferredType);
                     dataTypeName = DataTypeNameFromSqliteStorageClass(inferredType);
@@ -1060,36 +1060,36 @@ public class SqliteDataReader : DbDataReader
     private Type InferFieldType(int ordinal)
         => Stmt.GetColumnType(ordinal) switch
         {
-            SqliteColumnType.Integer => typeof(long),
-            SqliteColumnType.Float => typeof(double),
-            SqliteColumnType.Text => typeof(string),
-            SqliteColumnType.Blob => typeof(byte[]),
+            SqliteType.Integer => typeof(long),
+            SqliteType.Float => typeof(double),
+            SqliteType.Text => typeof(string),
+            SqliteType.Blob => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
         };
 
-    private static Type TypeFromSqliteStorageClass(SqliteColumnType sqliteType)
+    private static Type TypeFromSqliteStorageClass(SqliteType sqliteType)
         => sqliteType switch
         {
-            SqliteColumnType.Integer => typeof(long),
-            SqliteColumnType.Float => typeof(double),
-            SqliteColumnType.Text => typeof(string),
-            SqliteColumnType.Blob => typeof(byte[]),
+            SqliteType.Integer => typeof(long),
+            SqliteType.Float => typeof(double),
+            SqliteType.Text => typeof(string),
+            SqliteType.Blob => typeof(byte[]),
             _ => typeof(byte[]),
         };
 
-    private static string DataTypeNameFromSqliteStorageClass(SqliteColumnType sqliteType)
+    private static string DataTypeNameFromSqliteStorageClass(SqliteType sqliteType)
         => sqliteType switch
         {
-            SqliteColumnType.Integer => "INTEGER",
-            SqliteColumnType.Float => "REAL",
-            SqliteColumnType.Text => "TEXT",
-            SqliteColumnType.Blob => "BLOB",
+            SqliteType.Integer => "INTEGER",
+            SqliteType.Float => "REAL",
+            SqliteType.Text => "TEXT",
+            SqliteType.Blob => "BLOB",
             _ => "BLOB",
         };
 
-    private bool TryInferOriginStorageClass(string tableName, string columnName, out SqliteColumnType inferredType)
+    private bool TryInferOriginStorageClass(string tableName, string columnName, out SqliteType inferredType)
     {
-        inferredType = SqliteColumnType.Null;
+        inferredType = SqliteType.Null;
 
         string escapedTableName = tableName.Replace("\"", "\"\"", StringComparison.Ordinal);
         string escapedColumnName = columnName.Replace("\"", "\"\"", StringComparison.Ordinal);
@@ -1104,11 +1104,11 @@ public class SqliteDataReader : DbDataReader
         string? sqliteTypeName = stmt.GetString(0);
         inferredType = sqliteTypeName?.ToLowerInvariant() switch
         {
-            "integer" => SqliteColumnType.Integer,
-            "real" => SqliteColumnType.Float,
-            "text" => SqliteColumnType.Text,
-            "blob" => SqliteColumnType.Blob,
-            _ => SqliteColumnType.Null,
+            "integer" => SqliteType.Integer,
+            "real" => SqliteType.Float,
+            "text" => SqliteType.Text,
+            "blob" => SqliteType.Blob,
+            _ => SqliteType.Null,
         };
 
         return true;
@@ -1173,19 +1173,19 @@ public class SqliteDataReader : DbDataReader
 
 
 
-    internal static SqliteColumnType Sqlite3AffinityType(string dataTypeName)
+    internal static SqliteType Sqlite3AffinityType(string dataTypeName)
     {
-        if (dataTypeName == null) return SqliteColumnType.Blob;
+        if (dataTypeName == null) return SqliteType.Blob;
 
         const StringComparison sc = StringComparison.OrdinalIgnoreCase;
 
         return dataTypeName switch
         {
-            var s when s.Contains("INT", sc) => SqliteColumnType.Integer,
-            var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteColumnType.Text,
-            var s when s.Contains("BLOB", sc) => SqliteColumnType.Blob,
-            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteColumnType.Float,
-            _ => SqliteColumnType.Text
+            var s when s.Contains("INT", sc) => SqliteType.Integer,
+            var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteType.Text,
+            var s when s.Contains("BLOB", sc) => SqliteType.Blob,
+            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteType.Float,
+            _ => SqliteType.Text
         };
     }
 

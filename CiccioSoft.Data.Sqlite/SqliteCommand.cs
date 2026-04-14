@@ -20,8 +20,9 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteCommand : DbCommand
 {
+    private SqliteParameterCollection _parameters = new();
+
     private const SqlitePrepareFlags SqlitePreparePersistentFlag = SqlitePrepareFlags.Persistent;
-    private readonly SqliteParameterCollection _parameters = new();
     private readonly object _statementCacheSync = new();
     private SqliteConnection? _connection;
     private CachedStatement? _cachedStatement;
@@ -104,7 +105,20 @@ public class SqliteCommand : DbCommand
         set => Connection = (SqliteConnection?)value;
     }
 
-    protected override DbParameterCollection DbParameterCollection => _parameters;
+    /// <summary>
+    ///     Gets the collection of parameters used by the command.
+    /// </summary>
+    /// <value>The collection of parameters used by the command.</value>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
+    public new virtual SqliteParameterCollection Parameters
+        => _parameters ??= [];
+
+    /// <summary>
+    ///     Gets the collection of parameters used by the command.
+    /// </summary>
+    /// <value>The collection of parameters used by the command.</value>
+    protected override DbParameterCollection DbParameterCollection
+        => _parameters;
 
     public new SqliteTransaction? Transaction { get; set; }
 

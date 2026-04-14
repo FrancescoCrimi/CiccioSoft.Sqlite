@@ -408,6 +408,13 @@ public sealed unsafe class Sqlite3 : IDisposable
         return NativeSqlite3.sqlite3_get_autocommit(_handle.DangerousGetHandle()) != 0;
     }
 
+    //TODO: comment here
+    public int Limit([NativeTypeName("sqlite3*")] nint param0, int id, int newVal)
+    {
+        ThrowIfInvalid();
+        return NativeSqlite3.sqlite3_limit(_handle.DangerousGetHandle(), id, newVal);
+    }
+
     /// <summary>
     /// Returns the SQLite transaction state for the requested schema.
     /// </summary>
@@ -554,6 +561,11 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         byte* pLibVersion = NativeSqlite3.sqlite3_libversion();
         return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
+    }
+
+    public int LibVersionNumber()
+    {
+        return NativeSqlite3.sqlite3_libversion_number();
     }
 
     public Sqlite3Backup InitBackup(Sqlite3 source)
