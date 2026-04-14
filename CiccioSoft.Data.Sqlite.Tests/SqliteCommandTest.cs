@@ -41,7 +41,8 @@ CREATE TABLE "Products" (
 """;
         _ = async ? await command.ExecuteNonQueryAsync() : command.ExecuteNonQuery();
 
-        sqlite3_limit(connection.Handle!, 0, 10);
+        // sqlite3_limit(connection.Handle!, 0, 10);
+        connection.Interop.Limit(0, 10);
 
         command.CommandText = @"INSERT INTO ""Products"" (""Name"")  VALUES (@p0);";
         command.Parameters.Add("@p0", SqliteType.Text);
