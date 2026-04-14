@@ -66,6 +66,18 @@ public class SqliteConnection : DbConnection
 
     public override string DataSource => _dataSource;
 
+    /// <summary>
+    /// Gets the underlying low-level SQLite interop object for advanced/native operations.
+    /// </summary>
+    public Sqlite3 Interop
+    {
+        get
+        {
+            EnsureOpen();
+            return _session!.Native;
+        }
+    }
+
     // public override string ServerVersion => "3.0.0";
     public override string ServerVersion
     {
