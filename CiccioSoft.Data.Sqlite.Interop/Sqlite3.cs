@@ -408,8 +408,19 @@ public sealed unsafe class Sqlite3 : IDisposable
         return NativeSqlite3.sqlite3_get_autocommit(_handle.DangerousGetHandle()) != 0;
     }
 
-    //TODO: comment here
-    public int Limit([NativeTypeName("sqlite3*")] nint param0, int id, int newVal)
+    /// <summary>
+    /// Gets or sets a runtime limit for this connection using <c>sqlite3_limit</c>.
+    /// </summary>
+    /// <param name="id">
+    /// The SQLite limit category identifier (for example, SQL length, expression depth, or attached database count).
+    /// </param>
+    /// <param name="newVal">
+    /// The new value to apply. Pass a negative value to query the current limit without modifying it.
+    /// </param>
+    /// <returns>
+    /// The previous limit value for the specified category.
+    /// </returns>
+    public int Limit(int id, int newVal)
     {
         ThrowIfInvalid();
         return NativeSqlite3.sqlite3_limit(_handle.DangerousGetHandle(), id, newVal);
@@ -557,12 +568,24 @@ public sealed unsafe class Sqlite3 : IDisposable
         NativeSqlite3.sqlite3_interrupt(_handle.DangerousGetHandle());
     }
 
+    /// <summary>
+    /// Returns the SQLite library version string used by the native runtime.
+    /// </summary>
+    /// <returns>
+    /// A version string in the form <c>major.minor.patch</c> (for example, <c>3.46.0</c>).
+    /// </returns>
     public string LibVersion()
     {
         byte* pLibVersion = NativeSqlite3.sqlite3_libversion();
         return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
     }
 
+    /// <summary>
+    /// Returns the SQLite library version number used by the native runtime.
+    /// </summary>
+    /// <returns>
+    /// An integer representation of the version in the format <c>MMmmpp</c> (major, minor, patch).
+    /// </returns>
     public int LibVersionNumber()
     {
         return NativeSqlite3.sqlite3_libversion_number();
