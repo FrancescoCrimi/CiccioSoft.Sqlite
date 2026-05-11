@@ -152,7 +152,7 @@ public class SqliteDataReader : DbDataReader
         return Stmt.GetColumnType(ordinal) switch
         {
             SqliteType.Integer => (char)Stmt.GetInt(ordinal),
-            SqliteType.Float => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
+            SqliteType.Real => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
             SqliteType.Text => (Stmt.GetString(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
             _ => throw new InvalidCastException(),
         };
@@ -208,7 +208,7 @@ public class SqliteDataReader : DbDataReader
         return Stmt.GetColumnType(ordinal) switch
         {
             SqliteType.Integer => "INTEGER",
-            SqliteType.Float => "REAL",
+            SqliteType.Real => "REAL",
             SqliteType.Text => "TEXT",
             SqliteType.Blob => "BLOB",
             _ => declaredTypeName,
@@ -223,7 +223,7 @@ public class SqliteDataReader : DbDataReader
         return Stmt.GetColumnType(ordinal) switch
         {
             SqliteType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)),
-            SqliteType.Float => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
+            SqliteType.Real => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
             SqliteType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
             SqliteType.Null => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
             _ => throw new InvalidCastException(),
@@ -524,7 +524,7 @@ public class SqliteDataReader : DbDataReader
         return Stmt.GetColumnType(ordinal) switch
         {
             SqliteType.Integer => Stmt.GetLong(ordinal),
-            SqliteType.Float => Stmt.GetDouble(ordinal),
+            SqliteType.Real => Stmt.GetDouble(ordinal),
             SqliteType.Text => Stmt.GetString(ordinal) ?? string.Empty,
             SqliteType.Blob => Stmt.GetBlob(ordinal).ToArray(),
             _ => DBNull.Value,
@@ -1061,7 +1061,7 @@ public class SqliteDataReader : DbDataReader
         => Stmt.GetColumnType(ordinal) switch
         {
             SqliteType.Integer => typeof(long),
-            SqliteType.Float => typeof(double),
+            SqliteType.Real => typeof(double),
             SqliteType.Text => typeof(string),
             SqliteType.Blob => typeof(byte[]),
             _ => GetFieldTypeFromDeclaration(ordinal),
@@ -1071,7 +1071,7 @@ public class SqliteDataReader : DbDataReader
         => sqliteType switch
         {
             SqliteType.Integer => typeof(long),
-            SqliteType.Float => typeof(double),
+            SqliteType.Real => typeof(double),
             SqliteType.Text => typeof(string),
             SqliteType.Blob => typeof(byte[]),
             _ => typeof(byte[]),
@@ -1081,7 +1081,7 @@ public class SqliteDataReader : DbDataReader
         => sqliteType switch
         {
             SqliteType.Integer => "INTEGER",
-            SqliteType.Float => "REAL",
+            SqliteType.Real => "REAL",
             SqliteType.Text => "TEXT",
             SqliteType.Blob => "BLOB",
             _ => "BLOB",
@@ -1105,7 +1105,7 @@ public class SqliteDataReader : DbDataReader
         inferredType = sqliteTypeName?.ToLowerInvariant() switch
         {
             "integer" => SqliteType.Integer,
-            "real" => SqliteType.Float,
+            "real" => SqliteType.Real,
             "text" => SqliteType.Text,
             "blob" => SqliteType.Blob,
             _ => SqliteType.Null,
@@ -1184,7 +1184,7 @@ public class SqliteDataReader : DbDataReader
             var s when s.Contains("INT", sc) => SqliteType.Integer,
             var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteType.Text,
             var s when s.Contains("BLOB", sc) => SqliteType.Blob,
-            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteType.Float,
+            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteType.Real,
             _ => SqliteType.Text
         };
     }

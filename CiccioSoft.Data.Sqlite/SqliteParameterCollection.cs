@@ -1,31 +1,21 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Linq;
-using CiccioSoft.Data.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
-// using SQLitePCL;
+using CiccioSoft.Data.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-/// <summary>
-///     Represents a collection of SQLite parameters.
-/// </summary>
-/// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
-public class SqliteParameterCollection : DbParameterCollection
+internal class SqliteParameterCollection : DbParameterCollection
 {
     private readonly List<SqliteParameter> _parameters = [];
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="SqliteParameterCollection" /> class.
-    /// </summary>
-    protected internal SqliteParameterCollection()
-    {
-    }
 
     /// <summary>
     ///     Gets the number of items in the collection.
@@ -55,7 +45,7 @@ public class SqliteParameterCollection : DbParameterCollection
             {
                 return;
             }
-
+            ValidateParameterName(value);
             _parameters[index] = value;
         }
     }
@@ -70,6 +60,14 @@ public class SqliteParameterCollection : DbParameterCollection
         get => this[IndexOfChecked(parameterName)];
         set => this[IndexOfChecked(parameterName)] = value;
     }
+
+    // public override int Add(object value)
+    // {
+    //     SqliteParameter parameter = AsSqliteParameter(value);
+    //     ValidateParameterName(parameter);
+    //     _parameters.Add(parameter);
+    //     return _parameters.Count - 1;
+    // }
 
     /// <summary>
     ///     Adds a parameter to the collection.
@@ -92,6 +90,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual SqliteParameter Add(SqliteParameter value)
     {
+        ValidateParameterName(value);
         _parameters.Add(value);
 
         return value;
@@ -140,7 +139,14 @@ public class SqliteParameterCollection : DbParameterCollection
     /// </param>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public override void AddRange(Array values)
-        => AddRange(values.Cast<SqliteParameter>());
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        foreach (object? value in values)
+        {
+            Add(value!);
+        }
+    }
 
     /// <summary>
     ///     Adds multiple parameters to the collection.
@@ -148,7 +154,14 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="values">The parameters to add.</param>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual void AddRange(IEnumerable<SqliteParameter> values)
-        => _parameters.AddRange(values);
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        foreach (SqliteParameter? value in values)
+        {
+            Add(value!);
+        }
+    }
 
     /// <summary>
     ///     Adds a parameter to the collection.
@@ -173,7 +186,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="value">The parameter to look for. Must be a <see cref="SqliteParameter" />.</param>
     /// <returns><see langword="true" /> if the collection contains the parameter; otherwise, <see langword="false" />.</returns>
     public override bool Contains(object value)
-        => Contains((SqliteParameter)value);
+        => value is SqliteParameter parameter && _parameters.Contains(parameter);
 
     /// <summary>
     ///     Gets a value indicating whether the collection contains the specified parameter.
@@ -189,7 +202,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="value">The name of the parameter.</param>
     /// <returns><see langword="true" /> if the collection contains the parameter; otherwise, <see langword="false" />.</returns>
     public override bool Contains(string value)
-        => IndexOf(value) != -1;
+        => IndexOf(value) >= 0;
 
     /// <summary>
     ///     Copies the collection to an array of parameters.
@@ -199,7 +212,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// </param>
     /// <param name="index">The zero-based index to which the parameters are copied.</param>
     public override void CopyTo(Array array, int index)
-        => CopyTo((SqliteParameter[])array, index);
+        => ((ICollection)_parameters).CopyTo(array, index);
 
     /// <summary>
     ///     Copies the collection to an array of parameters.
@@ -222,7 +235,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="index">The zero-based index of the parameter.</param>
     /// <returns>The parameter.</returns>
     protected override DbParameter GetParameter(int index)
-        => this[index];
+        => _parameters[index];
 
     /// <summary>
     ///     Gets a parameter with the specified name.
@@ -238,7 +251,7 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="value">The parameter. Must be a <see cref="SqliteParameter" />.</param>
     /// <returns>The zero-based index of the parameter.</returns>
     public override int IndexOf(object value)
-        => IndexOf((SqliteParameter)value);
+        => value is SqliteParameter parameter ? _parameters.IndexOf(parameter) : -1;
 
     /// <summary>
     ///     Gets the index of the specified parameter.
@@ -255,11 +268,17 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <returns>The zero-based index of the parameter or -1 if not found.</returns>
     public override int IndexOf(string parameterName)
     {
-        for (var index = 0; index < _parameters.Count; index++)
+        if (string.IsNullOrEmpty(parameterName))
         {
-            if (_parameters[index].ParameterName == parameterName)
+            return -1;
+        }
+
+        string normalized = NormalizeParameterName(parameterName);
+        for (int i = 0; i < _parameters.Count; i++)
+        {
+            if (NormalizeParameterName(_parameters[i].ParameterName).Equals(normalized, StringComparison.OrdinalIgnoreCase))
             {
-                return index;
+                return i;
             }
         }
 
@@ -272,7 +291,10 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="index">The zero-based index at which the parameter should be inserted.</param>
     /// <param name="value">The parameter to insert. Must be a <see cref="SqliteParameter" />.</param>
     public override void Insert(int index, object value)
-        => Insert(index, (SqliteParameter)value);
+    {
+        SqliteParameter parameter = AsSqliteParameter(value);
+        Insert(index, parameter);
+    }
 
     /// <summary>
     ///     Inserts a parameter into the collection at the specified index.
@@ -280,14 +302,28 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="index">The zero-based index at which the parameter should be inserted.</param>
     /// <param name="value">The parameter to insert.</param>
     public virtual void Insert(int index, SqliteParameter value)
-        => _parameters.Insert(index, value);
+    {
+        ValidateParameterName(value);
+        _parameters.Insert(index, value);
+    }
+
+    public override bool IsFixedSize => false;
+
+    public override bool IsReadOnly => false;
+
+    public override bool IsSynchronized => false;
 
     /// <summary>
     ///     Removes a parameter from the collection.
     /// </summary>
     /// <param name="value">The parameter to remove. Must be a <see cref="SqliteParameter" />.</param>
     public override void Remove(object value)
-        => Remove((SqliteParameter)value);
+    {
+        if (value is SqliteParameter parameter)
+        {
+            _parameters.Remove(parameter);
+        }
+    }
 
     /// <summary>
     ///     Removes a parameter from the collection.
@@ -316,7 +352,11 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="index">The zero-based index of the parameter to set.</param>
     /// <param name="value">The parameter. Must be a <see cref="SqliteParameter" />.</param>
     protected override void SetParameter(int index, DbParameter value)
-        => this[index] = (SqliteParameter)value;
+    {
+        SqliteParameter parameter = AsSqliteParameter(value);
+        ValidateParameterName(parameter);
+        _parameters[index] = parameter;
+    }
 
     /// <summary>
     ///     Sets the parameter with the specified name.
@@ -324,21 +364,63 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="parameterName">The name of the parameter to set.</param>
     /// <param name="value">The parameter. Must be a <see cref="SqliteParameter" />.</param>
     protected override void SetParameter(string parameterName, DbParameter value)
-        => SetParameter(IndexOfChecked(parameterName), value);
+    {
+        SqliteParameter parameter = AsSqliteParameter(value);
+        int index = IndexOf(parameterName);
+        if (index < 0)
+        {
+            Add(parameter);
+            return;
+        }
 
-    // internal int Bind(sqlite3_stmt stmt, sqlite3 handle)
-    // {
-    //     var bound = 0;
-    //     foreach (var parameter in _parameters)
-    //     {
-    //         if (parameter.Bind(stmt, handle))
-    //         {
-    //             bound++;
-    //         }
-    //     }
+        ValidateParameterName(parameter);
+        _parameters[index] = parameter;
+    }
 
-    //     return bound;
-    // }
+    private SqliteParameter AsSqliteParameter(object value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (value is not SqliteParameter parameter)
+        {
+            throw new InvalidCastException($"The SqliteParameterCollection only accepts non-null {nameof(SqliteParameter)} objects.");
+        }
+
+        return parameter;
+    }
+
+    private static void ValidateParameterName(SqliteParameter parameter)
+    {
+        string name = parameter.ParameterName;
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("ParameterName cannot consist only of white-space characters.", nameof(parameter));
+        }
+
+        string normalized = NormalizeParameterName(name);
+        if (normalized.Length == 0)
+        {
+            throw new ArgumentException("ParameterName must contain at least one non-prefix character.", nameof(parameter));
+        }
+    }
+
+    private static string NormalizeParameterName(string parameterName)
+    {
+        string trimmed = parameterName.Trim();
+        if (trimmed.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return trimmed[0] is '@' or ':' or '$'
+            ? trimmed.Substring(1)
+            : trimmed;
+    }
 
     private int IndexOfChecked(string parameterName)
     {

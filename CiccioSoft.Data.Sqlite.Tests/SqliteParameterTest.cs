@@ -260,7 +260,7 @@ public class SqliteParameterTest
 
     [Fact]
     public void Bind_works_when_DateTime_with_SqliteType_Real()
-        => Bind_works(new DateTime(2014, 4, 14, 11, 13, 59), 2456761.9680439816, SqliteType.Float);
+        => Bind_works(new DateTime(2014, 4, 14, 11, 13, 59), 2456761.9680439816, SqliteType.Real);
 
     [Fact]
     public void Bind_works_when_DateTimeOffset()
@@ -271,7 +271,7 @@ public class SqliteParameterTest
         => Bind_works(
             new DateTimeOffset(2014, 4, 14, 11, 13, 59, TimeSpan.FromHours(-8)),
             2456762.3013773146,
-            SqliteType.Float);
+            SqliteType.Real);
 
 #if NET6_0_OR_GREATER
     [Fact]
@@ -280,7 +280,7 @@ public class SqliteParameterTest
 
     [Fact]
     public void Bind_works_when_DateOnly_with_SqliteType_Real()
-        => Bind_works(new DateOnly(2014, 4, 14), 2456761.5, SqliteType.Float);
+        => Bind_works(new DateOnly(2014, 4, 14), 2456761.5, SqliteType.Real);
 
     [Fact]
     public void Bind_works_when_TimeOnly()
@@ -292,7 +292,7 @@ public class SqliteParameterTest
 
     [Fact]
     public void Bind_works_when_TimeOnly_with_SqliteType_Real()
-        => Bind_works(new TimeOnly(13, 10, 15), 0.5487847222222222, SqliteType.Float);
+        => Bind_works(new TimeOnly(13, 10, 15), 0.5487847222222222, SqliteType.Real);
 #endif
 
     [Fact]
@@ -334,7 +334,7 @@ public class SqliteParameterTest
 
     [Fact]
     public void Bind_works_when_TimeSpan_with_SqliteType_Real()
-        => Bind_works(new TimeSpan(11, 19, 32), 0.47189814814814812, SqliteType.Float);
+        => Bind_works(new TimeSpan(11, 19, 32), 0.47189814814814812, SqliteType.Real);
 
     [Fact]
     public void Bind_throws_when_unknown()
@@ -596,8 +596,8 @@ public class SqliteParameterTest
             new object[] { 0u, SqliteType.Integer },
             new object[] { 0ul, SqliteType.Integer },
             new object[] { (ushort)0, SqliteType.Integer },
-            new object[] { 0.0, SqliteType.Float },
-            new object[] { 0f, SqliteType.Float },
+            new object[] { 0.0, SqliteType.Real },
+            new object[] { 0f, SqliteType.Real },
             new object[] { Array.Empty<byte>(), SqliteType.Blob },
         };
 

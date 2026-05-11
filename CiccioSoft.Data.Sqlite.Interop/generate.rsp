@@ -13,6 +13,9 @@ c
 --with-access-specifier
 *=internal
 
+--with-member-access-specifier
+*=internal
+
 --exclude
 fts5_api
 Fts5Tokenizer
