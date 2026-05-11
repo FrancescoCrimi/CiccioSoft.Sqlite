@@ -22,7 +22,7 @@ public sealed class Sqlite3StmtHandle : SafeHandleZeroOrMinusOneIsInvalid
     }
     protected override bool ReleaseHandle()
     {
-        return NativeSqlite3.sqlite3_finalize(handle) == NativeSqlite3.SQLITE_OK;
+        return Sqlite3Native.sqlite3_finalize(handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 
@@ -57,7 +57,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public bool Step()
     {
         ThrowIfInvalid();
-        SqliteResult res = (SqliteResult)NativeSqlite3.sqlite3_step(_handle.DangerousGetHandle());
+        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_step(_handle.DangerousGetHandle());
         if (res == SqliteResult.Row) return true;
         if (res == SqliteResult.Done) return false;
 
@@ -82,7 +82,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void Reset()
     {
         ThrowIfInvalid();
-        SqliteResult res = (SqliteResult)NativeSqlite3.sqlite3_reset(_handle.DangerousGetHandle());
+        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_reset(_handle.DangerousGetHandle());
         ThrowOnError(res, "SQLite reset");
     }
 
@@ -109,7 +109,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void ClearBindings()
     {
         ThrowIfInvalid();
-        SqliteResult res = (SqliteResult)NativeSqlite3.sqlite3_clear_bindings(_handle.DangerousGetHandle());
+        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_clear_bindings(_handle.DangerousGetHandle());
         ThrowOnError(res, "SQLite clear bindings");
     }
 
@@ -132,7 +132,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public int ColumnCount()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_column_count(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_column_count(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public int ParameterCount()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_bind_parameter_count(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_bind_parameter_count(_handle.DangerousGetHandle());
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetParameterName(int index)
     {
         ThrowIfInvalid();
-        byte* pName = NativeSqlite3.sqlite3_bind_parameter_name(_handle.DangerousGetHandle(), index);
+        byte* pName = Sqlite3Native.sqlite3_bind_parameter_name(_handle.DangerousGetHandle(), index);
         return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
     }
 
@@ -177,7 +177,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
             fixed (byte* pBuf = buffer)
             {
-                return NativeSqlite3.sqlite3_bind_parameter_index(_handle.DangerousGetHandle(), pBuf);
+                return Sqlite3Native.sqlite3_bind_parameter_index(_handle.DangerousGetHandle(), pBuf);
             }
         }
         finally
@@ -207,7 +207,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         ThrowIfInvalid();
 
         // sqlite3_column_name restituisce un byte* UTF-8 (null-terminated)
-        byte* pName = NativeSqlite3.sqlite3_column_name(_handle.DangerousGetHandle(), index);
+        byte* pName = Sqlite3Native.sqlite3_column_name(_handle.DangerousGetHandle(), index);
 
         // Se l'indice è fuori intervallo o il nome non è disponibile, SQLite restituisce NULL
         if (pName == null) return null;
@@ -222,7 +222,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetColumnDeclType(int index)
     {
         ThrowIfInvalid();
-        byte* pText = NativeSqlite3.sqlite3_column_decltype(_handle.DangerousGetHandle(), index);
+        byte* pText = Sqlite3Native.sqlite3_column_decltype(_handle.DangerousGetHandle(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -232,7 +232,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetColumnDatabaseName(int index)
     {
         ThrowIfInvalid();
-        byte* pText = NativeSqlite3.sqlite3_column_database_name(_handle.DangerousGetHandle(), index);
+        byte* pText = Sqlite3Native.sqlite3_column_database_name(_handle.DangerousGetHandle(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -242,7 +242,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetColumnTableName(int index)
     {
         ThrowIfInvalid();
-        byte* pText = NativeSqlite3.sqlite3_column_table_name(_handle.DangerousGetHandle(), index);
+        byte* pText = Sqlite3Native.sqlite3_column_table_name(_handle.DangerousGetHandle(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -252,7 +252,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetColumnOriginName(int index)
     {
         ThrowIfInvalid();
-        byte* pText = NativeSqlite3.sqlite3_column_origin_name(_handle.DangerousGetHandle(), index);
+        byte* pText = Sqlite3Native.sqlite3_column_origin_name(_handle.DangerousGetHandle(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -269,7 +269,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public int GetInt(int index)
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_column_int(_handle.DangerousGetHandle(), index);
+        return Sqlite3Native.sqlite3_column_int(_handle.DangerousGetHandle(), index);
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public long GetLong(int index)
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_column_int64(_handle.DangerousGetHandle(), index);
+        return Sqlite3Native.sqlite3_column_int64(_handle.DangerousGetHandle(), index);
     }
 
     /// <summary>
@@ -291,7 +291,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public double GetDouble(int index)
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_column_double(_handle.DangerousGetHandle(), index);
+        return Sqlite3Native.sqlite3_column_double(_handle.DangerousGetHandle(), index);
     }
 
     /// <summary>
@@ -323,11 +323,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         ThrowIfInvalid();
 
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
-        byte* pText = NativeSqlite3.sqlite3_column_text(_handle.DangerousGetHandle(), index);
+        byte* pText = Sqlite3Native.sqlite3_column_text(_handle.DangerousGetHandle(), index);
         if (pText == null) return null;
 
         // Chiediamo a SQLite la lunghezza esatta in byte
-        int byteCount = NativeSqlite3.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
+        int byteCount = Sqlite3Native.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
 
         if (byteCount == 0)
         {
@@ -362,11 +362,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         ThrowIfInvalid();
 
         // Otteniamo il puntatore alla memoria del BLOB gestita da SQLite
-        void* pBlob = NativeSqlite3.sqlite3_column_blob(_handle.DangerousGetHandle(), index);
+        void* pBlob = Sqlite3Native.sqlite3_column_blob(_handle.DangerousGetHandle(), index);
         if (pBlob == null) return ReadOnlySpan<byte>.Empty;
 
         // Otteniamo la dimensione in byte
-        int length = NativeSqlite3.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
+        int length = Sqlite3Native.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
 
         // Restituiamo uno Span che punta direttamente alla memoria interna di SQLite.
         // NOTA: Questo Span è valido solo finché non chiami Step() o Reset() sullo statement.
@@ -394,7 +394,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public SqliteType GetColumnType(int index)
     {
         ThrowIfInvalid();
-        int rc = NativeSqlite3.sqlite3_column_type(_handle.DangerousGetHandle(), index);
+        int rc = Sqlite3Native.sqlite3_column_type(_handle.DangerousGetHandle(), index);
         return (SqliteType)rc;
     }
 
@@ -404,7 +404,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public bool IsReadOnly()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_stmt_readonly(_handle.DangerousGetHandle()) != 0;
+        return Sqlite3Native.sqlite3_stmt_readonly(_handle.DangerousGetHandle()) != 0;
     }
 
     /// <summary>
@@ -413,7 +413,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public bool IsBusy()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_stmt_busy(_handle.DangerousGetHandle()) != 0;
+        return Sqlite3Native.sqlite3_stmt_busy(_handle.DangerousGetHandle()) != 0;
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     {
         ThrowIfInvalid();
 
-        byte* pExpanded = NativeSqlite3.sqlite3_expanded_sql(_handle.DangerousGetHandle());
+        byte* pExpanded = Sqlite3Native.sqlite3_expanded_sql(_handle.DangerousGetHandle());
         if (pExpanded == null)
         {
             return null;
@@ -435,7 +435,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         }
         finally
         {
-            NativeSqlite3.sqlite3_free(pExpanded);
+            Sqlite3Native.sqlite3_free(pExpanded);
         }
     }
 
@@ -445,7 +445,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetSql()
     {
         ThrowIfInvalid();
-        byte* pSql = NativeSqlite3.sqlite3_sql(_handle.DangerousGetHandle());
+        byte* pSql = Sqlite3Native.sqlite3_sql(_handle.DangerousGetHandle());
         return pSql is null ? null : Marshal.PtrToStringUTF8((nint)pSql);
     }
 
@@ -462,7 +462,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindNull(int index)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)NativeSqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
+        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
     }
 
     /// <summary>
@@ -473,7 +473,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindInt(int index, int value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)NativeSqlite3.sqlite3_bind_int(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_int(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -484,7 +484,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindLong(int index, long value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)NativeSqlite3.sqlite3_bind_int64(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_int64(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -495,7 +495,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindDouble(int index, double value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)NativeSqlite3.sqlite3_bind_double(_handle.DangerousGetHandle(), index, value), index);
+        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.DangerousGetHandle(), index, value), index);
     }
 
     /// <summary>
@@ -526,7 +526,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
         if (s is null)
         {
-            CheckResult((SqliteResult)NativeSqlite3.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
+            CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
             return;
         }
 
@@ -548,12 +548,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
             {
                 // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
                 // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
-                SqliteResult res = (SqliteResult)NativeSqlite3.sqlite3_bind_text(
+                SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_text(
                     _handle.DangerousGetHandle(),
                     index,
                     pBuf,
                     dataLength,
-                    NativeSqlite3.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
+                    Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
                 CheckResult(res, index);
             }
         }
@@ -597,12 +597,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
         fixed (byte* pData = data)
         {
-            SqliteResult res = (SqliteResult)NativeSqlite3.sqlite3_bind_blob(
+            SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_blob(
                 _handle.DangerousGetHandle(),
                 index,
                 pData,
                 data.Length,
-                NativeSqlite3.SQLITE_TRANSIENT);
+                Sqlite3Native.SQLITE_TRANSIENT);
             CheckResult(res, index);
         }
     }
@@ -625,7 +625,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
     private nint GetDbHandle()
     {
-        return NativeSqlite3.sqlite3_db_handle(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_db_handle(_handle.DangerousGetHandle());
     }
 
     private void ThrowIfInvalid()

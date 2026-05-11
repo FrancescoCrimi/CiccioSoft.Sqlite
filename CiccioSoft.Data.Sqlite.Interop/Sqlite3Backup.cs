@@ -18,7 +18,7 @@ public sealed class Sqlite3BackupHandle : SafeHandleZeroOrMinusOneIsInvalid
     }
     protected override bool ReleaseHandle()
     {
-        NativeSqlite3.sqlite3_backup_finish(handle);
+        Sqlite3Native.sqlite3_backup_finish(handle);
         return true;
     }
 }
@@ -35,19 +35,19 @@ public sealed unsafe class Sqlite3Backup : IDisposable
     public SqliteResult Step(int pages = -1)
     {
         ThrowIfInvalid();
-        return (SqliteResult)NativeSqlite3.sqlite3_backup_step(_handle.DangerousGetHandle(), pages);
+        return (SqliteResult)Sqlite3Native.sqlite3_backup_step(_handle.DangerousGetHandle(), pages);
     }
 
     public int Remaining()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_backup_remaining(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_backup_remaining(_handle.DangerousGetHandle());
     }
 
     public int PageCount()
     {
         ThrowIfInvalid();
-        return NativeSqlite3.sqlite3_backup_pagecount(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_backup_pagecount(_handle.DangerousGetHandle());
     }
 
     public SqliteResult Finish()
@@ -57,7 +57,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             return SqliteResult.OK;
         }
 
-        SqliteResult result = (SqliteResult)NativeSqlite3.sqlite3_backup_finish(_handle.DangerousGetHandle());
+        SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.DangerousGetHandle());
         _handle.SetHandleAsInvalid();
         _handle.Dispose();
         return result;

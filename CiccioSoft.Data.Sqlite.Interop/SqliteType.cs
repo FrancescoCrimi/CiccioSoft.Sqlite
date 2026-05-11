@@ -10,9 +10,9 @@ namespace CiccioSoft.Data.Sqlite.Interop;
 
 public enum SqliteType
 {
-    Integer = NativeSqlite3.SQLITE_INTEGER,
-    Float = NativeSqlite3.SQLITE_FLOAT,
-    Text = NativeSqlite3.SQLITE_TEXT,
-    Blob = NativeSqlite3.SQLITE_BLOB,
-    Null = NativeSqlite3.SQLITE_NULL
+    Integer = Sqlite3Native.SQLITE_INTEGER,
+    Float = Sqlite3Native.SQLITE_FLOAT,
+    Text = Sqlite3Native.SQLITE_TEXT,
+    Blob = Sqlite3Native.SQLITE_BLOB,
+    Null = Sqlite3Native.SQLITE_NULL
 }

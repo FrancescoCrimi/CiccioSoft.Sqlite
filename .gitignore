@@ -485,5 +485,3 @@ $RECYCLE.BIN/
 
 CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests/
 CiccioSoft.Data.Sqlite.Interop.Benchmark/
-Microsoft.Data.Sqlite.Core/
-Microsoft.Data.Sqlite.Tests/

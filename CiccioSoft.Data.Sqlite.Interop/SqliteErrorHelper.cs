@@ -30,8 +30,8 @@ internal static unsafe class SqliteErrorHelper
         if (db != nint.Zero)
         {
             // Read extended code exactly once from the native connection.
-            extendedCodeValue = NativeSqlite3.sqlite3_extended_errcode(db);
-            byte* pErr = NativeSqlite3.sqlite3_errmsg(db);
+            extendedCodeValue = Sqlite3Native.sqlite3_extended_errcode(db);
+            byte* pErr = Sqlite3Native.sqlite3_errmsg(db);
             nativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
         else

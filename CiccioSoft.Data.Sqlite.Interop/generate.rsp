@@ -7,11 +7,12 @@ CiccioSoft.Data.Sqlite.Interop.Native
 --libraryPath
 e_sqlite3
 --methodClassName
-NativeSqlite3
+Sqlite3Native
 --language
 c
 --with-access-specifier
 *=internal
+
 --exclude
 fts5_api
 Fts5Tokenizer
@@ -46,6 +47,9 @@ sqlite3_value
 sqlite3_vfs
 sqlite3_vtab
 sqlite3_vtab_cursor
+SQLITE_STATIC
+SQLITE_TRANSIENT
+
 --remap
 sqlite3*=nint
 sqlite3_backup*=nint
@@ -63,11 +67,9 @@ sqlite3_str*=nint
 sqlite3_value*=nint
 sqlite3_vfs*=nint
 char=byte
-void (*)(void *)=delegate* unmanaged[Cdecl]<void*, void>
-sqlite3_destructor_type=delegate* unmanaged[Cdecl]<void*, void>
---with-type
-void (*)(void *)=delegate* unmanaged[Cdecl]<void*, void>
-sqlite3_destructor_type=delegate* unmanaged[Cdecl]<void*, void>
+void (*)(void *)=nint
+sqlite3_destructor_type=nint
+
 --config
 multi-file
 generate-helper-types
