@@ -13,7 +13,11 @@ using CiccioSoft.Data.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-internal class SqliteParameterCollection : DbParameterCollection
+/// <summary>
+///     Represents a collection of SQLite parameters.
+/// </summary>
+/// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
+public class SqliteParameterCollection : DbParameterCollection
 {
     private readonly List<SqliteParameter> _parameters = [];
 

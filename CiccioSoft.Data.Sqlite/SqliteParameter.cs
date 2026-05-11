@@ -24,6 +24,7 @@ public class SqliteParameter : DbParameter
 {
     private string _parameterName = string.Empty;
     private object? _value;
+    private int? _size;
     private SqliteType? _sqliteType;
     private string _sourceColumn = string.Empty;
     private ParameterDirection _direction = ParameterDirection.Input;
@@ -43,7 +44,7 @@ public class SqliteParameter : DbParameter
     /// <param name="value">The value of the parameter. Can be null.</param>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
-    public SqliteParameter(string name, object? value)
+    public SqliteParameter(string? name, object? value)
     {
         ParameterName = name;
         Value = value;
@@ -137,7 +138,28 @@ public class SqliteParameter : DbParameter
         set => _parameterName = value ?? string.Empty;
     }
 
-    public override int Size { get; set; }
+    public override int Size
+    {
+        // get;
+        // set;
+        get => _size
+            ?? (_value is string stringValue
+                ? stringValue.Length
+                : _value is byte[] byteArray
+                    ? byteArray.Length
+                    : 0);
+
+        set
+        {
+            if (value < -1)
+            {
+                // NB: Message is provided by the framework
+                throw new ArgumentOutOfRangeException(nameof(value), value, message: null);
+            }
+
+            _size = value;
+        }
+    }
 
     /// <summary>
     ///     Gets or sets the source column used for loading the value.
@@ -163,7 +185,11 @@ public class SqliteParameter : DbParameter
     /// <value>The value of the parameter.</value>
     /// <remarks>Due to SQLite's dynamic type system, parameter values are not converted.</remarks>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
-    public override object? Value { get; set; }
+    public override object? Value
+    {
+        get => _value;
+        set => _value = value;
+    }
 
     /// <summary>
     ///     Resets the <see cref="DbType" /> property to its original value.

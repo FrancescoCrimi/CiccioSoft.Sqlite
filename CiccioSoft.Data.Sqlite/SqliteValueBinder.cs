@@ -3,22 +3,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+// using System.Globalization;
 using CiccioSoft.Data.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 
 namespace CiccioSoft.Data.Sqlite;
 
 // TODO: Make generic
-public abstract class SqliteValueBinder(object? value, SqliteType? sqliteType)
+// public abstract class SqliteValueBinder(object? value, SqliteType? sqliteType)
+public abstract class SqliteValueBinder()
 {
-    private static readonly bool Pre10TimeZoneHandling =
-        AppContext.TryGetSwitch("Microsoft.Data.Sqlite.Pre10TimeZoneHandling", out var enabled) && enabled;
+    // private static readonly bool Pre10TimeZoneHandling =
+    //     AppContext.TryGetSwitch("Microsoft.Data.Sqlite.Pre10TimeZoneHandling", out var enabled) && enabled;
 
-    protected SqliteValueBinder(object? value)
-        : this(value, null)
-    {
-    }
+    // protected SqliteValueBinder(object? value)
+    //     : this(value, null)
+    // {
+    // }
 
     // protected abstract void BindInt64(long value);
 

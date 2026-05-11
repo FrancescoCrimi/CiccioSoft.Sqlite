@@ -82,6 +82,10 @@ public class SqliteCommand : DbCommand
         }
     }
 
+    /// <summary>
+    ///     Gets or sets the connection used by the command.
+    /// </summary>
+    /// <value>The connection used by the command.</value>
     public new SqliteConnection? Connection
     {
         get => _connection;
@@ -97,24 +101,31 @@ public class SqliteCommand : DbCommand
         }
     }
 
+    /// <summary>
+    ///     Gets or sets the connection used by the command. Must be a <see cref="SqliteConnection" />.
+    /// </summary>
+    /// <value>The connection used by the command.</value>
     protected override DbConnection? DbConnection
     {
         get => _connection;
         set => Connection = (SqliteConnection?)value;
     }
 
+    /// <summary>
+    ///     Gets or sets the transaction within which the command executes.
+    /// </summary>
+    /// <value>The transaction within which the command executes.</value>
+    public new SqliteTransaction? Transaction { get; set; }
 
-    private int _commandTimeout = 30;
-    public override int CommandTimeout
+    /// <summary>
+    ///     Gets or sets the transaction within which the command executes. Must be a <see cref="SqliteTransaction" />.
+    /// </summary>
+    /// <value>The transaction within which the command executes.</value>
+    protected override DbTransaction? DbTransaction
     {
-        get => _commandTimeout;
-        set => _commandTimeout = value < 0
-            ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
-            : value;
+        get => Transaction;
+        set => Transaction = (SqliteTransaction?)value;
     }
-
-    public override bool DesignTimeVisible { get; set; }
-    public override UpdateRowSource UpdatedRowSource { get; set; }
 
     /// <summary>
     ///     Gets the collection of parameters used by the command.
@@ -131,22 +142,239 @@ public class SqliteCommand : DbCommand
     protected override DbParameterCollection DbParameterCollection
         => _parameters;
 
-    public new SqliteTransaction? Transaction { get; set; }
+    private int _commandTimeout = 30;
 
-    protected override DbTransaction? DbTransaction
+    /// <summary>
+    ///     Gets or sets the number of seconds to wait before terminating the attempt to execute the command.
+    ///     Defaults to 30. A value of 0 means no timeout.
+    /// </summary>
+    /// <value>The number of seconds to wait before terminating the attempt to execute the command.</value>
+    /// <remarks>
+    ///     The timeout is used when the command is waiting to obtain a lock on the table.
+    /// </remarks>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    public override int CommandTimeout
     {
-        get => Transaction;
-        set => Transaction = (SqliteTransaction?)value;
+        get => _commandTimeout;
+        set => _commandTimeout = value < 0
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
+            : value;
     }
 
-    public override void Cancel()
+    /// <summary>
+    ///     Gets or sets a value indicating whether the command should be visible in an interface control.
+    /// </summary>
+    /// <value>A value indicating whether the command should be visible in an interface control.</value>
+    public override bool DesignTimeVisible { get; set; }
+
+    /// <summary>
+    ///     Gets or sets a value indicating how the results are applied to the row being updated.
+    /// </summary>
+    /// <value>A value indicating how the results are applied to the row being updated.</value>
+    public override UpdateRowSource UpdatedRowSource { get; set; }
+
+    /// <summary>
+    ///     Releases any resources used by the connection and closes it.
+    /// </summary>
+    /// <param name="disposing">
+    ///     <see langword="true" /> to release managed and unmanaged resources;
+    ///     <see langword="false" /> to release only unmanaged resources.
+    /// </param>
+    protected override void Dispose(bool disposing)
     {
-        if (_connection is null || _connection.State != ConnectionState.Open)
+        if (disposing)
+        {
+            InvalidateStatementCache();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    /// <summary>
+    ///     Creates a new parameter.
+    /// </summary>
+    /// <returns>The new parameter.</returns>
+    public new virtual SqliteParameter CreateParameter()
+        => new();
+
+    /// <summary>
+    ///     Creates a new parameter.
+    /// </summary>
+    /// <returns>The new parameter.</returns>
+    protected override DbParameter CreateDbParameter()
+        => CreateParameter();
+
+    /// <summary>
+    ///     Creates a prepared version of the command on the database.
+    /// </summary>
+    public override void Prepare()
+    {
+        SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
+        ValidateTransaction(conn);
+        SqliteSession session = conn.GetSession();
+        using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
+        if (IsSingleStatementCommand())
+        {
+            using CachedStatementLease _ = scope.Execute(() => AcquireCachedStatement(session));
             return;
+        }
 
-        _connection.GetSession().Native.Interrupt();
+        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText, SqlitePreparePersistentFlag));
     }
 
+
+
+    #region Imported
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> against the database and returns a data reader.
+    /// </summary>
+    /// <returns>The data reader.</returns>
+    /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    public new virtual SqliteDataReader ExecuteReader()
+        // => ExecuteReader(CommandBehavior.Default);
+        => throw new NotImplementedException();
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> against the database and returns a data reader.
+    /// </summary>
+    /// <param name="behavior">A description of the results of the query and its effect on the database.</param>
+    /// <returns>The data reader.</returns>
+    /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    public new virtual SqliteDataReader ExecuteReader(CommandBehavior behavior)
+    {
+        // if (DataReader != null)
+        // {
+        //     throw new InvalidOperationException(Resources.DataReaderOpen);
+        // }
+
+        // if (_connection?.State != ConnectionState.Open)
+        // {
+        //     throw new InvalidOperationException(Resources.CallRequiresOpenConnection(nameof(ExecuteReader)));
+        // }
+
+        // if (Transaction != _connection.Transaction)
+        // {
+        //     throw new InvalidOperationException(
+        //         Transaction == null
+        //             ? Resources.TransactionRequired
+        //             : Resources.TransactionConnectionMismatch);
+        // }
+
+        // if (_connection.Transaction?.ExternalRollback == true)
+        // {
+        //     throw new InvalidOperationException(Resources.TransactionCompleted);
+        // }
+
+        // var closeConnection = behavior.HasFlag(CommandBehavior.CloseConnection);
+
+        // var dataReader = new SqliteDataReader(this, GetStatements(), closeConnection);
+        // dataReader.NextResult();
+
+        // return DataReader = dataReader;
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
+
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> against the database and returns a data reader.
+    /// </summary>
+    /// <param name="behavior">A description of query's results and its effect on the database.</param>
+    /// <returns>The data reader.</returns>
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+    {
+        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
+        ValidateTransaction(conn);
+        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
+    }
+
+
+
+    #region Imported
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/async">Async Limitations</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    public new virtual Task<SqliteDataReader> ExecuteReaderAsync()
+        => ExecuteReaderAsync(CommandBehavior.Default, CancellationToken.None);
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/async">Async Limitations</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
+    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
+        => ExecuteReaderAsync(CommandBehavior.Default, cancellationToken);
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
+    /// </summary>
+    /// <param name="behavior">A description of query's results and its effect on the database.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/async">Async Limitations</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+        => ExecuteReaderAsync(behavior, CancellationToken.None);
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
+    /// </summary>
+    /// <param name="behavior">A description of query's results and its effect on the database.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/async">Async Limitations</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
+    /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
+    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(
+        CommandBehavior behavior,
+        CancellationToken cancellationToken)
+    {
+        // cancellationToken.ThrowIfCancellationRequested();
+
+        // return Task.FromResult(ExecuteReader(behavior));
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
+    /// </summary>
+    /// <param name="behavior">A description of query's results and its effect on the database.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/async">Async Limitations</seealso>
+    /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(
+        CommandBehavior behavior,
+        CancellationToken cancellationToken)
+        => await ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false);
+
+    #endregion
+
+
+
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> against the database.
+    /// </summary>
+    /// <returns>The number of rows inserted, updated, or deleted. -1 for SELECT statements.</returns>
+    /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
     public override int ExecuteNonQuery()
     {
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
@@ -204,25 +432,27 @@ public class SqliteCommand : DbCommand
         return session.Native.Changes();
     }
 
+    /// <summary>
+    ///     Executes the <see cref="CommandText" /> against the database and returns the result.
+    /// </summary>
+    /// <returns>The first column of the first row of the results, or null if no results.</returns>
+    /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
     public override object? ExecuteScalar()
     {
         using DbDataReader reader = ExecuteReader(CommandBehavior.SingleRow);
         return reader.Read() ? reader.GetValue(0) : null;
     }
 
-    public override void Prepare()
+    /// <summary>
+    ///     Attempts to cancel the execution of the command. Does nothing.
+    /// </summary>
+    public override void Cancel()
     {
-        SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
-        ValidateTransaction(conn);
-        SqliteSession session = conn.GetSession();
-        using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-        if (IsSingleStatementCommand())
-        {
-            using CachedStatementLease _ = scope.Execute(() => AcquireCachedStatement(session));
+        if (_connection is null || _connection.State != ConnectionState.Open)
             return;
-        }
 
-        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText, SqlitePreparePersistentFlag));
+        _connection.GetSession().Native.Interrupt();
     }
 
 
@@ -350,15 +580,6 @@ public class SqliteCommand : DbCommand
         }
 
         return new CancellationTokenSource(TimeSpan.FromSeconds(CommandTimeout));
-    }
-
-    protected override DbParameter CreateDbParameter() => new SqliteParameter();
-
-    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
-    {
-        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
-        ValidateTransaction(conn);
-        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
     }
 
     internal sealed class BatchExecutionState
@@ -529,16 +750,6 @@ public class SqliteCommand : DbCommand
         {
             throw new InvalidOperationException(Resources.TransactionConnectionMismatch);
         }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            InvalidateStatementCache();
-        }
-
-        base.Dispose(disposing);
     }
 
     private bool IsSingleStatementCommand()
