@@ -1,14 +1,16 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 
 using System;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using CiccioSoft.Data.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
-// using SQLitePCL;
-// using static SQLitePCL.raw;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -22,9 +24,9 @@ public class SqliteParameter : DbParameter
 {
     private string _parameterName = string.Empty;
     private object? _value;
-    private int? _size;
     private SqliteType? _sqliteType;
     private string _sourceColumn = string.Empty;
+    private ParameterDirection _direction = ParameterDirection.Input;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="SqliteParameter" /> class.
@@ -41,7 +43,7 @@ public class SqliteParameter : DbParameter
     /// <param name="value">The value of the parameter. Can be null.</param>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
-    public SqliteParameter(string? name, object? value)
+    public SqliteParameter(string name, object? value)
     {
         ParameterName = name;
         Value = value;
@@ -87,7 +89,7 @@ public class SqliteParameter : DbParameter
     /// </summary>
     /// <value>The type of the parameter.</value>
     /// <remarks>Due to SQLite's dynamic type system, parameter values are not converted.</remarks>
-    public override DbType DbType { get; set; } = DbType.String;
+    public override DbType DbType { get; set; } = DbType.Object;
 
     /// <summary>
     ///     Gets or sets the SQLite type of the parameter.
@@ -106,14 +108,15 @@ public class SqliteParameter : DbParameter
     /// <value>The direction of the parameter.</value>
     public override ParameterDirection Direction
     {
-        get => ParameterDirection.Input;
-        set
+        get => _direction;
+        set => _direction = value switch
         {
-            if (value != ParameterDirection.Input)
-            {
-                throw new ArgumentException(Resources.InvalidParameterDirection(value));
-            }
-        }
+            ParameterDirection.Input or
+            ParameterDirection.Output or
+            ParameterDirection.InputOutput or
+            ParameterDirection.ReturnValue => value,
+            _ => throw new ArgumentException(Resources.InvalidParameterDirection(value))
+        };
     }
 
     /// <summary>
@@ -126,6 +129,7 @@ public class SqliteParameter : DbParameter
     ///     Gets or sets the name of the parameter.
     /// </summary>
     /// <value>The name of the parameter.</value>
+    [DefaultValue("")]
     [AllowNull]
     public override string ParameterName
     {
@@ -133,36 +137,13 @@ public class SqliteParameter : DbParameter
         set => _parameterName = value ?? string.Empty;
     }
 
-    /// <summary>
-    ///     Gets or sets the maximum size, in bytes, of the parameter.
-    /// </summary>
-    /// <value>The maximum size, in bytes, of the parameter.</value>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
-    public override int Size
-    {
-        get => _size
-            ?? (_value is string stringValue
-                ? stringValue.Length
-                : _value is byte[] byteArray
-                    ? byteArray.Length
-                    : 0);
-
-        set
-        {
-            if (value < -1)
-            {
-                // NB: Message is provided by the framework
-                throw new ArgumentOutOfRangeException(nameof(value), value, message: null);
-            }
-
-            _size = value;
-        }
-    }
+    public override int Size { get; set; }
 
     /// <summary>
     ///     Gets or sets the source column used for loading the value.
     /// </summary>
     /// <value>The source column used for loading the value.</value>
+    [DefaultValue("")]
     [AllowNull]
     public override string SourceColumn
     {
@@ -182,82 +163,21 @@ public class SqliteParameter : DbParameter
     /// <value>The value of the parameter.</value>
     /// <remarks>Due to SQLite's dynamic type system, parameter values are not converted.</remarks>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
-    public override object? Value
-    {
-        get => _value;
-        set => _value = value;
-    }
+    public override object? Value { get; set; }
 
     /// <summary>
     ///     Resets the <see cref="DbType" /> property to its original value.
     /// </summary>
     public override void ResetDbType()
         => ResetSqliteType();
+    // => DbType = DbType.Object;
 
     /// <summary>
     ///     Resets the <see cref="SqliteType" /> property to its original value.
     /// </summary>
     public virtual void ResetSqliteType()
     {
-        DbType = DbType.String;
+        DbType = DbType.Object;
         _sqliteType = null;
     }
-
-    // internal bool Bind(sqlite3_stmt stmt, sqlite3 handle)
-    // {
-    //     if (string.IsNullOrEmpty(ParameterName))
-    //     {
-    //         throw new InvalidOperationException(Resources.RequiresSet(nameof(ParameterName)));
-    //     }
-
-    //     var index = sqlite3_bind_parameter_index(stmt, ParameterName);
-    //     if (index == 0
-    //         && (index = FindPrefixedParameter(stmt)) == 0)
-    //     {
-    //         return false;
-    //     }
-
-    //     if (_value == null)
-    //     {
-    //         throw new InvalidOperationException(Resources.RequiresSet(nameof(Value)));
-    //     }
-
-    //     new SqliteParameterBinder(stmt, handle, index, _value, _size, _sqliteType).Bind();
-
-    //     return true;
-    // }
-
-    // private static readonly char[] _parameterPrefixes = ['@', '$', ':'];
-
-    // private int FindPrefixedParameter(sqlite3_stmt stmt)
-    // {
-    //     var index = 0;
-    //     int nextIndex;
-
-    //     foreach (var prefix in _parameterPrefixes)
-    //     {
-    //         if (ParameterName[0] == prefix)
-    //         {
-    //             // If name already has a prefix characters, the first call to sqlite3_bind_parameter_index
-    //             // would have worked if the parameter name was in the statement
-    //             return 0;
-    //         }
-
-    //         nextIndex = sqlite3_bind_parameter_index(stmt, prefix + ParameterName);
-
-    //         if (nextIndex == 0)
-    //         {
-    //             continue;
-    //         }
-
-    //         if (index != 0)
-    //         {
-    //             throw new InvalidOperationException(Resources.AmbiguousParameterName(ParameterName));
-    //         }
-
-    //         index = nextIndex;
-    //     }
-
-    //     return index;
-    // }
 }

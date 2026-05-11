@@ -35,8 +35,34 @@ public class SqliteCommand : DbCommand
         Connection = connection;
     }
 
+    private CommandType _commandType = CommandType.Text;
+
+    /// <summary>
+    ///     Gets or sets a value indicating how <see cref="CommandText" /> is interpreted. Only
+    ///     <see cref="System.Data.CommandType.Text" /> is supported.
+    /// </summary>
+    /// <value>A value indicating how <see cref="CommandText" /> is interpreted.</value>
+    public override CommandType CommandType
+    {
+        get => _commandType;
+        set
+        {
+            if (value != CommandType.Text)
+            {
+                throw new NotSupportedException(Properties.Resources.InvalidCommandType(value));
+            }
+
+            _commandType = value;
+        }
+    }
+
     private string _commandText = string.Empty;
 
+    /// <summary>
+    ///     Gets or sets the SQL to execute against the database.
+    /// </summary>
+    /// <value>The SQL to execute against the database.</value>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/batching">Batching</seealso>
     [DefaultValue("")]
     [RefreshProperties(RefreshProperties.All)]
     [AllowNull]
@@ -55,34 +81,6 @@ public class SqliteCommand : DbCommand
             _commandText = normalized;
         }
     }
-
-    private int _commandTimeout = 30;
-    public override int CommandTimeout
-    {
-        get => _commandTimeout;
-        set => _commandTimeout = value < 0
-            ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
-            : value;
-    }
-
-    private CommandType _commandType = CommandType.Text;
-
-    public override CommandType CommandType
-    {
-        get => _commandType;
-        set
-        {
-            if (value != CommandType.Text)
-            {
-                throw new NotSupportedException(Properties.Resources.InvalidCommandType(value));
-            }
-
-            _commandType = value;
-        }
-    }
-
-    public override bool DesignTimeVisible { get; set; }
-    public override UpdateRowSource UpdatedRowSource { get; set; }
 
     public new SqliteConnection? Connection
     {
@@ -104,6 +102,19 @@ public class SqliteCommand : DbCommand
         get => _connection;
         set => Connection = (SqliteConnection?)value;
     }
+
+
+    private int _commandTimeout = 30;
+    public override int CommandTimeout
+    {
+        get => _commandTimeout;
+        set => _commandTimeout = value < 0
+            ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
+            : value;
+    }
+
+    public override bool DesignTimeVisible { get; set; }
+    public override UpdateRowSource UpdatedRowSource { get; set; }
 
     /// <summary>
     ///     Gets the collection of parameters used by the command.
