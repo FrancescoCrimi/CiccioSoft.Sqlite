@@ -90,16 +90,16 @@ public class SqliteCommandTest : IDisposable
 
 ```bash
 # Build all tests
-dotnet build CiccioSoft.Data.Sqlite.slnx
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Run all tests
-dotnet test CiccioSoft.Data.Sqlite.slnx
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Run specific test class
-dotnet test CiccioSoft.Data.Sqlite.slnx --filter ClassName=AsyncConcurrencyTests
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --filter ClassName=AsyncConcurrencyTests
 
 # Run with verbose output
-dotnet test CiccioSoft.Data.Sqlite.slnx --verbosity detailed
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --verbosity detailed
 ```
 
 ## Common Test Pitfalls

@@ -178,14 +178,14 @@ public async Task ConnectionPool_HandlesHighConcurrentAsyncLoad()
 
 ```bash
 # Build all
-dotnet build CiccioSoft.Data.Sqlite.slnx
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Run async-specific tests
 dotnet test CiccioSoft.Data.Sqlite.Tests.Extra/CiccioSoft.Data.Sqlite.Tests.Extra.csproj \
   --filter FullyQualifiedName~AsyncConcurrency
 
 # Run with verbose async output
-dotnet test CiccioSoft.Data.Sqlite.slnx --verbosity detailed --logger:"console;verbosity=detailed"
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --verbosity detailed --logger:"console;verbosity=detailed"
 ```
 
 ## Common Async/Concurrency Pitfalls

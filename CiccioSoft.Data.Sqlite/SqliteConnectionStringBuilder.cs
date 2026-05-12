@@ -257,6 +257,16 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         }
     }
 
+    /// <summary>
+    /// Gets or sets the busy timeout in seconds (default: 30 seconds).
+    /// Internally, this is converted to/from milliseconds for <see cref="BusyTimeout"/>.
+    /// </summary>
+    public int DefaultTimeout
+    {
+        get => BusyTimeout / 1000;
+        set => BusyTimeout = value * 1000;
+    }
+
     public bool Pooling
     {
         get => TryGetValue(PoolingKey, out object? v) ? Convert.ToBoolean(v) : true;

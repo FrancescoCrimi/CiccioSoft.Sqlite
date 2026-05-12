@@ -250,16 +250,16 @@ Assert.Contains(item, collection);
 
 ```bash
 # All tests
-dotnet test CiccioSoft.Data.Sqlite.slnx
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Specific test class
-dotnet test CiccioSoft.Data.Sqlite.slnx --filter ClassName=AsyncConcurrencyTests
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --filter ClassName=AsyncConcurrencyTests
 
 # With verbose output
-dotnet test CiccioSoft.Data.Sqlite.slnx --verbosity detailed
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --verbosity detailed
 
 # Coverage report
-dotnet test CiccioSoft.Data.Sqlite.slnx /p:CollectCoverage=true /p:CoverageFormat=opencover
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true /p:CoverageFormat=opencover
 ```
 
 ## Test Data Setup

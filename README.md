@@ -178,7 +178,7 @@ CiccioSoft.Data.Sqlite/
 │   └── *.cs                             # Additional abstractions
 ├── CiccioSoft.Data.Sqlite.Interop.Example/   # Example applications
 │   └── Program.cs                       # Usage examples
-├── CiccioSoft.Data.Sqlite.slnx          # Solution file
+├── CiccioSoft.Data.Sqlite.Repository.slnx          # Solution file
 ├── LICENSE                              # MIT License
 └── README.md                            # This file
 ```

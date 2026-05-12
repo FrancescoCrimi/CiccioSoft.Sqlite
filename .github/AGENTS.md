@@ -1,253 +1,554 @@
-# CiccioSoft.Data.Sqlite — AI Agent & Customizzazioni
+# CiccioSoft.Data.Sqlite — Configurazione Agent AI Specializzati
 
-Guida di riferimento rapido per gli AI agent, prompt e customizzazioni disponibili in questo workspace.
+Guida completa e professionale per gli AI agent specializzati che governano lo sviluppo del provider SQLite educational per .NET 10. Questo documento definisce ruoli, competenze, workflow e best practices per ogni agent.
 
-## Panoramica
+---
 
-Questo workspace contiene agent specializzati e istruzioni che guidano gli AI coding assistant attraverso lo sviluppo CiccioSoft.Data.Sqlite con conoscenza profonda di:
-- **Architettura provider SQLite two-layer** (Interop + OOP)
-- **Pattern async vero** con cancellazione
-- **Compliance ADO.NET di qualità production**
-- **Binding P/Invoke ad alte performance**
-- **Pattern concorrenti WAL journaling**
+## 📋 Tavola dei Contenuti
 
-## Istruzioni a Livello Workspace
+1. [Panoramica Progetto](#panoramica-progetto)
+2. [Agent Specializzati](#agent-specializzati)
+3. [Istruzioni File-Scoped](#istruzioni-file-scoped)
+4. [Workflow Sviluppo](#workflow-sviluppo)
+5. [Linee Guida Invocazione](#linee-guida-invocazione)
+6. [Comandi Build & Test](#comandi-build--test)
+7. [Riferimenti Rapidi](#riferimenti-rapidi)
 
-**File**: `.github/copilot-instructions.md`
+---
 
-Applicate a tutte le richieste di codice. Copre:
-- Stile di codice (C# 12+, nullable reference types, XML docs)
-- Architettura (progettazione two-layer, componenti chiave)
-- Comandi build/test
-- Pattern async/await (true cooperative async, no Task.Run)
-- Gestione eccezioni (SqliteException con extended error codes)
-- Connection string defaults (Foreign Keys, Journal Mode, Busy Timeout)
-- Pattern P/Invoke (SafeHandle, memory efficiency)
-- Scelte thread & synchronization
-- Pattern di test (XUnit, Fact/Theory)
+## Panoramica Progetto
+
+### Struttura Architetturale
+
+CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  LAYER 1: OOP Abstractions (ADO.NET API)                         │
+│  Microsoft.Data.Sqlite.Core / CiccioSoft.Data.Sqlite             │
+│                                                                  │
+│  • SqliteConnection (DbConnection + Connection Pooling)         │
+│  • SqliteCommand (DbCommand + Statement Cache)                  │
+│  • SqliteDataReader (DbDataReader)                              │
+│  • SqliteTransaction (DbTransaction)                            │
+│  • SqliteConnectionPool (Thread-safe pooling)                   │
+│  • SingleWriterCoordinator (Serialized native access)           │
+│                                                                  │
+│  Defaults: Foreign Keys=ON, Journal Mode=WAL, Timeout=30s       │
+│  Async Pattern: True cooperative async, CancellationToken       │
+│                                                                  │
+│  ↓ depends on ↓                                                  │
+│                                                                  │
+│  LAYER 2: P/Invoke Binding                                       │
+│  CiccioSoft.Data.Sqlite.Interop                                 │
+│                                                                  │
+│  • Sqlite3 (P/Invoke declarations, cdecl)                       │
+│  • Sqlite3Handle (SafeHandleZeroOrMinusOneIsInvalid)            │
+│  • SqliteErrorHelper (Error code translation)                   │
+│  • Memory strategies (ArrayPool, stackalloc, Span<T>)           │
+│  • Platform abstraction (Windows/Linux/macOS)                   │
+│                                                                  │
+│  ↓ calls ↓                                                       │
+│                                                                  │
+│  Native SQLite C Library (libsqlite3)                            │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Core Design Principles
+
+| Principio | Implementazione |
+|-----------|-----------------|
+| **True Async** | Cooperative async, no `Task.Run` wrapping, full cancellation support |
+| **Thread-Safe** | `SingleWriterCoordinator` serializes native API access |
+| **High Concurrency** | WAL mode default for file databases, optimized for reader/writer parallelism |
+| **Production-Grade** | Complete ADO.NET interface compliance, extended error codes, statement caching |
+| **Educational** | Clean code, clear separation of concerns, well-documented patterns |
 
 ---
 
 ## Agent Specializzati
 
-Usali digitando `/run-agent` e selezionandoli dalla lista, o referenziandoli direttamente in chat:
+### 1. 🔧 SQLite Interop Agent
 
-### 1. SQLite Testing Agent 🧪
+**Specializzazione**: P/Invoke bindings, FFI, memory management, low-level interoperability
 
-**File**: `.github/agents/sqlite-testing.agent.md`
-
-**Quando usare**: Scrivere/debuggare test XUnit, analizzare comportamento async/concurrency, migliorare coverage
+**Ambito Prevalente**:
+- Path: `CiccioSoft.Data.Sqlite.Interop/**/*.cs`
+- File chiave: `Sqlite3.cs`, `SqliteErrorHelper.cs`
+- Istruzioni: `.github/instructions/interop.instructions.md`
 
 **Expertise**:
-- Pattern test XUnit (Fact, Theory, InlineData)
-- Test async con CancellationToken
-- Scenari test concorrenti (WAL, connection pooling)
-- Cleanup risorse (IDisposable)
-- Diagnosi fallimenti test e flakiness
+- ✅ P/Invoke declarations (`[DllImport]`, calling conventions, marshaling)
+- ✅ SafeHandle pattern (disposal, resource cleanup, handle ownership)
+- ✅ Memory management (stackalloc for ~1KB strings, ArrayPool for buffers, Span<T> for safety)
+- ✅ Error translation (native SQLite codes → C# exceptions, extended error codes)
+- ✅ Platform-specific code (Windows/Linux/macOS runtime abstraction)
+- ✅ UTF8 encoding/decoding at interop boundaries
+- ✅ Unsafe code patterns and pointer arithmetic
 
-**Richieste di esempio**:
-- "Scrivi un test async per il handling del timeout della connessione"
-- "Debugga perché questo test di concurrency è flaky"
-- "Aggiungi test parametrici per tutti i PRAGMA defaults"
+**Quando Invocare**:
+- Implementare nuova dichiarazione P/Invoke per funzione SQLite nativa
+- Debuggare memory leak o problemi di allocazione
+- Ottimizzare buffer allocation in hot path
+- Aggiungere supporto platform-specifico
+- Correggere error translation o exception handling
+- Performance optimization su conversioni string
 
-**File di riferimento**:
-- [AsyncConcurrencyTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/AsyncConcurrencyTests.cs)
-- [SqliteParameterBindingParityTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/SqliteParameterBindingParityTests.cs)
+**Richieste di Esempio**:
+```
+✓ "Implementa binding P/Invoke per sqlite3_wal_checkpoint_v2 con error handling"
+✓ "Ottimizza questa UTF8 conversion usando stackalloc per stringhe < 512 byte"
+✓ "Debugga memory leak: ArrayPool.Return() non è chiamato in error path"
+✓ "Traduci questo SQLite extended error code in exception C# appropriata"
+```
+
+**Output Previsto**:
+- Code gen con pattern `[DllImport]` corretti
+- Memory-efficient implementation
+- Proper error handling e translation
+- Documentation XML con behavior notes
 
 ---
 
-### 2. SQLite Interop Agent ⚙️
+### 2. ⚡ SQLite Async/Concurrency Agent
 
-**File**: `.github/agents/sqlite-interop.agent.md`
+**Specializzazione**: Async/await patterns, cancellation, timeout, concurrency semantics, WAL coordination
 
-**Quando usare**: Lavoro P/Invoke, pattern SafeHandle, ottimizzazione memoria, codice platform-specific
+**Ambito Prevalente**:
+- Path: `Microsoft.Data.Sqlite.Core/**/*.cs`, `CiccioSoft.Data.Sqlite/**/*.cs`
+- File chiave: `SqliteCommand.cs`, `SqliteConnection.cs`, `SqliteConnectionPool.cs`
+- Istruzioni: `.github/instructions/core-adonet.instructions.md`
 
 **Expertise**:
-- Dichiarazioni P/Invoke e binding FFI
-- Eredità SafeHandle e cleanup
-- Gestione memoria (stackalloc, ArrayPool, Span<T>)
-- Traduzione errori e extended error codes
-- Gestione platform-specific (Windows/Linux/macOS)
+- ✅ True cooperative async (no `Task.Run`, `Task.Delay` wrapping)
+- ✅ CancellationToken propagation e handling (entry check, nested cancellation)
+- ✅ CommandTimeout enforcement via `CancellationTokenSource` + `sqlite3_interrupt()` native
+- ✅ Single-Writer Coordinator (serialized access to native SQLite)
+- ✅ Connection pooling (thread-safe `ConcurrentDictionary`, `SemaphoreSlim`)
+- ✅ WAL journaling semantics (reader/writer parallelism, checkpoint strategy)
+- ✅ Deadlock prevention (lock ordering, semaphore patterns)
+- ✅ Task coordination (`async/await`, `SemaphoreSlim.WaitAsync`, `Task.WhenAll`)
 
-**Richieste di esempio**:
-- "Aggiungi binding P/Invoke per sqlite3_wal_checkpoint_v2"
-- "Ottimizza questa conversione UTF8 usando stackalloc"
-- "Correggi una memory leak nel statement wrapper"
+**Quando Invocare**:
+- Implementare metodi async (`ExecuteReaderAsync`, `OpenAsync`, `ExecuteNonQueryAsync`)
+- Debuggare timeout issues o CommandTimeout non enforcement
+- Analizzare race conditions o deadlock in concurrency
+- Testare WAL mode under concurrent read/write load
+- Optimize connection pooling for high async throughput
+- Implementare cancellation support in long-running operations
 
-**File di riferimento**:
-- [Sqlite3.cs](../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs)
-- [SqliteErrorHelper.cs](../CiccioSoft.Data.Sqlite.Interop/SqliteErrorHelper.cs)
+**Richieste di Esempio**:
+```
+✓ "Implementa CheckpointAsync con proper cancellation token handling"
+✓ "Debugga: CommandTimeout=10 non cancella l'operazione dopo 10 secondi"
+✓ "Analizza perché questo test di concurrency (10 readers + 1 writer) deadlock"
+✓ "Aggiungi test per WAL mode: verifica che readers non siano bloccati da writer"
+```
+
+**Output Previsto**:
+- Fully async method implementation con CancellationToken support
+- Timeout mechanism with native interrupt escalation
+- Concurrency test with race condition coverage
+- Performance analysis under load
 
 ---
 
-### 3. SQLite Async/Concurrency Agent ⚡
+### 3. 🧪 SQLite Testing Agent
 
-**File**: `.github/agents/sqlite-async.agent.md`
+**Specializzazione**: XUnit test writing, async/concurrency testing, debuggare flakiness, coverage improvement
 
-**Quando usare**: Implementare metodi async, debuggare timeout, testare concorrenza WAL
+**Ambito Prevalente**:
+- Path: `CiccioSoft.Data.Sqlite.Tests/**/*.cs`, `CiccioSoft.Data.Sqlite.Tests.Extra/**/*.cs`
+- File chiave: `AsyncConcurrencyTests.cs`, `SqliteBehaviorTests.cs`, `SqliteConnectionTest.cs`
+- Istruzioni: `.github/instructions/tests.instructions.md`
 
 **Expertise**:
-- True cooperative async (no wrapper Task.Run)
-- Propagazione cancellation token e sqlite3_interrupt()
-- Enforcement CommandTimeout
-- Pattern Single-Writer Coordinator
-- Scenari concorrenti WAL
-- Connection pooling sotto carico async
+- ✅ XUnit framework (`[Fact]`, `[Theory]`, `[InlineData]`, `[MemberData]`)
+- ✅ Async test patterns (CancellationToken injection, timeout validation)
+- ✅ Concurrency test design (barrier synchronization, semaphore coordination, race detection)
+- ✅ Flakiness diagnosis (timing-sensitive tests, proper cleanup, deterministic seeding)
+- ✅ Coverage analysis (coverlet, coverage gaps identification)
+- ✅ Contract test design (ADO.NET interface compliance - `DbConnection`, `DbCommand`, `DbDataReader`)
+- ✅ Behavior test design (semantics validation, edge cases, stress scenarios)
+- ✅ Resource lifecycle testing (IDisposable cleanup, connection pooling limits)
 
-**Richieste di esempio**:
-- "Implementa CheckpointAsync con supporto per cancellazione"
-- "Debugga perché CommandTimeout non viene enforced"
-- "Aggiungi test per lettori concorrenti + writer sotto WAL"
+**Quando Invocare**:
+- Scrivere unit test per nuova feature o bug fix
+- Debuggare flaky test (timing issues, race conditions)
+- Analizzare coverage gap e proposte priorità
+- Testare async/concurrency scenarios (WAL, pooling, timeout)
+- Validare ADO.NET interface compliance
+- Stress test per edge cases e limit conditions
 
-**File di riferimento**:
-- [AsyncConcurrencyTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/AsyncConcurrencyTests.cs)
-- [SqliteCommand.cs](../Microsoft.Data.Sqlite.Core/SqliteCommand.cs)
+**Richieste di Esempio**:
+```
+✓ "Scrivi test parametrizzato con [Theory] per 8 diverse configurations di DateTimeOffset"
+✓ "Debugga: questo test di concurrency passa solo 1 volta su 5 - perché?"
+✓ "Aggiungi test per WAL WAL: 20 concurrent readers + 1 writer, 1000+ iterations"
+✓ "Aumenta coverage del CommandTimeout escalation - aggiungi assertion per interrupt timing"
+```
+
+**Output Previsto**:
+- Well-structured XUnit test with xUnit naming conventions (`MethodName_Condition_ExpectedBehavior`)
+- Async test with proper timeout/cancellation validation
+- Deterministic concurrency test with semaphore/barrier synchronization
+- Coverage report highlighting gaps
 
 ---
 
-## Prompt Riutilizzabili
+### 4. 🔍 Explore Agent (Utility)
 
-Usali digitando `/` in chat e selezionando da prompt disponibili:
+**Specializzazione**: Fast codebase exploration, Q&A, architecture discovery
 
-### SQLite Feature Development Template 📋
+**Quando Invocare**:
+- Non sei sicuro dove cerca una feature o bug
+- Vuoi scoprire come X è implementato
+- Hai domande architettura complesse
+- Cerchi file o pattern specifici rapidamente
 
-**File**: `.github/prompts/sqlite-feature-dev.prompt.md`
+**Invocazione**:
+```
+/run-agent explore
+"Cerco dove viene handled il CommandTimeout. Descrivi il flow completo."
 
-**Quando usare**: Pianificare e implementare nuove feature ADO.NET
-
-**Contenuti**:
-- Struttura panoramica feature (Cosa, Perché, Scope)
-- Checklist requisiti funzionali/non-funzionali
-- Roadmap implementazione (Interop → Core → Testing → Docs)
-- Checklist stile codice
-- Requisiti pattern async/concurrency
-- Template codice di esempio (sync + async)
-- Template testing
-- Comandi build/verify
-
-**Workflow di esempio**:
-1. Copia il prompt
-2. Compila nome feature e requisiti
-3. Usa come checklist mentre implementi
-4. Referenzia gli agent secondo necessità per step
+Risultato: Mappe file, spiega flow, identifica responsabilità
+```
 
 ---
 
 ## Istruzioni File-Scoped
 
-Queste si applicano automaticamente a file corrispondenti a pattern specifici:
+Queste si applicano automaticamente a file che corrispondono al pattern `applyTo`:
 
-### Istruzioni Interop Layer 🔗
+### 📚 Istruzioni Global
+
+**File**: `.github/copilot-instructions.md`  
+**Si applica a**: Tutte le richieste di codice (unless more specific instruction exists)
+
+**Copre**:
+- Stile codice (C# 12+, nullable reference types abilitati, XML docs)
+- Architettura two-layer e pattern di design
+- Async pattern (true cooperative async, no Task.Run)
+- Connection string defaults (Foreign Keys, WAL, Busy Timeout)
+- Exception handling (SqliteException con extended error codes)
+- P/Invoke best practices (SafeHandle, memory efficiency)
+- Thread safety (SingleWriterCoordinator, lock ordering)
+- Test organization (XUnit, Fact/Theory patterns)
+
+---
+
+### 🔗 Istruzioni Interop Layer
 
 **File**: `.github/instructions/interop.instructions.md`  
 **Si applica a**: `**/CiccioSoft.Data.Sqlite.Interop/**/*.cs`
 
-**Copre**:
-- Vincoli P/Invoke (Cdecl, charset, marshaling)
-- Requisiti SafeHandle
-- Strategie allocazione memoria
-- Traduzione errori
-- Nullable reference types
-- Header file (MIT license)
+**Specifiche**:
+- Vincoli P/Invoke (CallingConvention.Cdecl, CharSet.Ansi, error checking)
+- SafeHandle requirements (IsInvalid override, ReleaseHandle, ownsHandle=true)
+- Memory management patterns (stackalloc per <1KB, ArrayPool per >1KB)
+- Error translation via `SqliteErrorHelper.CreateException()`
+- Nullable reference types enforcement
+- MIT license header su ogni file
 
 ---
 
-### Istruzioni Core ADO.NET Layer 📚
+### 📖 Istruzioni Core ADO.NET Layer
 
 **File**: `.github/instructions/core-adonet.instructions.md`  
 **Si applica a**: `**/Microsoft.Data.Sqlite.Core/**/*.cs`
 
-**Copre**:
-- Compliance interfaccia ADO.NET
-- Lifecycle connessione & defaults (Foreign Keys, WAL, Busy Timeout)
-- Pattern statement caching
-- Utilizzo Single-Writer Coordinator
-- Implementazione async/await
-- Enforcement CommandTimeout
-- Gestione eccezioni
-- Connection pooling
+**Specifiche**:
+- ADO.NET interface compliance (`DbConnection`, `DbCommand`, `DbDataReader`, `DbTransaction`)
+- Lifecycle connessione e defaults (Foreign Keys=ON, WAL mode, Busy Timeout=30s)
+- Statement caching per performance
+- Single-Writer Coordinator usage
+- Async/await pattern (CancellationToken, cooperative async)
+- CommandTimeout enforcement
+- Exception handling con SqliteException
 
 ---
 
-### Istruzioni Test ✅
+### ✅ Istruzioni Test
 
 **File**: `.github/instructions/tests.instructions.md`  
 **Si applica a**: `**/CiccioSoft.Data.Sqlite.Tests*/**/*.cs`
 
-**Copre**:
-- Organizzazione test (Contract tests vs. Behavior tests)
-- Pattern XUnit (Fact, Theory, InlineData)
-- Pattern test async con CancellationToken
-- Test operazioni concorrenti
-- Cleanup risorse (IDisposable)
-- Setup test data
-- Common pitfalls
+**Specifiche**:
+- Test organization (`*Test.cs` for contract tests, `*Tests.cs` for behavior)
+- XUnit framework (Fact, Theory, InlineData)
+- Async test pattern (CancellationToken, timeout validation)
+- Concurrency test patterns (Barrier, SemaphoreSlim)
+- Resource cleanup (IDisposable, context managers)
+- Deterministic test design
 
 ---
 
-## Esempi di Utilizzo
+## Workflow Sviluppo
 
-### Esempio 1: Aggiungi Nuovo Metodo Async
+### Workflow 1: Implementare Nuova Feature Async
 
-1. Usa prompt **SQLite Feature Development** per pianificare
-2. Implementa in Core ADO.NET layer (auto-applica `core-adonet.instructions.md`)
-3. Usa **SQLite Async/Concurrency Agent** per review pattern cancellation
-4. Scrivi test con **SQLite Testing Agent**
-5. Build & test: `dotnet test CiccioSoft.Data.Sqlite.slnx`
+**Scenario**: Aggiungi metodo `CheckpointAsync` con cancellation support
 
-### Esempio 2: Debugga Problema Timeout
+**Step 1: Planning** (Optional, ma raccomandato per feature complesse)
+```
+→ Chiedi al "SQLite Async/Concurrency Agent"
+  "Aiutami a progettare CheckpointAsync con supporto completo cancellation"
+```
 
-Chiedi al **SQLite Async/Concurrency Agent**:
-- "Perché CommandTimeout non viene enforced in [method name]?"
-- Ricevi guidance su timeout mechanism e sqlite3_interrupt() usage
-- Rivedi [SqliteCommand.cs](../Microsoft.Data.Sqlite.Core/SqliteCommand.cs) per pattern
+**Step 2: Implementation (Interop)**
+```
+→ Usa "SQLite Interop Agent"
+  "Aggiungi binding P/Invoke per sqlite3_wal_checkpoint_v2"
+  (File: CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs)
+```
 
-### Esempio 3: Ottimizza Utilizzo Memoria
+**Step 3: Implementation (Core)**
+```
+→ Usa "SQLite Async/Concurrency Agent"  
+  "Implementa method CheckpointAsync() con pattern cancellation token"
+  (File: Microsoft.Data.Sqlite.Core/SqliteConnection.cs)
+  (Applica: core-adonet.instructions.md)
+```
 
-Chiedi al **SQLite Interop Agent**:
-- "Come posso ottimizzare allocazione string in [method]?"
-- Ricevi raccomandazioni stackalloc/ArrayPool
-- Referenzia [Sqlite3.cs](../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs) per esempi
+**Step 4: Testing**
+```
+→ Usa "SQLite Testing Agent"
+  "Scrivi test per CheckpointAsync: normal, cancellation, timeout scenarios"
+  (File: CiccioSoft.Data.Sqlite.Tests.Extra/AsyncConcurrencyTests.cs)
+```
 
-### Esempio 4: Scrivi Test Concorrente
-
-Chiedi al **SQLite Testing Agent**:
-- "Scrivi un test per lettura/scrittura concorrente sotto WAL"
-- Ricevi pattern corretti SemaphoreSlim/Barrier
-- Referenzia [AsyncConcurrencyTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/AsyncConcurrencyTests.cs)
+**Step 5: Validation**
+```
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
+```
 
 ---
 
-## Build e Testing
+### Workflow 2: Debuggare Concurrency Issue
 
-**Build tutti i progetti:**
-```bash
-dotnet build CiccioSoft.Data.Sqlite.slnx
+**Scenario**: Test di concurrency è flaky - passa 1 volta su 5, timeout dopo 30 sec
+
+**Step 1: Analyze Test**
+```
+→ Chiedi al "SQLite Testing Agent"
+  "Questo test WAL concurrency è flaky. Analizza timing e synchronization issues."
+  (Condividi o referenzia il test code)
 ```
 
-**Esegui tutti i test:**
-```bash
-dotnet test CiccioSoft.Data.Sqlite.slnx
+**Step 2: Check Async Pattern**
+```
+→ Usa "SQLite Async/Concurrency Agent"
+  "Verifica che il timeout handling sia corretto nella command execution scope"
+  (Referenzia: SqliteCommand.cs, CreateExecutionScope method)
 ```
 
-**Esegui suite test specifica:**
+**Step 3: Test Fix & Verify**
+```
+→ Usa "SQLite Testing Agent"
+  "Proponi fix per race condition e test determinisme"
+```
+
+**Step 4: Run Multiple Times**
+```
+for i in {1..10}; do dotnet test CiccioSoft.Data.Sqlite.Tests.Extra/ -v; done
+```
+
+---
+
+### Workflow 3: Optimize Memory Usage
+
+**Scenario**: Profiling mostra memory leak in UTF8 string conversion
+
+**Step 1: Identify Hotspot**
+```
+→ Usa "SQLite Interop Agent"
+  "Dove avviene allocazione string durante prepare? Mostra memory hotsport"
+```
+
+**Step 2: Propose Optimization**
+```
+→ Usa "SQLite Interop Agent"
+  "Ottimizza Sqlite3.Prepare() usando stackalloc per stringhe < 1KB"
+```
+
+**Step 3: Implement & Benchmark**
+```
+→ Implementa con guidance agent
+→ Benchmark: `BenchmarkDotNet` or profiler
+```
+
+**Step 4: Test Thoroughness**
+```
+→ Usa "SQLite Testing Agent"
+  "Aggiungi test per edge cases: very long SQL, unicode chars, null terminators"
+```
+
+---
+
+## Linee Guida Invocazione
+
+### 📌 Decision Tree: Quale Agent Usare?
+
+```
+La richiesta riguarda...
+│
+├─ P/Invoke, FFI, memory management, error translation
+│  └─→ 🔧 "SQLite Interop Agent"
+│      Keywords: dll import, SafeHandle, ArrayPool, stackalloc, unsafe, platform
+│
+├─ Async, concurrency, timeout, cancellation, WAL, connection pool
+│  └─→ ⚡ "SQLite Async/Concurrency Agent"
+│      Keywords: async/await, CancellationToken, CommandTimeout, WAL, deadlock
+│
+├─ Test writing, debugging, coverage, async test patterns
+│  └─→ 🧪 "SQLite Testing Agent"
+│      Keywords: [Fact], [Theory], test, flaky, coverage, concurrency test
+│
+└─ Non sai dove cercare, vuoi fast exploration
+   └─→ 🔍 "Explore Agent"
+       Keywords: where, find, architecture, how is X implemented
+```
+
+### ✅ Checklist Pre-Invocazione
+
+Prima di chiedere a un agent, verifica:
+
+1. **Sei nel file giusto?**
+   - Interop issue? Sì → usa filepath in `CiccioSoft.Data.Sqlite.Interop/`
+   - Core ADO.NET issue? Sì → usa filepath in `Microsoft.Data.Sqlite.Core/`
+   - Test issue? Sì → usa filepath in `Tests/` o `Tests.Extra/`
+
+2. **Hai il contesto**?
+   - Condividi il codice pertinente o il file path
+   - Descrivi cosa attualmente accade vs cosa dovrebbe accadere
+
+3. **Hai letto le istruzioni pertinenti?**
+   - Interop work? Leggi `.github/instructions/interop.instructions.md`
+   - Async work? Leggi `.github/instructions/core-adonet.instructions.md`
+   - Test work? Leggi `.github/instructions/tests.instructions.md`
+
+4. **Hai già provato a cercare il codebase?**
+   - Usa semantic_search o grep per capire pattern esistenti
+   - Guarda file di riferimento (vedi [Riferimenti Rapidi](#riferimenti-rapidi))
+
+---
+
+## Comandi Build & Test
+
+### ⚙️ Build
+
 ```bash
+# Build soluzione intera
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
+
+# Build progetto specifico (es: Interop)
+dotnet build CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj
+
+# Build + verbosity per diagnostica
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx -v detailed
+```
+
+### 🧪 Test
+
+```bash
+# Esegui tutti i test
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
+
+# Esegui specific test suite
 dotnet test CiccioSoft.Data.Sqlite.Tests.Extra/ --filter ClassName=AsyncConcurrencyTests
+
+# Esegui specific test (Fact)
+dotnet test CiccioSoft.Data.Sqlite.Tests/ --filter "MethodName=SqlConnectionState_InitiallyClosedBeforeOpen"
+
+# Verbose output
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx -v detailed
+
+# Run multiple times (flakiness detection)
+for i in {1..5}; do echo "Run $i:"; dotnet test CiccioSoft.Data.Sqlite.Repository.slnx -q; done
 ```
 
-**Report coverage:**
+### 📊 Coverage
+
 ```bash
-dotnet test CiccioSoft.Data.Sqlite.slnx /p:CollectCoverage=true
+# Report coverage
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true
+
+# Coverage + merge
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true /p:MergeWith=coverage.json
 ```
 
 ---
 
-## Risorse Architettura Chiave
+## Riferimenti Rapidi
 
-- **Project README**: [README.md](../README.md) — Overview, key features, concurrency/async notes
-- **Interop Guide**: [CiccioSoft.Data.Sqlite.Interop/README.md](../CiccioSoft.Data.Sqlite.Interop/README.md)
-- **Test Philosophy**: [CiccioSoft.Data.Sqlite.Tests.Extra/README.md](../CiccioSoft.Data.Sqlite.Tests.Extra/README.md)
-- **ADO.NET Gap Analysis**: [ADONET_GAP_ANALYSIS.md](../ADONET_GAP_ANALYSIS.md)
+### 📖 Documentazione Progetto
+
+| File | Scopo |
+|------|-------|
+| [README.md](../README.md) | Panoramica progetto, key features, concurrency/async notes |
+| [CiccioSoft.Data.Sqlite.Interop/README.md](../CiccioSoft.Data.Sqlite.Interop/README.md) | FFI binding guide e P/Invoke patterns |
+| [CiccioSoft.Data.Sqlite.Tests.Extra/README.md](../CiccioSoft.Data.Sqlite.Tests.Extra/README.md) | Async/concurrency test philosophy |
+| [ADONET_GAP_ANALYSIS.md](../ADONET_GAP_ANALYSIS.md) | ADO.NET compliance analysis e gaps |
+
+### 🔑 File Sorgente Chiave
+
+| File | Scopo | Agent |
+|------|-------|-------|
+| [Sqlite3.cs](../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs) | P/Invoke declarations, SafeHandle | 🔧 Interop |
+| [SqliteErrorHelper.cs](../CiccioSoft.Data.Sqlite.Interop/SqliteErrorHelper.cs) | Error code translation | 🔧 Interop |
+| [SqliteConnection.cs](../Microsoft.Data.Sqlite.Core/SqliteConnection.cs) | Connection lifecycle, defaults, pooling | ⚡ Async |
+| [SqliteCommand.cs](../Microsoft.Data.Sqlite.Core/SqliteCommand.cs) | Command execution, timeout, caching | ⚡ Async |
+| [SqliteConnectionPool.cs](../Microsoft.Data.Sqlite.Core/SqliteConnectionPool.cs) | Thread-safe pool coordination | ⚡ Async |
+| [AsyncConcurrencyTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/AsyncConcurrencyTests.cs) | Async/concurrency test patterns | 🧪 Testing |
+| [SqliteParameterBindingParityTests.cs](../CiccioSoft.Data.Sqlite.Tests.Extra/SqliteParameterBindingParityTests.cs) | Parameter binding parity | 🧪 Testing |
+
+### 🏗️ Architettura
+
+```
+CiccioSoft.Data.Sqlite/              Global project folder
+├── .github/
+│   ├── copilot-instructions.md      ← Global code guidelines
+│   ├── AGENTS.md                    ← This file
+│   ├── instructions/
+│   │   ├── interop.instructions.md  ← For Interop layer
+│   │   ├── core-adonet.instructions.md ← For Core ADO.NET layer
+│   │   └── tests.instructions.md    ← For Test layer
+│   └── agents/                      ← (optional) Detailed agent configs
+│
+├── CiccioSoft.Data.Sqlite.Interop/  ← Raw FFI binding layer
+│   └── Sqlite3.cs, SqliteErrorHelper.cs, etc.
+│
+├── Microsoft.Data.Sqlite.Core/      ← OOP abstractions layer
+│   └── SqliteConnection.cs, SqliteCommand.cs, etc.
+│
+├── CiccioSoft.Data.Sqlite/          ← Public API (exports)
+│   └── SqliteConnectionStringBuilder.cs, SqliteFactory.cs, etc.
+│
+├── CiccioSoft.Data.Sqlite.Tests/    ← Core unit tests
+│   └── Test contracts + basic behavior
+│
+├── CiccioSoft.Data.Sqlite.Tests.Extra/ ← Advanced tests
+│   └── AsyncConcurrencyTests.cs, WAL semantics, etc.
+│
+└── README.md                         ← Project overview
+```
+
+---
+
+## 📝 Note di Versione
+
+- **Versione**: 1.0 (maggio 2026)
+- **Target**: .NET 10.0, C# 12+
+- **Focus**: Educational provider, Production-grade quality
+- **Async Pattern**: True cooperative async, no Task.Run wrappers
+- **Default Behavior**: Foreign Keys=ON, WAL=ON (file), Timeout=30s
+- **Concurrency Model**: Single-writer (serialized native access), unlimited readers under WAL
+
+---
+
+**Ultima revisione**: May 2026  
+**Maintainer**: CiccioSoft project team
 
 ---
 

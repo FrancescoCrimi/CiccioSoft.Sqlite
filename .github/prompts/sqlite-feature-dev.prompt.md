@@ -127,13 +127,13 @@ public async Task MyNewMethodAsync_RespectsUseCancellationToken()
 
 ```bash
 # Build
-dotnet build CiccioSoft.Data.Sqlite.slnx
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Run tests
-dotnet test CiccioSoft.Data.Sqlite.slnx
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
 
 # Check coverage
-dotnet test CiccioSoft.Data.Sqlite.slnx /p:CollectCoverage=true
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true
 ```
 
 ## Riferimenti

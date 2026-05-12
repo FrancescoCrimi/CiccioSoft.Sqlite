@@ -130,7 +130,7 @@ private static extern int sqlite3_open_v2(
 dotnet build CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj
 
 # Run interop-related tests (included in main test suite)
-dotnet test CiccioSoft.Data.Sqlite.slnx --filter FullyQualifiedName~Interop
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --filter FullyQualifiedName~Interop
 ```
 
 ## Common Interop Pitfalls

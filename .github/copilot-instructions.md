@@ -45,12 +45,12 @@ Vedi [README.md](../README.md) per panoramica architettura completa.
 
 **Build:**
 ```bash
-dotnet build CiccioSoft.Data.Sqlite.slnx
+dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
 ```
 
 **Unit Test:**
 ```bash
-dotnet test CiccioSoft.Data.Sqlite.slnx
+dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
 ```
 
 **Test Framework**: XUnit 2.9+ con supporto theory e coverlet coverage  
