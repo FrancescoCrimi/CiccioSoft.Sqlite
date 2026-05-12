@@ -46,7 +46,7 @@ internal sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
         if (!IsInvalid)
         {
             // Clean up native resource
-            NativeSqlite3.sqlite3_close_v2(handle);
+            Sqlite3Native.sqlite3_close_v2(handle);
         }
         return true;
     }
@@ -59,7 +59,7 @@ internal sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
 // For short UTF8 conversions (< 1KB)
 public string GetText(int columnIndex)
 {
-    byte[] utf8Bytes = NativeSqlite3.sqlite3_column_blob(StatementHandle, columnIndex);
+    byte[] utf8Bytes = Sqlite3Native.sqlite3_column_blob(StatementHandle, columnIndex);
     Span<byte> byteSpan = stackalloc byte[utf8Bytes.Length + 1];
     utf8Bytes.CopyTo(byteSpan);
     byteSpan[utf8Bytes.Length] = 0; // null-terminate
@@ -88,8 +88,8 @@ finally
 ```csharp
 public static SqliteException CreateException(IntPtr dbHandle, int resultCode)
 {
-    int extendedCode = NativeSqlite3.sqlite3_extended_result_codes(dbHandle, 1);
-    string message = Marshal.PtrToStringUTF8(NativeSqlite3.sqlite3_errmsg(dbHandle)) ?? "Unknown error";
+    int extendedCode = Sqlite3Native.sqlite3_extended_result_codes(dbHandle, 1);
+    string message = Marshal.PtrToStringUTF8(Sqlite3Native.sqlite3_errmsg(dbHandle)) ?? "Unknown error";
     
     return new SqliteException(message, resultCode, extendedCode);
 }

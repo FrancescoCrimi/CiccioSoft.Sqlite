@@ -42,6 +42,18 @@ public class SqliteConnection : DbConnection
         ConnectionString = connectionString;
     }
 
+    /// <summary>
+    /// Gets the underlying low-level SQLite interop object for advanced/native operations.
+    /// </summary>
+    public Sqlite3 Interop
+    {
+        get
+        {
+            EnsureOpen();
+            return _session!.Native;
+        }
+    }
+
     [DefaultValue("")]
     [SettingsBindableAttribute(true)]
     [RefreshProperties(RefreshProperties.All)]
@@ -62,21 +74,13 @@ public class SqliteConnection : DbConnection
         }
     }
 
+    /// <summary>
+    ///     Gets the name of the current database. Always 'main'.
+    /// </summary>
+    /// <value>The name of the current database.</value>
     public override string Database => "main";
 
     public override string DataSource => _dataSource;
-
-    /// <summary>
-    /// Gets the underlying low-level SQLite interop object for advanced/native operations.
-    /// </summary>
-    public Sqlite3 Interop
-    {
-        get
-        {
-            EnsureOpen();
-            return _session!.Native;
-        }
-    }
 
     // public override string ServerVersion => "3.0.0";
     public override string ServerVersion

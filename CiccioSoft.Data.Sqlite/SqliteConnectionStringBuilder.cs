@@ -22,30 +22,33 @@ namespace CiccioSoft.Data.Sqlite;
 public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 {
     private const string DataSourceKey = "Data Source";
-    private const string PoolingKey = "Pooling";
-    private const string MaxPoolSizeKey = "Max Pool Size";
-    private const string BusyTimeoutKey = "Busy Timeout";
-    private const string BusyTimeoutPragmaKey = "busy_timeout";
-    private const string ForeignKeysKey = "Foreign Keys";
-    private const string ForeignKeysPragmaKey = "foreign_keys";
-    private const string JournalModeKey = "Journal Mode";
-    private const string JournalModePragmaKey = "journal_mode";
-    private const string RecursiveTriggersKey = "Recursive Triggers";
-    private const string RecursiveTriggersPragmaKey = "recursive_triggers";
+    private const string DataSourceNoSpaceKeyword = "DataSource";
     private const string ModeKey = "Mode";
     private const string CacheKey = "Cache";
+    private const string ForeignKeysKey = "Foreign Keys";
+    private const string ForeignKeysPragmaKey = "foreign_keys";
+    private const string RecursiveTriggersKey = "Recursive Triggers";
+    private const string RecursiveTriggersPragmaKey = "recursive_triggers";
+    private const string BusyTimeoutKey = "Busy Timeout";
+    private const string BusyTimeoutPragmaKey = "busy_timeout";
+    private const string PoolingKey = "Pooling";
+    private const string MaxPoolSizeKey = "Max Pool Size";
+    private const string JournalModeKey = "Journal Mode";
+    private const string JournalModePragmaKey = "journal_mode";
 
     private static readonly string[] CanonicalKeys =
     [
         DataSourceKey,
-        PoolingKey,
-        MaxPoolSizeKey,
-        BusyTimeoutKey,
-        JournalModeKey,
+        ModeKey,
+        CacheKey,
+        //PasswordKey,
         ForeignKeysKey,
         RecursiveTriggersKey,
-        ModeKey,
-        CacheKey
+        BusyTimeoutKey,
+        PoolingKey,
+        //VfsKey,
+        MaxPoolSizeKey,
+        JournalModeKey,
     ];
 
     /// <summary>
@@ -212,16 +215,28 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => base[DataSourceKey] = value ?? string.Empty;
     }
 
-    public bool Pooling
+    public string Mode
     {
-        get => TryGetValue(PoolingKey, out object? v) ? Convert.ToBoolean(v) : true;
-        set => base[PoolingKey] = value;
+        get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        set => base[ModeKey] = value;
     }
 
-    public int MaxPoolSize
+    public string Cache
     {
-        get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;
-        set => base[MaxPoolSizeKey] = Math.Max(1, value);
+        get => TryGetValue(CacheKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        set => base[CacheKey] = value;
+    }
+
+    public bool? ForeignKeys
+    {
+        get => GetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey);
+        set => SetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey, value);
+    }
+
+    public bool? RecursiveTriggers
+    {
+        get => GetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey);
+        set => SetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey, value);
     }
 
     public int BusyTimeout
@@ -242,10 +257,16 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         }
     }
 
-    public bool? ForeignKeys
+    public bool Pooling
     {
-        get => GetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey);
-        set => SetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey, value);
+        get => TryGetValue(PoolingKey, out object? v) ? Convert.ToBoolean(v) : true;
+        set => base[PoolingKey] = value;
+    }
+
+    public int MaxPoolSize
+    {
+        get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;
+        set => base[MaxPoolSizeKey] = Math.Max(1, value);
     }
 
     public string JournalMode
@@ -264,24 +285,6 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             base[JournalModeKey] = value ?? string.Empty;
             Remove(JournalModePragmaKey);
         }
-    }
-
-    public bool? RecursiveTriggers
-    {
-        get => GetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey);
-        set => SetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey, value);
-    }
-
-    public string Mode
-    {
-        get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
-        set => base[ModeKey] = value;
-    }
-
-    public string Cache
-    {
-        get => TryGetValue(CacheKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
-        set => base[CacheKey] = value;
     }
 
     internal bool HasBusyTimeout

@@ -27,7 +27,7 @@ internal sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
     public override bool ReleaseHandle()
     {
         if (!IsInvalid)
-            NativeSqlite3.sqlite3_close_v2(handle);
+            Sqlite3Native.sqlite3_close_v2(handle);
         return true;
     }
 }
@@ -70,7 +70,7 @@ finally
 All native error codes must be translated via `SqliteErrorHelper.CreateException()`:
 
 ```csharp
-int result = NativeSqlite3.sqlite3_prepare_v2(dbHandle, sql, -1, out var stmt, out _);
+int result = Sqlite3Native.sqlite3_prepare_v2(dbHandle, sql, -1, out var stmt, out _);
 if (result != SqliteResult.Ok)
     throw SqliteErrorHelper.CreateException(dbHandle, result);
 ```

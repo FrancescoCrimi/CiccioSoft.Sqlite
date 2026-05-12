@@ -5,9 +5,10 @@ using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
-using static SQLitePCL.raw;
+// using static SQLitePCL.raw;
 
 namespace CiccioSoft.Data.Sqlite.Tests;
 
@@ -204,8 +205,10 @@ public class SqliteTransactionTest
 
             var ex = Assert.Throws<SqliteException>(() => connection2.ExecuteScalar<long>("SELECT * FROM Data;"));
 
-            Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
-            Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
+            // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
+            // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
+            Assert.Equal((int)SqliteResult.Locked, ex.SqliteErrorCode);
+            Assert.Equal((int)SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
         }
     }
 
@@ -235,8 +238,10 @@ public class SqliteTransactionTest
                 }
             });
 
-            Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
-            Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
+            // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
+            // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
+            Assert.Equal((int)SqliteResult.Locked, ex.SqliteErrorCode);
+            Assert.Equal((int)SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
         }
     }
 
