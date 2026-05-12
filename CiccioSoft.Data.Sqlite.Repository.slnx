@@ -12,7 +12,7 @@
   <!-- <Project Path="CiccioSoft.Data.Sqlite.Interop.Benchmark/CiccioSoft.Data.Sqlite.Interop.Benchmark.csproj" /> -->
   <!-- <Project Path="CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests/CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests.csproj" /> -->
 
-  <Project Path="Microsoft.Data.Sqlite/Microsoft.Data.Sqlite.csproj" />
+  <!-- <Project Path="Microsoft.Data.Sqlite/Microsoft.Data.Sqlite.csproj" /> -->
   <Project Path="Microsoft.Data.Sqlite.Core/Microsoft.Data.Sqlite.Core.csproj" />
   <Project Path="Microsoft.Data.Sqlite.Tests/Microsoft.Data.Sqlite.Tests.csproj" />
   <!-- <Project Path="SQLitePCL.raw/CiccioSoft.Data.Sqlite.csproj" /> -->
