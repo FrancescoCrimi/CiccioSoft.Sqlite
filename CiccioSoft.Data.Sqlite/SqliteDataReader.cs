@@ -230,6 +230,32 @@ public class SqliteDataReader : DbDataReader
         };
     }
 
+    /// <summary>
+    ///     Gets the value of the specified column as a <see cref="DateTimeOffset" />.
+    /// </summary>
+    /// <param name="ordinal">The zero-based column ordinal.</param>
+    /// <returns>The value of the column.</returns>
+    public virtual DateTimeOffset GetDateTimeOffset(int ordinal)
+        => throw new NotImplementedException("Not Implemented");
+        // => _closed
+        //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetDateTimeOffset)))
+        //     : _record == null
+        //         ? throw new InvalidOperationException(Resources.NoData)
+        //         : _record.GetDateTimeOffset(ordinal);
+
+    /// <summary>
+    ///     Gets the value of the specified column as a <see cref="TimeSpan" />.
+    /// </summary>
+    /// <param name="ordinal">The zero-based column ordinal.</param>
+    /// <returns>The value of the column.</returns>
+    public virtual TimeSpan GetTimeSpan(int ordinal)
+        => throw new NotImplementedException("Not Implemented");
+        // => _closed
+        //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
+        //     : _record == null
+        //         ? throw new InvalidOperationException(Resources.NoData)
+        //         : _record.GetTimeSpan(ordinal);
+
     public override decimal GetDecimal(int ordinal)
     {
         EnsureHasRow();

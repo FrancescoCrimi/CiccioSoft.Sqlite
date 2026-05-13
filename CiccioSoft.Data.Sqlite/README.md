@@ -36,6 +36,11 @@ This project contains the high-level provider abstractions built on top of `Cicc
 - **Schema Discovery**: `GetSchema()` and `GetSchemaTable()` implementations
 - **Batch Execution**: Multi-statement SQL support
 - **Provider Scope**: Does not implement `DbDataAdapter`, matching Microsoft.Data.Sqlite's modern provider focus
+- **Api drop-in replacement for `Microsoft.Data.Sqlite`**:
+
+## Limitation
+- **No support encryption**:
+- **Create function not supported**:
 
 ## Usage Example
 
