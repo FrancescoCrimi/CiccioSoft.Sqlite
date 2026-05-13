@@ -1,20 +1,23 @@
 --file
 sqlite3.h
+
 --output
-Native
+../Native
+
 --namespace
 CiccioSoft.Data.Sqlite.Interop.Native
+
 --libraryPath
 e_sqlite3
+
 --methodClassName
 Sqlite3Native
+
 --language
 c
---with-access-specifier
-*=internal
 
---with-member-access-specifier
-*=internal
+--with-access-specifier
+Sqlite3Native=internal
 
 --exclude
 fts5_api
