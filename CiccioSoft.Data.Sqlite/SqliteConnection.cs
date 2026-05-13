@@ -34,6 +34,7 @@ public class SqliteConnection : DbConnection
     private SqliteConnectionStringBuilder _settings = new();
     private string _dataSource = string.Empty;
     private string _writerKey = string.Empty;
+    private int? _defaultTimeout;
 
     public SqliteConnection() { }
 
@@ -81,6 +82,14 @@ public class SqliteConnection : DbConnection
     public override string Database => "main";
 
     public override string DataSource => _dataSource;
+
+    //TODO: fix DefaultTimeout
+    public virtual int DefaultTimeout
+    {
+        get => _defaultTimeout ?? _settings.DefaultTimeout;
+        set => _defaultTimeout = value;
+    }
+
 
     // public override string ServerVersion => "3.0.0";
     public override string ServerVersion
@@ -541,9 +550,9 @@ public class SqliteConnection : DbConnection
 
         // Intelligent default: Foreign Keys ON if not specified
         bool foreignKeysSpecified = _settings.HasForeignKeys;
-        bool foreignKeysValue = foreignKeysSpecified ? (_settings.ForeignKeys ?? false) : true;        
+        bool foreignKeysValue = foreignKeysSpecified ? (_settings.ForeignKeys ?? false) : true;
         native.Execute($"PRAGMA foreign_keys={(foreignKeysValue ? "ON" : "OFF")};");
-        
+
         // Intelligent default: Journal Mode WAL if not specified, except for in-memory
         bool isInMemory = _settings.IsInMemoryMode();
         if (!_settings.HasJournalMode && !isInMemory)
@@ -591,7 +600,7 @@ public class SqliteConnection : DbConnection
         if (_settings.IsInMemoryMode() && !string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
         {
             string cacheSuffix = string.Empty;
-            if (string.IsNullOrEmpty(_settings.Cache) || 
+            if (string.IsNullOrEmpty(_settings.Cache) ||
                 string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
             {
                 cacheSuffix = "&cache=shared";
@@ -607,4 +616,20 @@ public class SqliteConnection : DbConnection
             ? dataSource
             : Path.Combine(AppContext.BaseDirectory, dataSource);
     }
+
+    public virtual void BackupDatabase(SqliteConnection destination)
+    {
+        throw new NotImplementedException("Not Implemented");
+    }
+
+     public virtual void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
+     {
+        throw new NotImplementedException("Not Implemented");
+     }
+
+    /// <summary>
+    ///     Gets or sets the transaction currently being used by the connection, or null if none.
+    /// </summary>
+    /// <value>The transaction currently being used by the connection.</value>
+    protected internal virtual SqliteTransaction? Transaction { get; set; }
 }

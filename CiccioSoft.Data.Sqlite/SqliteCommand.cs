@@ -29,11 +29,21 @@ public class SqliteCommand : DbCommand
 
     public SqliteCommand() { }
 
-    public SqliteCommand(string commandText, SqliteConnection connection)
+    public SqliteCommand(string? commandText, SqliteConnection? connection)
     {
         CommandText = commandText;
         Connection = connection;
     }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SqliteCommand" /> class.
+    /// </summary>
+    /// <param name="commandText">The SQL to execute against the database.</param>
+    /// <param name="connection">The connection used by the command.</param>
+    /// <param name="transaction">The transaction within which the command executes.</param>
+    public SqliteCommand(string? commandText, SqliteConnection? connection, SqliteTransaction? transaction)
+        : this(commandText, connection)
+        => Transaction = transaction;
 
     private CommandType _commandType = CommandType.Text;
 

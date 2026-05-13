@@ -446,7 +446,7 @@ public class SqliteConnectionTest
             source.ExecuteNonQuery("UPDATE Data SET Value = 1;");
 
             var ex = Assert.Throws<SqliteException>(() => source.BackupDatabase(destination));
-            Assert.Equal(SQLITE_BUSY, ex.SqliteErrorCode);
+            Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
         }
     }
 

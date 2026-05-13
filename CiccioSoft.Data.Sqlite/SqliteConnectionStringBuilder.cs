@@ -227,6 +227,13 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => base[CacheKey] = value;
     }
 
+    /// <summary>
+    /// Fake Property only for compatibility.
+    /// At the moment encryption is not supported
+    /// </summary>
+    [AllowNull]
+    public string Password { get; set; }
+
     public bool? ForeignKeys
     {
         get => GetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey);
