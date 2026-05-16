@@ -6,9 +6,9 @@
 
 using System;
 using Microsoft.Win32.SafeHandles;
-using CiccioSoft.Data.Sqlite.Interop.Native;
+using CiccioSoft.Sqlite.Interop.Native;
 
-namespace CiccioSoft.Data.Sqlite.Interop;
+namespace CiccioSoft.Sqlite.Interop;
 
 public sealed class Sqlite3BackupHandle : SafeHandleZeroOrMinusOneIsInvalid
 {

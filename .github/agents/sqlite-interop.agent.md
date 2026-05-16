@@ -19,13 +19,13 @@ Sei un esperto in binding P/Invoke, interoperabilità FFI, gestione memoria e pa
 
 ## Interop Layer Structure
 
-**Location**: `CiccioSoft.Data.Sqlite.Interop/`
+**Location**: `CiccioSoft.Sqlite.Interop/`
 
 **Key Files**:
-- [Sqlite3.cs](.github/../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs) — Main connection wrapper, SafeHandle patterns
-- [Sqlite3Stmt.cs](.github/../CiccioSoft.Data.Sqlite.Interop/Sqlite3Stmt.cs) — Statement wrapper
-- [SqliteErrorHelper.cs](.github/../CiccioSoft.Data.Sqlite.Interop/SqliteErrorHelper.cs) — Error code translation
-- [SqliteInteropException.cs](.github/../CiccioSoft.Data.Sqlite.Interop/SqliteInteropException.cs) — Interop-layer exceptions
+- [Sqlite3.cs](.github/../CiccioSoft.Sqlite.Interop/Sqlite3.cs) — Main connection wrapper, SafeHandle patterns
+- [Sqlite3Stmt.cs](.github/../CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs) — Statement wrapper
+- [SqliteErrorHelper.cs](.github/../CiccioSoft.Sqlite.Interop/SqliteErrorHelper.cs) — Error code translation
+- [SqliteInteropException.cs](.github/../CiccioSoft.Sqlite.Interop/SqliteInteropException.cs) — Interop-layer exceptions
 
 ## Core P/Invoke Patterns
 
@@ -127,10 +127,10 @@ private static extern int sqlite3_open_v2(
 
 ```bash
 # Build interop layer
-dotnet build CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj
+dotnet build CiccioSoft.Sqlite.Interop/CiccioSoft.Sqlite.Interop.csproj
 
 # Run interop-related tests (included in main test suite)
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx --filter FullyQualifiedName~Interop
+dotnet test CiccioSoft.Sqlite.slnx --filter FullyQualifiedName~Interop
 ```
 
 ## Common Interop Pitfalls
@@ -152,6 +152,6 @@ Chiedi a questo agent:
 
 ## File di Riferimento
 
-- [Sqlite3.cs](.github/../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs) — SafeHandle, lifecycle connessione, traduzione errori
-- [SqliteErrorHelper.cs](.github/../CiccioSoft.Data.Sqlite.Interop/SqliteErrorHelper.cs) — Pattern codici errore
-- [CiccioSoft.Data.Sqlite.Interop/README.md](.github/../CiccioSoft.Data.Sqlite.Interop/README.md) — Architettura & usage
+- [Sqlite3.cs](.github/../CiccioSoft.Sqlite.Interop/Sqlite3.cs) — SafeHandle, lifecycle connessione, traduzione errori
+- [SqliteErrorHelper.cs](.github/../CiccioSoft.Sqlite.Interop/SqliteErrorHelper.cs) — Pattern codici errore
+- [CiccioSoft.Sqlite.Interop/README.md](.github/../CiccioSoft.Sqlite.Interop/README.md) — Architettura & usage

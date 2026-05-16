@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Data.Sqlite.Interop;
+namespace CiccioSoft.Sqlite.Interop;
 
 /// <summary>
 /// Represents SQLite extended error codes.

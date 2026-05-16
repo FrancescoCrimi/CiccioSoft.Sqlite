@@ -7,9 +7,9 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-using CiccioSoft.Data.Sqlite.Interop.Native;
+using CiccioSoft.Sqlite.Interop.Native;
 
-namespace CiccioSoft.Data.Sqlite.Interop;
+namespace CiccioSoft.Sqlite.Interop;
 
 /// <summary>
 ///     Represents the type affinities used by columns in SQLite tables.

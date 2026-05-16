@@ -1,12 +1,12 @@
 ---
 name: interop-instructions
-description: "Istruzioni file-scoped per layer CiccioSoft.Data.Sqlite.Interop/. Si applica a dichiarazioni P/Invoke, pattern SafeHandle, gestione memoria, gestione errori nativi."
-applyTo: "**/CiccioSoft.Data.Sqlite.Interop/**/*.cs"
+description: "Istruzioni file-scoped per layer CiccioSoft.Sqlite.Interop/. Si applica a dichiarazioni P/Invoke, pattern SafeHandle, gestione memoria, gestione errori nativi."
+applyTo: "**/CiccioSoft.Sqlite.Interop/**/*.cs"
 ---
 
 # Istruzioni Interop Layer
 
-Questo file si applica a tutti i file sorgente C# in `CiccioSoft.Data.Sqlite.Interop/`.
+Questo file si applica a tutti i file sorgente C# in `CiccioSoft.Sqlite.Interop/`.
 
 ## Vincoli P/Invoke
 

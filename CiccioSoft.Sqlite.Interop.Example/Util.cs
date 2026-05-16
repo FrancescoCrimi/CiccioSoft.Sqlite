@@ -9,7 +9,7 @@ using System.Buffers;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Data.Sqlite.Interop.Example;
+namespace CiccioSoft.Sqlite.Interop.Example;
 
 public static class Util
 {

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 // using System.Globalization;
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 
 namespace CiccioSoft.Data.Sqlite;

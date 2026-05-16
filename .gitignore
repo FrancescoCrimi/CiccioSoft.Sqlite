@@ -482,6 +482,3 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-
-CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests/
-CiccioSoft.Data.Sqlite.Interop.Benchmark/

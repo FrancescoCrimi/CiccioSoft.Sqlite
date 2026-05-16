@@ -19,14 +19,14 @@ Questo è un **provider SQLite educational di qualità production** per .NET 10 
 
 **Progettazione two-layer:**
 
-1. **Interop Layer** (`CiccioSoft.Data.Sqlite.Interop/`)
+1. **Interop Layer** (`CiccioSoft.Sqlite.Interop/`)
    - Wrapper FFI P/Invoke a basso livello per SQLite nativo
    - Raw bindings esposti tramite classe `Sqlite3` per casi d'uso avanzati
    - Efficienza memoria: `stackalloc`, `ArrayPool<T>`, `Span<T>`
    - Gestione handle thread-safe tramite eredità `SafeHandle`
    - Vedi [CiccioSoft.Data.Sqlite.Interop/README.md](../CiccioSoft.Data.Sqlite.Interop/README.md)
 
-2. **OOP Layer** (`Microsoft.Data.Sqlite.Core/`, `CiccioSoft.Data.Sqlite/`)
+2. **OOP Layer** (`CiccioSoft.Data.Sqlite/`)
    - Astrazioni C# idiomatiche seguendo **interfacce ADO.NET** (`DbConnection`, `DbCommand`, `DbDataReader`, etc.)
    - Coordinamento single-writer tramite `SingleWriterCoordinator` per serializzare accesso SQLite nativo
    - Connection pooling con `ConcurrentDictionary` thread-safe e `SemaphoreSlim`
@@ -45,12 +45,12 @@ Vedi [README.md](../README.md) per panoramica architettura completa.
 
 **Build:**
 ```bash
-dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet build CiccioSoft.Sqlite.slnx
 ```
 
 **Unit Test:**
 ```bash
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet test CiccioSoft.Sqlite.slnx
 ```
 
 **Test Framework**: XUnit 2.9+ con supporto theory e coverlet coverage  

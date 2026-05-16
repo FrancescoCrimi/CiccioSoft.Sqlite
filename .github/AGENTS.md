@@ -25,28 +25,28 @@ CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  LAYER 1: OOP Abstractions (ADO.NET API)                         │
-│  Microsoft.Data.Sqlite.Core / CiccioSoft.Data.Sqlite             │
+│  CiccioSoft.Data.Sqlite                                          │
 │                                                                  │
-│  • SqliteConnection (DbConnection + Connection Pooling)         │
-│  • SqliteCommand (DbCommand + Statement Cache)                  │
-│  • SqliteDataReader (DbDataReader)                              │
-│  • SqliteTransaction (DbTransaction)                            │
-│  • SqliteConnectionPool (Thread-safe pooling)                   │
-│  • SingleWriterCoordinator (Serialized native access)           │
+│  • SqliteConnection (DbConnection + Connection Pooling)          │
+│  • SqliteCommand (DbCommand + Statement Cache)                   │
+│  • SqliteDataReader (DbDataReader)                               │
+│  • SqliteTransaction (DbTransaction)                             │
+│  • SqliteConnectionPool (Thread-safe pooling)                    │
+│  • SingleWriterCoordinator (Serialized native access)            │
 │                                                                  │
-│  Defaults: Foreign Keys=ON, Journal Mode=WAL, Timeout=30s       │
-│  Async Pattern: True cooperative async, CancellationToken       │
+│  Defaults: Foreign Keys=ON, Journal Mode=WAL, Timeout=30s        │
+│  Async Pattern: True cooperative async, CancellationToken        │
 │                                                                  │
 │  ↓ depends on ↓                                                  │
 │                                                                  │
 │  LAYER 2: P/Invoke Binding                                       │
-│  CiccioSoft.Data.Sqlite.Interop                                 │
+│  CiccioSoft.Sqlite.Interop                                       │
 │                                                                  │
-│  • Sqlite3 (P/Invoke declarations, cdecl)                       │
-│  • Sqlite3Handle (SafeHandleZeroOrMinusOneIsInvalid)            │
-│  • SqliteErrorHelper (Error code translation)                   │
-│  • Memory strategies (ArrayPool, stackalloc, Span<T>)           │
-│  • Platform abstraction (Windows/Linux/macOS)                   │
+│  • Sqlite3 (P/Invoke declarations, cdecl)                        │
+│  • Sqlite3Handle (SafeHandleZeroOrMinusOneIsInvalid)             │
+│  • SqliteErrorHelper (Error code translation)                    │
+│  • Memory strategies (ArrayPool, stackalloc, Span<T>)            │
+│  • Platform abstraction (Windows/Linux/macOS)                    │
 │                                                                  │
 │  ↓ calls ↓                                                       │
 │                                                                  │
@@ -73,7 +73,7 @@ CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
 **Specializzazione**: P/Invoke bindings, FFI, memory management, low-level interoperability
 
 **Ambito Prevalente**:
-- Path: `CiccioSoft.Data.Sqlite.Interop/**/*.cs`
+- Path: `CiccioSoft.Sqlite.Interop/**/*.cs`
 - File chiave: `Sqlite3.cs`, `SqliteErrorHelper.cs`
 - Istruzioni: `.github/instructions/interop.instructions.md`
 
@@ -299,7 +299,7 @@ Queste si applicano automaticamente a file che corrispondono al pattern `applyTo
 ```
 → Usa "SQLite Interop Agent"
   "Aggiungi binding P/Invoke per sqlite3_wal_checkpoint_v2"
-  (File: CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs)
+  (File: CiccioSoft.Sqlite.Interop/Sqlite3.cs)
 ```
 
 **Step 3: Implementation (Core)**
@@ -319,8 +319,8 @@ Queste si applicano automaticamente a file che corrispondono al pattern `applyTo
 
 **Step 5: Validation**
 ```
-dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet build CiccioSoft.Sqlite.slnx
+dotnet test CiccioSoft.Sqlite.slnx
 ```
 
 ---
@@ -440,20 +440,20 @@ Prima di chiedere a un agent, verifica:
 
 ```bash
 # Build soluzione intera
-dotnet build CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet build CiccioSoft.Sqlite.slnx
 
 # Build progetto specifico (es: Interop)
-dotnet build CiccioSoft.Data.Sqlite.Interop/CiccioSoft.Data.Sqlite.Interop.csproj
+dotnet build CiccioSoft.Sqlite.Interop/CiccioSoft.Sqlite.Interop.csproj
 
 # Build + verbosity per diagnostica
-dotnet build CiccioSoft.Data.Sqlite.Repository.slnx -v detailed
+dotnet build CiccioSoft.Sqlite.slnx -v detailed
 ```
 
 ### 🧪 Test
 
 ```bash
 # Esegui tutti i test
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx
+dotnet test CiccioSoft.Sqlite.slnx
 
 # Esegui specific test suite
 dotnet test CiccioSoft.Data.Sqlite.Tests.Extra/ --filter ClassName=AsyncConcurrencyTests
@@ -462,20 +462,20 @@ dotnet test CiccioSoft.Data.Sqlite.Tests.Extra/ --filter ClassName=AsyncConcurre
 dotnet test CiccioSoft.Data.Sqlite.Tests/ --filter "MethodName=SqlConnectionState_InitiallyClosedBeforeOpen"
 
 # Verbose output
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx -v detailed
+dotnet test CiccioSoft.Sqlite.slnx -v detailed
 
 # Run multiple times (flakiness detection)
-for i in {1..5}; do echo "Run $i:"; dotnet test CiccioSoft.Data.Sqlite.Repository.slnx -q; done
+for i in {1..5}; do echo "Run $i:"; dotnet test CiccioSoft.Sqlite.slnx -q; done
 ```
 
 ### 📊 Coverage
 
 ```bash
 # Report coverage
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true
+dotnet test CiccioSoft.Sqlite.slnx /p:CollectCoverage=true
 
 # Coverage + merge
-dotnet test CiccioSoft.Data.Sqlite.Repository.slnx /p:CollectCoverage=true /p:MergeWith=coverage.json
+dotnet test CiccioSoft.Sqlite.slnx /p:CollectCoverage=true /p:MergeWith=coverage.json
 ```
 
 ---
@@ -516,7 +516,7 @@ CiccioSoft.Data.Sqlite/              Global project folder
 │   │   └── tests.instructions.md    ← For Test layer
 │   └── agents/                      ← (optional) Detailed agent configs
 │
-├── CiccioSoft.Data.Sqlite.Interop/  ← Raw FFI binding layer
+├── CiccioSoft.Sqlite.Interop/       ← Raw FFI binding layer
 │   └── Sqlite3.cs, SqliteErrorHelper.cs, etc.
 │
 ├── Microsoft.Data.Sqlite.Core/      ← OOP abstractions layer
@@ -586,6 +586,6 @@ CiccioSoft.Data.Sqlite/              Global project folder
 
 - 🎯 **Main README**: [README.md](../README.md)
 - 🏗️ **Architecture**: [README.md — Architecture section](../README.md#-architecture)
-- 📖 **Interop Guide**: [CiccioSoft.Data.Sqlite.Interop/README.md](../CiccioSoft.Data.Sqlite.Interop/README.md)
+- 📖 **Interop Guide**: [CiccioSoft.Sqlite.Interop/README.md](../CiccioSoft.Data.Sqlite.Interop/README.md)
 - 🧪 **Test Examples**: [CiccioSoft.Data.Sqlite.Tests.Extra/README.md](../CiccioSoft.Data.Sqlite.Tests.Extra/README.md)
 - 🔗 **SQLite C API**: [https://www.sqlite.org/capi3ref.html](https://www.sqlite.org/capi3ref.html)

@@ -1,4 +1,4 @@
-# CiccioSoft.Data.Sqlite.Interop
+# CiccioSoft.Sqlite.Interop
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)

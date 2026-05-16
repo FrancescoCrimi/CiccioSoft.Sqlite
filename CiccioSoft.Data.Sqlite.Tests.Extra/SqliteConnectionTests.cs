@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;

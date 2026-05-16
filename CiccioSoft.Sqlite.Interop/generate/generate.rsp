@@ -5,7 +5,7 @@ sqlite3.h
 ../Native
 
 --namespace
-CiccioSoft.Data.Sqlite.Interop.Native
+CiccioSoft.Sqlite.Interop.Native
 
 --libraryPath
 SOSTITUISCIMI_LIBRERIA

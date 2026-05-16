@@ -8,10 +8,10 @@ using System;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
-using CiccioSoft.Data.Sqlite.Interop.Native;
+using CiccioSoft.Sqlite.Interop.Native;
 using Microsoft.Win32.SafeHandles;
 
-namespace CiccioSoft.Data.Sqlite.Interop;
+namespace CiccioSoft.Sqlite.Interop;
 
 public sealed class Sqlite3StmtHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
