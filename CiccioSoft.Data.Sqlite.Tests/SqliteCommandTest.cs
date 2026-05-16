@@ -887,7 +887,7 @@ CREATE TABLE "Products" (
                         connection.Open();
                         if (extendedErrorCode)
                         {
-                            sqlite3_extended_result_codes(connection.Handle, 1);
+                            // sqlite3_extended_result_codes(connection.Handle, 1);
                         }
 
                         connection.ExecuteNonQuery(
@@ -910,7 +910,7 @@ CREATE TABLE "Products" (
                         connection.Open();
                         if (extendedErrorCode)
                         {
-                            sqlite3_extended_result_codes(connection.Handle, 1);
+                            // sqlite3_extended_result_codes(connection.Handle, 1);
                         }
 
                         selectedSignal.WaitOne();
@@ -970,7 +970,7 @@ CREATE TABLE "Products" (
         }
         finally
         {
-            SqliteConnection.ClearPool(new SqliteConnection(connectionString));
+            // SqliteConnection.ClearPool(new SqliteConnection(connectionString));
             File.Delete("busy.db");
         }
     }
@@ -1089,7 +1089,7 @@ CREATE TABLE "Products" (
         }
         finally
         {
-            SqliteConnection.ClearPool(new SqliteConnection(connectionString));
+            // SqliteConnection.ClearPool(new SqliteConnection(connectionString));
             File.Delete("returning.db");
         }
     }
