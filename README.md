@@ -24,7 +24,7 @@ This repository is organized into multiple projects, each with its own README:
 - Low-level, unmanaged FFI (Foreign Function Interface)
 - Minimal abstraction over native SQLite C library
 - Direct SQLite API exposure for advanced use cases
-- [📖 Project README](CiccioSoft.Data.Sqlite.Interop/README.md)
+- [📖 Project README](CiccioSoft.Sqlite.Interop/README.md)
 
 ### 2. **CiccioSoft.Data.Sqlite** (OOP Abstraction Layer)
 - Idiomatic C# object-oriented wrapper
