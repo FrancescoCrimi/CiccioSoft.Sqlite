@@ -600,15 +600,15 @@ public class SqliteConnection : DbConnection
         if (_settings.IsInMemoryMode() && !string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
         {
             string cacheSuffix = string.Empty;
-            if (string.IsNullOrEmpty(_settings.Cache) ||
-                string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
-            {
+            // if (string.IsNullOrEmpty(_settings.Cache) ||
+            //     string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
+            // {
                 cacheSuffix = "&cache=shared";
-            }
-            else if (string.Equals(_settings.Cache, "Private", StringComparison.OrdinalIgnoreCase))
-            {
-                cacheSuffix = "&cache=private";
-            }
+            // }
+            // else if (string.Equals(_settings.Cache, "Private", StringComparison.OrdinalIgnoreCase))
+            // {
+            //     cacheSuffix = "&cache=private";
+            // }
             return $"file:{dataSource}?mode=memory{cacheSuffix}";
         }
 

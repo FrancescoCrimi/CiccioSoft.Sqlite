@@ -130,7 +130,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                     RecursiveTriggers = ConvertToNullableBoolean(value);
                     break;
                 case ModeKey:
-                    Mode = Convert.ToString(value) ?? string.Empty;
+                    Mode = ConvertToEnum<SqliteOpenMode>(value);
                     break;
                 case CacheKey:
                     Cache = ConvertToEnum<SqliteCacheMode>(value);
@@ -215,9 +215,15 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => base[DataSourceKey] = value ?? string.Empty;
     }
 
-    public string Mode
+    // public string Mode
+    // {
+    //     get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+    //     set => base[ModeKey] = value;
+    // }
+ 
+    public virtual SqliteOpenMode Mode
     {
-        get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        get => TryGetValue(ModeKey, out object? v) ? ConvertToEnum<SqliteOpenMode>(v) : SqliteOpenMode.ReadWriteCreate;
         set => base[ModeKey] = value;
     }
 
@@ -280,6 +286,14 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => base[PoolingKey] = value;
     }
 
+    /// <summary>
+    /// Fake property only for compatibility.
+    /// </summary>
+    public string? Vfs
+    {
+        get;
+        set;
+    }
     public int MaxPoolSize
     {
         get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;
@@ -326,7 +340,8 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             return true;
 
         // Check explicit Mode
-        if (string.Equals(Mode, "Memory", StringComparison.OrdinalIgnoreCase))
+        // if (string.Equals(Mode, "Memory", StringComparison.OrdinalIgnoreCase))
+        if (Mode == SqliteOpenMode.Memory)
             return true;
 
         // Check URI format for shared memory
