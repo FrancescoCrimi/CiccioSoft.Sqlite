@@ -133,7 +133,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                     Mode = Convert.ToString(value) ?? string.Empty;
                     break;
                 case CacheKey:
-                    Cache = Convert.ToString(value) ?? string.Empty;
+                    Cache = ConvertToEnum<SqliteCacheMode>(value);
                     break;
                 default:
                     base[keyword] = value;
@@ -221,9 +221,9 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => base[ModeKey] = value;
     }
 
-    public string Cache
+    public virtual SqliteCacheMode Cache
     {
-        get => TryGetValue(CacheKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;
+        get => TryGetValue(CacheKey, out object? v) ? ConvertToEnum<SqliteCacheMode>(v) : SqliteCacheMode.Default;
         set => base[CacheKey] = value;
     }
 
@@ -374,6 +374,23 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 
         Remove(key);
         Remove(pragmaKey);
+    }
+
+
+    private static TEnum ConvertToEnum<TEnum>(object value)
+        where TEnum : struct
+    {
+        if (value is string stringValue)
+        {
+            return (TEnum)Enum.Parse(typeof(TEnum), stringValue, ignoreCase: true);
+        }
+
+        if (value is TEnum enumValue)
+        {
+            return enumValue;
+        }
+
+        return (TEnum)Enum.ToObject(typeof(TEnum), value);
     }
 
     private static bool? ConvertToNullableBoolean(object? value)
