@@ -12,7 +12,7 @@
     <tags>sqlite</tags>
     <repository type="git" url="https://github.com/ericsink/SQLitePCL.raw" />
     <dependencies>
-      <group targetFramework=".NETStandard2.0">
+      <group targetFramework="net10.0">
         <dependency id="SQLitePCLRaw.config.e_sqlite3" version="$version$" exclude="Build,Analyzers" />
         <dependency id="SourceGear.sqlite3" version="3.50.4.2" exclude="Build,Analyzers" />
       </group>

@@ -8,7 +8,7 @@ sqlite3.h
 CiccioSoft.Data.Sqlite.Interop.Native
 
 --libraryPath
-e_sqlite3
+SOSTITUISCIMI_LIBRERIA
 
 --methodClassName
 Sqlite3Native

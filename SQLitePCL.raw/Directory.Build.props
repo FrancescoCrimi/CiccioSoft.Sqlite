@@ -23,9 +23,9 @@
     <depversion_xunit>2.6.3</depversion_xunit>
     <depversion_xunit_runner_visualstudio>2.5.5</depversion_xunit_runner_visualstudio>
     <depversion_microsoft_net_test_sdk>17.8.0</depversion_microsoft_net_test_sdk>
-    <tfm_net>net8.0</tfm_net>
+    <tfm_net>net10.0</tfm_net>
     <tfm_framework>net471</tfm_framework>
-    <tfm_windows>net8.0-windows</tfm_windows>
+    <tfm_windows>net10.0-windows</tfm_windows>
     <tfm_ios>net10.0-ios26.0</tfm_ios>
     <tfm_tvos>net10.0-tvos26.0</tfm_tvos>
     <tfm_maccatalyst>net10.0-maccatalyst26.0</tfm_maccatalyst>
