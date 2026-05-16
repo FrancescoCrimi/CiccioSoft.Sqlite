@@ -1,12 +1,12 @@
 ---
 name: core-adonet-instructions
 description: "Istruzioni file-scoped per Core ADO.NET Layer (Microsoft.Data.Sqlite.Core/). Si applicano a implementazioni connection, command, transaction e data reader."
-applyTo: "**/Microsoft.Data.Sqlite.Core/**/*.cs"
+applyTo: "**/CiccioSoft.Data.Sqlite/**/*.cs"
 ---
 
 # Istruzioni Core ADO.NET Layer
 
-Questo file si applica a tutti i file sorgente C# in `Microsoft.Data.Sqlite.Core/`.
+Questo file si applica a tutti i file sorgente C# in `CiccioSoft.Data.Sqlite.Core/`.
 
 ## Compliance Contratto ADO.NET
 

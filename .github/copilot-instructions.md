@@ -13,7 +13,7 @@ Questo è un **provider SQLite educational di qualità production** per .NET 10 
 - **File di esempio**: 
   - [SqliteConnection.cs](../Microsoft.Data.Sqlite.Core/SqliteConnection.cs) — lifecycle della connessione & defaults
   - [SqliteCommand.cs](../Microsoft.Data.Sqlite.Core/SqliteCommand.cs) — esecuzione comandi & statement caching
-  - [Sqlite3.cs](../CiccioSoft.Data.Sqlite.Interop/Sqlite3.cs) — pattern P/Invoke & utilizzo SafeHandle
+  - [Sqlite3.cs](../CiccioSoft.Sqlite.Interop/Sqlite3.cs) — pattern P/Invoke & utilizzo SafeHandle
 
 ## Architettura
 
