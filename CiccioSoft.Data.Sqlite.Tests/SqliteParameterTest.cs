@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Data.Sqlite.Tests.TestUtilities;
 using Xunit;

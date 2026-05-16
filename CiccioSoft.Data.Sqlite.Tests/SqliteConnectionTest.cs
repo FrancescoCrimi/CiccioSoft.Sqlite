@@ -7,7 +7,7 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 // using static SQLitePCL.raw;

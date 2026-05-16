@@ -5,7 +5,7 @@ using System;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 // using static SQLitePCL.raw;
