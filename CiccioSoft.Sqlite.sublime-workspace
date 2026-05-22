@@ -1,0 +1,1491 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"lo",
+				"LockedSharedCache"
+			],
+			[
+				"region",
+				"region"
+			],
+			[
+				"throw",
+				"ThrowError"
+			],
+			[
+				"thro",
+				"ThrowOnError"
+			],
+			[
+				"thr",
+				"ThrowOnError"
+			],
+			[
+				"mysql",
+				"MySqlBind"
+			],
+			[
+				"Mysq",
+				"MySqlBind"
+			],
+			[
+				"mi",
+				"millisecond:"
+			],
+			[
+				"s",
+				"second"
+			],
+			[
+				"da",
+				"day:"
+			],
+			[
+				"nu",
+				"null"
+			],
+			[
+				"Date",
+				"DateTime"
+			],
+			[
+				"date",
+				"DateTime"
+			],
+			[
+				"_",
+				"_length"
+			],
+			[
+				"mysqlfie",
+				"MySqlFieldTypes"
+			],
+			[
+				"My",
+				"MySqlFieldTypes"
+			],
+			[
+				"t",
+				"type"
+			],
+			[
+				"inter",
+				"internal"
+			],
+			[
+				"GC",
+				"GCHandle"
+			],
+			[
+				"len_",
+				"len_email"
+			],
+			[
+				"f",
+				"mysql_fetch_field_direct"
+			],
+			[
+				"re",
+				"res"
+			],
+			[
+				"mysq",
+				"mysql"
+			],
+			[
+				"MyS",
+				"MySqlStatement"
+			],
+			[
+				"MySqlS",
+				"MySqlStatementHandle"
+			],
+			[
+				"MySq",
+				"MySqlStatementHandle"
+			],
+			[
+				"h",
+				"string.h"
+			],
+			[
+				"test_",
+				"test_mariadb"
+			],
+			[
+				"te",
+				"test_sqlite"
+			],
+			[
+				"Sql",
+				"Sqlite3BackupHandle"
+			],
+			[
+				"Sq",
+				"SqliteParameter"
+			],
+			[
+				"Comma",
+				"command"
+			],
+			[
+				"Sqlit",
+				"SqliteResult"
+			],
+			[
+				"us",
+				"using"
+			],
+			[
+				"Read",
+				"ReadOnlySpan<>"
+			],
+			[
+				"mem",
+				"memWriteBefore"
+			],
+			[
+				"st",
+				"Stop"
+			],
+			[
+				"Sqli",
+				"SqliteBenchmark"
+			],
+			[
+				"byte",
+				"byteCount"
+			],
+			[
+				"As",
+				"AsSpan"
+			],
+			[
+				"ni",
+				"nint.Zero"
+			],
+			[
+				"nin",
+				"nint.Zero"
+			],
+			[
+				"nint",
+				"nint.Zero"
+			],
+			[
+				"inte",
+				"internal"
+			],
+			[
+				"Sqlite3",
+				"Sqlite3Stmt"
+			],
+			[
+				"ca",
+				"CallingConvention"
+			],
+			[
+				"Bind",
+				"BindInt"
+			],
+			[
+				"pub",
+				"public"
+			],
+			[
+				"as",
+				"AsReadOnly<>"
+			],
+			[
+				"cae",
+				"case"
+			],
+			[
+				"writ",
+				"WriteLine"
+			],
+			[
+				"Ima",
+				"ImageRepository"
+			],
+			[
+				"sqlite3_bi",
+				"sqlite3_bind_int64"
+			],
+			[
+				"by",
+				"byteCount"
+			],
+			[
+				"nome",
+				"nomeDaInserire"
+			],
+			[
+				"wr",
+				"WriteLine"
+			],
+			[
+				"Use",
+				"UserRow"
+			],
+			[
+				"for",
+				"foreach"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "CiccioSoft.Sqlite.sublime-project",
+			"settings":
+			{
+				"buffer_size": 1397,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+				[
+					11,
+					1,
+					"paste",
+					null,
+					"AQAAAD8CAAAAAAAAHQQAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAPwIAAAAAAAA/AgAAAAAAAAAAAAAAAAAA"
+				],
+				[
+					25,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAAGsBAAAAAAAAfAEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAawEAAAAAAABrAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					26,
+					1,
+					"insert_snippet",
+					{
+						"contents": "\"$0\""
+					},
+					"AQAAAHwBAAAAAAAAfgEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAfAEAAAAAAAB8AQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					31,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 381,
+							"x": 516.5,
+							"y": 252.5
+						}
+					},
+					"AQAAAH0BAAAAAAAAhgEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAfQEAAAAAAAB9AQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					34,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAAIcBAAAAAAAAmAEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAhwEAAAAAAACHAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					35,
+					1,
+					"insert_snippet",
+					{
+						"contents": "\"$0\""
+					},
+					"AQAAAJgBAAAAAAAAmgEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAmAEAAAAAAACYAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					37,
+					1,
+					"insert",
+					{
+						"characters": ","
+					},
+					"AQAAAJoBAAAAAAAAmwEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAmgEAAAAAAACaAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					39,
+					1,
+					"insert",
+					{
+						"characters": "none"
+					},
+					"BAAAAJkBAAAAAAAAmgEAAAAAAAAAAAAAmgEAAAAAAACbAQAAAAAAAAAAAACbAQAAAAAAAJwBAAAAAAAAAAAAAJwBAAAAAAAAnQEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAmQEAAAAAAACZAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					42,
+					1,
+					"insert",
+					{
+						"characters": ","
+					},
+					"AQAAAIcBAAAAAAAAiAEAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAhwEAAAAAAACHAQAAAAAAAP///////+9/"
+				],
+				[
+					47,
+					4,
+					"left_delete",
+					null,
+					"BAAAAKUBAAAAAAAApQEAAAAAAABzAAAAICAgICAgICAgICAgIi1maWx0ZXIiLCAKICAgICAgICAgICAgICAgICIvL0NpY2Npb1NvZnQuRGF0YS5TcWxpdGUuVGVzdHMvU3FsaXRlUGFyYW1ldGVyVGVzdC9CaW5kX3JlcXVpcmVzX3NldF9uYW1lIqEBAAAAAAAAoQEAAAAAAAAEAAAAICAgIKABAAAAAAAAoAEAAAAAAAABAAAACp8BAAAAAAAAnwEAAAAAAAABAAAALA",
+					"AQAAAAAAAAABAAAAGAIAAAAAAAClAQAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					57,
+					1,
+					"left_delete",
+					null,
+					"AgAAAIsAAAAAAAAAiwAAAAAAAAAEAAAARGF0YYoAAAAAAAAAigAAAAAAAAABAAAALg",
+					"AQAAAAAAAAABAAAAiwAAAAAAAACPAAAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					70,
+					2,
+					"left_delete",
+					null,
+					"AgAAACACAAAAAAAAIAIAAAAAAAAEAAAARGF0YR8CAAAAAAAAHwIAAAAAAAABAAAALg",
+					"AQAAAAAAAAABAAAAIAIAAAAAAAAkAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					79,
+					1,
+					"insert",
+					{
+						"characters": " "
+					},
+					"AQAAACcCAAAAAAAAKAIAAAAAAAAFAAAAVGVzdHM",
+					"AQAAAAAAAAABAAAAJwIAAAAAAAAsAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					81,
+					1,
+					"left_delete",
+					null,
+					"AQAAACYCAAAAAAAAJgIAAAAAAAABAAAALg",
+					"AQAAAAAAAAABAAAAJwIAAAAAAAAnAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					83,
+					1,
+					"insert",
+					{
+						"characters": " "
+					},
+					"AQAAACcCAAAAAAAAKAIAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAJwIAAAAAAAAnAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					84,
+					1,
+					"left_delete",
+					null,
+					"AQAAACcCAAAAAAAAJwIAAAAAAAABAAAAIA",
+					"AQAAAAAAAAABAAAAKAIAAAAAAAAoAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					85,
+					1,
+					"insert",
+					{
+						"characters": "Single"
+					},
+					"BgAAACcCAAAAAAAAKAIAAAAAAAAAAAAAKAIAAAAAAAApAgAAAAAAAAAAAAApAgAAAAAAACoCAAAAAAAAAAAAACoCAAAAAAAAKwIAAAAAAAAAAAAAKwIAAAAAAAAsAgAAAAAAAAAAAAAsAgAAAAAAAC0CAAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAJwIAAAAAAAAnAgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					96,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 851,
+							"x": 786.5,
+							"y": 431.5
+						}
+					},
+					"AQAAAEkDAAAAAAAAWgMAAAAAAAATAAAAU3FsaXRlUGFyYW1ldGVyVGVzdA",
+					"AQAAAAAAAAABAAAASQMAAAAAAABcAwAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					107,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 870,
+							"x": 916.5,
+							"y": 432.5
+						}
+					},
+					"AQAAAFsDAAAAAAAAdgMAAAAAAAAWAAAAQmluZF9yZXF1aXJlc19zZXRfbmFtZQ",
+					"AQAAAAAAAAABAAAAWwMAAAAAAABxAwAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					114,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 867,
+							"x": 898.5,
+							"y": 432.5
+						}
+					},
+					"AQAAAFsDAAAAAAAAdgMAAAAAAAAbAAAAQ29tbWFuZFR5cGVfdGV4dF9ieV9kZWZhdWx0",
+					"AQAAAAAAAAABAAAAWwMAAAAAAAB2AwAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					125,
+					1,
+					"paste",
+					null,
+					"AQAAAHgDAAAAAAAArAMAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAeAMAAAAAAAB4AwAAAAAAAAAAAAAAAAAA"
+				],
+				[
+					128,
+					1,
+					"insert",
+					{
+						"characters": ","
+					},
+					"AQAAAHcDAAAAAAAAeAMAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAdwMAAAAAAAB3AwAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					143,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 875,
+							"x": 950.5,
+							"y": 438.5
+						}
+					},
+					"AQAAAFsDAAAAAAAAdQMAAAAAAAAbAAAAQ29tbWFuZFR5cGVfdmFsaWRhdGVzX3ZhbHVl",
+					"AQAAAAAAAAABAAAAWwMAAAAAAAB2AwAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					148,
+					1,
+					"paste",
+					{
+						"event":
+						{
+							"modifier_keys":
+							{
+							},
+							"text_point": 848,
+							"x": 771.5,
+							"y": 435.5
+						}
+					},
+					"AQAAAEkDAAAAAAAAagMAAAAAAAARAAAAU3FsaXRlQ29tbWFuZFRlc3Q",
+					"AQAAAAAAAAABAAAASQMAAAAAAABaAwAAAAAAAAAAAAAAAPC/"
+				]
+			]
+		},
+		{
+			"file": "CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+			"settings":
+			{
+				"buffer_size": 10901,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
+			"contents": "// Copyright (c) 2026 Francesco Crimi\n//\n// Use of this source code is governed by an MIT-style\n// license that can be found in the LICENSE file or at\n// https://opensource.org/licenses/MIT.\n\nusing System;\nusing System.Collections;\nusing System.Collections.Generic;\nusing System.ComponentModel;\nusing System.Data.Common;\nusing System.Diagnostics.CodeAnalysis;\n\nnamespace CiccioSoft.Data.Sqlite;\n\n/// <summary>\n/// Builds SQLite connection strings with intelligent defaults:\n/// - WAL enabled by default (better concurrency)\n/// - Foreign Keys enabled by default (referential integrity)\n/// - For in-memory databases: Shared cache by default, WAL disabled\n/// </summary>\npublic class SqliteConnectionStringBuilder : DbConnectionStringBuilder\n{\n    private const string DataSourceKey = \"Data Source\";\n    private const string DataSourceNoSpaceKeyword = \"DataSource\";\n    private const string ModeKey = \"Mode\";\n    private const string CacheKey = \"Cache\";\n    private const string ForeignKeysKey = \"Foreign Keys\";\n    private const string ForeignKeysPragmaKey = \"foreign_keys\";\n    private const string RecursiveTriggersKey = \"Recursive Triggers\";\n    private const string RecursiveTriggersPragmaKey = \"recursive_triggers\";\n    private const string BusyTimeoutKey = \"Busy Timeout\";\n    private const string BusyTimeoutPragmaKey = \"busy_timeout\";\n    private const string PoolingKey = \"Pooling\";\n    private const string MaxPoolSizeKey = \"Max Pool Size\";\n    private const string JournalModeKey = \"Journal Mode\";\n    private const string JournalModePragmaKey = \"journal_mode\";\n\n    private static readonly string[] CanonicalKeys =\n    [\n        DataSourceKey,\n        ModeKey,\n        CacheKey,\n        //PasswordKey,\n        ForeignKeysKey,\n        RecursiveTriggersKey,\n        BusyTimeoutKey,\n        PoolingKey,\n        //VfsKey,\n        MaxPoolSizeKey,\n        JournalModeKey,\n    ];\n\n    /// <summary>\n    /// Initializes a new instance with intelligent defaults:\n    /// - Journal Mode: WAL (better concurrency)\n    /// - Foreign Keys: ON (referential integrity)\n    /// </summary>\n    public SqliteConnectionStringBuilder()\n    {\n        base[DataSourceKey] = string.Empty;\n        base[PoolingKey] = true;\n        base[MaxPoolSizeKey] = 100;\n        base[BusyTimeoutKey] = 30000;\n        // No default for JournalMode and ForeignKeys here; defaults will be applied by SqliteConnection\n    }\n\n    public SqliteConnectionStringBuilder(string connectionString) : this()\n    {\n        ConnectionString = connectionString;\n    }\n\n    [Browsable(false)]\n    [AllowNull]\n    public override object this[string keyword]\n    {\n        get\n        {\n            if (keyword is null)\n            {\n                throw new ArgumentNullException(nameof(keyword));\n            }\n\n            return keyword switch\n            {\n                DataSourceKey => DataSource,\n                PoolingKey => Pooling,\n                MaxPoolSizeKey => MaxPoolSize,\n                BusyTimeoutKey or BusyTimeoutPragmaKey => BusyTimeout,\n                JournalModeKey or JournalModePragmaKey => JournalMode,\n                ForeignKeysKey or ForeignKeysPragmaKey => ForeignKeys ?? false,\n                RecursiveTriggersKey or RecursiveTriggersPragmaKey => RecursiveTriggers ?? false,\n                ModeKey => Mode,\n                CacheKey => Cache,\n                _ => base[keyword]\n            };\n        }\n        set\n        {\n            if (keyword is null)\n            {\n                throw new ArgumentNullException(nameof(keyword));\n            }\n\n            switch (keyword)\n            {\n                case DataSourceKey:\n                    DataSource = Convert.ToString(value) ?? string.Empty;\n                    break;\n                case PoolingKey:\n                    Pooling = Convert.ToBoolean(value);\n                    break;\n                case MaxPoolSizeKey:\n                    MaxPoolSize = Convert.ToInt32(value);\n                    break;\n                case BusyTimeoutKey:\n                case BusyTimeoutPragmaKey:\n                    BusyTimeout = Convert.ToInt32(value);\n                    break;\n                case JournalModeKey:\n                case JournalModePragmaKey:\n                    JournalMode = Convert.ToString(value) ?? string.Empty;\n                    break;\n                case ForeignKeysKey:\n                case ForeignKeysPragmaKey:\n                    ForeignKeys = ConvertToNullableBoolean(value);\n                    break;\n                case RecursiveTriggersKey:\n                case RecursiveTriggersPragmaKey:\n                    RecursiveTriggers = ConvertToNullableBoolean(value);\n                    break;\n                case ModeKey:\n                    Mode = ConvertToEnum<SqliteOpenMode>(value);\n                    break;\n                case CacheKey:\n                    Cache = ConvertToEnum<SqliteCacheMode>(value);\n                    break;\n                default:\n                    base[keyword] = value;\n                    break;\n            }\n        }\n    }\n\n    public override ICollection Keys\n    {\n        get\n        {\n            var keys = new List<string>();\n            foreach (string key in base.Keys)\n            {\n                keys.Add(key);\n            }\n\n            foreach (string key in CanonicalKeys)\n            {\n                if (!keys.Exists(existingKey => string.Equals(existingKey, key, StringComparison.OrdinalIgnoreCase)))\n                {\n                    keys.Add(key);\n                }\n            }\n\n            return keys;\n        }\n    }\n\n    public override ICollection Values\n    {\n        get\n        {\n            var values = new List<object>();\n            foreach (string key in Keys)\n            {\n                values.Add(this[key]);\n            }\n\n            return values;\n        }\n    }\n\n    /// <summary>\n    /// Gets or sets the connection string with intelligent defaults applied.\n    /// For in-memory databases, automatically sets:\n    /// - Cache = Shared (if not specified)\n    /// - Journal Mode = DELETE (WAL not supported)\n    /// </summary>\n    // public override string ConnectionString\n    // {\n    //     get\n    //     {\n    //         // Apply intelligent defaults for in-memory databases\n    //         if (IsInMemoryMode())\n    //         {\n    //             // WAL is not supported for in-memory databases\n    //             if (!HasJournalMode)\n    //             {\n    //                 this[JournalModeKey] = \"DELETE\";\n    //             }\n\n    //             // Shared cache is the intelligent default for in-memory\n    //             if (!ContainsKey(CacheKey))\n    //             {\n    //                 this[CacheKey] = \"Shared\";\n    //             }\n    //         }\n\n    //         return base.ConnectionString;\n    //     }\n    //     set => base.ConnectionString = value;\n    // }\n\n    public string DataSource\n    {\n        get => TryGetValue(DataSourceKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;\n        set => base[DataSourceKey] = value ?? string.Empty;\n    }\n\n    // public string Mode\n    // {\n    //     get => TryGetValue(ModeKey, out object? v) ? Convert.ToString(v) ?? string.Empty : string.Empty;\n    //     set => base[ModeKey] = value;\n    // }\n \n    public virtual SqliteOpenMode Mode\n    {\n        get => TryGetValue(ModeKey, out object? v) ? ConvertToEnum<SqliteOpenMode>(v) : SqliteOpenMode.ReadWriteCreate;\n        set => base[ModeKey] = value;\n    }\n\n    public virtual SqliteCacheMode Cache\n    {\n        get => TryGetValue(CacheKey, out object? v) ? ConvertToEnum<SqliteCacheMode>(v) : SqliteCacheMode.Default;\n        set => base[CacheKey] = value;\n    }\n\n    /// <summary>\n    /// Fake Property only for compatibility.\n    /// At the moment encryption is not supported\n    /// </summary>\n    [AllowNull]\n    public string Password\n    {\n        get {return \"\";}\n        set {}\n    }\n\n    public bool? ForeignKeys\n    {\n        get => GetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey);\n        set => SetNullableBoolean(ForeignKeysKey, ForeignKeysPragmaKey, value);\n    }\n\n    public bool? RecursiveTriggers\n    {\n        get => GetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey);\n        set => SetNullableBoolean(RecursiveTriggersKey, RecursiveTriggersPragmaKey, value);\n    }\n\n    public int BusyTimeout\n    {\n        get\n        {\n            if (TryGetValue(BusyTimeoutKey, out object? value) || TryGetValue(BusyTimeoutPragmaKey, out value))\n            {\n                return Math.Max(0, Convert.ToInt32(value));\n            }\n\n            return 30000;\n        }\n        set\n        {\n            base[BusyTimeoutKey] = Math.Max(0, value);\n            Remove(BusyTimeoutPragmaKey);\n        }\n    }\n\n    /// <summary>\n    /// Gets or sets the busy timeout in seconds (default: 30 seconds).\n    /// Internally, this is converted to/from milliseconds for <see cref=\"BusyTimeout\"/>.\n    /// </summary>\n    public int DefaultTimeout\n    {\n        get => BusyTimeout / 1000;\n        set => BusyTimeout = value * 1000;\n    }\n\n    public bool Pooling\n    {\n        get => TryGetValue(PoolingKey, out object? v) ? Convert.ToBoolean(v) : true;\n        set => base[PoolingKey] = value;\n    }\n\n    /// <summary>\n    /// Fake property only for compatibility.\n    /// </summary>\n    public string? Vfs\n    {\n        get;\n        set;\n    }\n\n    public int MaxPoolSize\n    {\n        get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;\n        set => base[MaxPoolSizeKey] = Math.Max(1, value);\n    }\n\n    public string JournalMode\n    {\n        get\n        {\n            if (TryGetValue(JournalModeKey, out object? value) || TryGetValue(JournalModePragmaKey, out value))\n            {\n                return Convert.ToString(value) ?? string.Empty;\n            }\n\n            return \"WAL\"; // Default: WAL for better concurrency\n        }\n        set\n        {\n            base[JournalModeKey] = value ?? string.Empty;\n            Remove(JournalModePragmaKey);\n        }\n    }\n\n    internal bool HasBusyTimeout\n        => TryGetValue(BusyTimeoutKey, out _) || TryGetValue(BusyTimeoutPragmaKey, out _);\n\n    internal bool HasForeignKeys\n        => TryGetValue(ForeignKeysKey, out _) || TryGetValue(ForeignKeysPragmaKey, out _);\n\n    internal bool HasJournalMode\n        => TryGetValue(JournalModeKey, out _) || TryGetValue(JournalModePragmaKey, out _);\n\n    internal bool HasRecursiveTriggers\n        => TryGetValue(RecursiveTriggersKey, out _) || TryGetValue(RecursiveTriggersPragmaKey, out _);\n\n    /// <summary>\n    /// Determines if the connection is for an in-memory database.\n    /// </summary>\n    internal bool IsInMemoryMode()\n    {\n        // Check Data Source\n        if (DataSource == \":memory:\")\n            return true;\n\n        // Check explicit Mode\n        // if (string.Equals(Mode, \"Memory\", StringComparison.OrdinalIgnoreCase))\n        if (Mode == SqliteOpenMode.Memory)\n            return true;\n\n        // Check URI format for shared memory\n        if (DataSource?.StartsWith(\"file:\", StringComparison.OrdinalIgnoreCase) == true &&\n            DataSource.Contains(\"mode=memory\", StringComparison.OrdinalIgnoreCase))\n            return true;\n\n        return false;\n    }\n\n    private bool? GetNullableBoolean(string key, string pragmaKey)\n    {\n        if (!TryGetValue(key, out object? value) && !TryGetValue(pragmaKey, out value))\n        {\n            return null;\n        }\n\n        if (value is bool typed)\n        {\n            return typed;\n        }\n\n        string text = Convert.ToString(value) ?? string.Empty;\n        if (string.Equals(text, \"1\", StringComparison.OrdinalIgnoreCase))\n        {\n            return true;\n        }\n\n        if (string.Equals(text, \"0\", StringComparison.OrdinalIgnoreCase))\n        {\n            return false;\n        }\n\n        return Convert.ToBoolean(value);\n    }\n\n    private void SetNullableBoolean(string key, string pragmaKey, bool? value)\n    {\n        if (value.HasValue)\n        {\n            base[key] = value.Value;\n            Remove(pragmaKey);\n            return;\n        }\n\n        Remove(key);\n        Remove(pragmaKey);\n    }\n\n\n    private static TEnum ConvertToEnum<TEnum>(object value)\n        where TEnum : struct\n    {\n        if (value is string stringValue)\n        {\n            return (TEnum)Enum.Parse(typeof(TEnum), stringValue, ignoreCase: true);\n        }\n\n        if (value is TEnum enumValue)\n        {\n            return enumValue;\n        }\n\n        return (TEnum)Enum.ToObject(typeof(TEnum), value);\n    }\n\n    private static bool? ConvertToNullableBoolean(object? value)\n    {\n        if (value is null)\n        {\n            return null;\n        }\n\n        if (value is bool typed)\n        {\n            return typed;\n        }\n\n        string text = Convert.ToString(value) ?? string.Empty;\n        if (string.Equals(text, \"1\", StringComparison.OrdinalIgnoreCase))\n        {\n            return true;\n        }\n\n        if (string.Equals(text, \"0\", StringComparison.OrdinalIgnoreCase))\n        {\n            return false;\n        }\n\n        return Convert.ToBoolean(value);\n    }\n}\n",
+			"file": "CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+			"file_size": 13608,
+			"file_write_time": 134239293571379135,
+			"settings":
+			{
+				"buffer_size": 13166,
+				"encoding": "UTF-8 with BOM",
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+				[
+					21,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAAL8eAAAAAAAAxB4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAvx4AAAAAAAC/HgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					22,
+					1,
+					"right_delete",
+					null,
+					"AQAAAMQeAAAAAAAAxB4AAAAAAAABAAAAIA",
+					"AQAAAAAAAAABAAAAxB4AAAAAAADEHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					24,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAAMUeAAAAAAAAyh4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAxR4AAAAAAADFHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					26,
+					1,
+					"insert",
+					{
+						"characters": "\t"
+					},
+					"AQAAAMseAAAAAAAAzh4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAyx4AAAAAAADLHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					28,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAANIeAAAAAAAA2x4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0h4AAAAAAADSHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					29,
+					1,
+					"right_delete",
+					null,
+					"AQAAANseAAAAAAAA2x4AAAAAAAABAAAAIA",
+					"AQAAAAAAAAABAAAA2x4AAAAAAADbHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					31,
+					1,
+					"insert",
+					{
+						"characters": "\n"
+					},
+					"AQAAAN8eAAAAAAAA6B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA3x4AAAAAAADfHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					32,
+					1,
+					"left_delete",
+					null,
+					"AQAAAOQeAAAAAAAA5B4AAAAAAAAEAAAAICAgIA",
+					"AQAAAAAAAAABAAAA6B4AAAAAAADoHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					33,
+					1,
+					"right_delete",
+					null,
+					"AQAAAOQeAAAAAAAA5B4AAAAAAAABAAAAIA",
+					"AQAAAAAAAAABAAAA5B4AAAAAAADkHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					38,
+					1,
+					"left_delete",
+					null,
+					"AQAAANEeAAAAAAAA0R4AAAAAAAABAAAAOw",
+					"AQAAAAAAAAABAAAA0h4AAAAAAADSHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					39,
+					1,
+					"insert",
+					{
+						"characters": " ="
+					},
+					"AgAAANEeAAAAAAAA0h4AAAAAAAAAAAAA0h4AAAAAAADTHgAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0R4AAAAAAADRHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					40,
+					1,
+					"insert",
+					{
+						"characters": ">"
+					},
+					"AQAAANMeAAAAAAAA1B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0x4AAAAAAADTHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					41,
+					1,
+					"insert",
+					{
+						"characters": " "
+					},
+					"AQAAANQeAAAAAAAA1R4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1B4AAAAAAADUHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					42,
+					1,
+					"insert_snippet",
+					{
+						"contents": "\"$0\""
+					},
+					"AQAAANUeAAAAAAAA1x4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1R4AAAAAAADVHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					44,
+					1,
+					"insert",
+					{
+						"characters": ";"
+					},
+					"AQAAANceAAAAAAAA2B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1x4AAAAAAADXHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					46,
+					1,
+					"insert",
+					{
+						"characters": " re"
+					},
+					"AwAAANQeAAAAAAAA1R4AAAAAAAAAAAAA1R4AAAAAAADWHgAAAAAAAAAAAADWHgAAAAAAANceAAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1B4AAAAAAADUHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					47,
+					1,
+					"insert",
+					{
+						"characters": "tur"
+					},
+					"AwAAANceAAAAAAAA2B4AAAAAAAAAAAAA2B4AAAAAAADZHgAAAAAAAAAAAADZHgAAAAAAANoeAAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1x4AAAAAAADXHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					48,
+					1,
+					"insert",
+					{
+						"characters": "n"
+					},
+					"AQAAANoeAAAAAAAA2x4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA2h4AAAAAAADaHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					62,
+					1,
+					"left_delete",
+					null,
+					"AQAAANUeAAAAAAAA1R4AAAAAAAAGAAAAcmV0dXJu",
+					"AQAAAAAAAAABAAAA1R4AAAAAAADbHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					64,
+					3,
+					"left_delete",
+					null,
+					"AwAAANQeAAAAAAAA1B4AAAAAAAABAAAAINMeAAAAAAAA0x4AAAAAAAABAAAAPtIeAAAAAAAA0h4AAAAAAAABAAAAPQ",
+					"AQAAAAAAAAABAAAA1R4AAAAAAADVHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					65,
+					1,
+					"insert_snippet",
+					{
+						"contents": "{$0}"
+					},
+					"AQAAANIeAAAAAAAA1B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0h4AAAAAAADSHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					67,
+					1,
+					"left_delete",
+					null,
+					"AQAAANMeAAAAAAAA0x4AAAAAAAABAAAAfQ",
+					"AQAAAAAAAAABAAAA1B4AAAAAAADUHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					68,
+					1,
+					"insert",
+					{
+						"characters": "ret"
+					},
+					"AwAAANMeAAAAAAAA1B4AAAAAAAAAAAAA1B4AAAAAAADVHgAAAAAAAAAAAADVHgAAAAAAANYeAAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0x4AAAAAAADTHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					69,
+					1,
+					"insert_completion",
+					{
+						"completion": "return",
+						"format": "text",
+						"keep_prefix": false,
+						"must_insert": false,
+						"trigger": "return"
+					},
+					"AgAAANMeAAAAAAAA0x4AAAAAAAADAAAAcmV00x4AAAAAAADZHgAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA1h4AAAAAAADWHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					71,
+					1,
+					"insert",
+					{
+						"characters": "}"
+					},
+					"AQAAANweAAAAAAAA3R4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA3B4AAAAAAADcHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					76,
+					1,
+					"left_delete",
+					null,
+					"AQAAAN0eAAAAAAAA3R4AAAAAAAABAAAAOw",
+					"AQAAAAAAAAABAAAA3h4AAAAAAADeHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					87,
+					1,
+					"insert",
+					{
+						"characters": ";"
+					},
+					"AQAAAN0eAAAAAAAA3h4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA3R4AAAAAAADdHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					104,
+					1,
+					"left_delete",
+					null,
+					"AQAAAN0eAAAAAAAA3R4AAAAAAAABAAAAOw",
+					"AQAAAAAAAAABAAAA3h4AAAAAAADeHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					106,
+					1,
+					"insert",
+					{
+						"characters": ";"
+					},
+					"AQAAANweAAAAAAAA3R4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA3B4AAAAAAADcHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					129,
+					1,
+					"insert",
+					{
+						"characters": " "
+					},
+					"AQAAAM4eAAAAAAAAzx4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAzh4AAAAAAADOHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					131,
+					1,
+					"insert",
+					{
+						"characters": "pu"
+					},
+					"AgAAAM4eAAAAAAAAzx4AAAAAAAAAAAAAzx4AAAAAAADQHgAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAzh4AAAAAAADOHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					132,
+					1,
+					"insert",
+					{
+						"characters": "blic"
+					},
+					"BAAAANAeAAAAAAAA0R4AAAAAAAAAAAAA0R4AAAAAAADSHgAAAAAAAAAAAADSHgAAAAAAANMeAAAAAAAAAAAAANMeAAAAAAAA1B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA0B4AAAAAAADQHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					133,
+					6,
+					"left_delete",
+					null,
+					"BgAAANMeAAAAAAAA0x4AAAAAAAABAAAAY9IeAAAAAAAA0h4AAAAAAAABAAAAadEeAAAAAAAA0R4AAAAAAAABAAAAbNAeAAAAAAAA0B4AAAAAAAABAAAAYs8eAAAAAAAAzx4AAAAAAAABAAAAdc4eAAAAAAAAzh4AAAAAAAABAAAAcA",
+					"AQAAAAAAAAABAAAA1B4AAAAAAADUHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					134,
+					1,
+					"right_delete",
+					null,
+					"AQAAAM4eAAAAAAAAzh4AAAAAAAABAAAAIA",
+					"AQAAAAAAAAABAAAAzh4AAAAAAADOHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					143,
+					1,
+					"left_delete",
+					null,
+					"AQAAAOoeAAAAAAAA6h4AAAAAAAABAAAAOw",
+					"AQAAAAAAAAABAAAA6x4AAAAAAADrHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					144,
+					1,
+					"insert_snippet",
+					{
+						"contents": "{$0}"
+					},
+					"AQAAAOoeAAAAAAAA7B4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA6h4AAAAAAADqHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					146,
+					1,
+					"insert",
+					{
+						"characters": " "
+					},
+					"AQAAAOoeAAAAAAAA6x4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA6h4AAAAAAADqHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					148,
+					1,
+					"insert",
+					{
+						"characters": "_"
+					},
+					"AQAAAOweAAAAAAAA7R4AAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAA7B4AAAAAAADsHgAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					149,
+					1,
+					"left_delete",
+					null,
+					"AQAAAOweAAAAAAAA7B4AAAAAAAABAAAAXw",
+					"AQAAAAAAAAABAAAA7R4AAAAAAADtHgAAAAAAAAAAAAAAAPC/"
+				]
+			]
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Debugger",
+				"Debugger: Open"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"",
+				":$ - EOF"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"prefere",
+				"Preferences: LSP-OmniSharp Settings"
+			],
+			[
+				"setting",
+				"Preferences: LSP-Roslyn Settings"
+			],
+			[
+				"LSP:Ena",
+				"LSP: Enable Language Server in Project"
+			],
+			[
+				"LSP:Enabl",
+				"LSP: Enable Language Server in Project"
+			],
+			[
+				"LSP",
+				"LSP: Enable Language Server in Project"
+			],
+			[
+				"Package",
+				"Package Control: Install Package"
+			],
+			[
+				"Packa",
+				"Package Control: Remove Package"
+			],
+			[
+				"packa",
+				"Package Control: Remove Package"
+			],
+			[
+				"packe",
+				"Package Control: Enable Package"
+			],
+			[
+				"format",
+				"Preferences: LSP-OmniSharp Settings"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 263.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests"
+	],
+	"file_history":
+	[
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteCommandTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameterCollection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameter.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameterCollection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Properties/Resources.Designer.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteBlobTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/Microsoft.Data.Sqlite.Tests.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/SqliteTestFramework.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteTransactionTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Conformance/CiccioSoft.Data.Sqlite.Tests.Conformance.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataRecord.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/README.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/README.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.slnx",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.github/agents/sqlite-async.agent.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/README.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.github/instructions/interop.instructions.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Benchmark/Program.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.github/agents/sqlite-interop.agent.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.github/copilot-instructions.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.github/AGENTS.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Tests.Extra/SqliteConnectionTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Benchmark/SqliteBenchmark.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Benchmark/RawComparisonBenchmark2.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Benchmark/RawComparisonBenchmark.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteTransaction.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteValueBinder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionPool.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Example/Util.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Example/UserRepository.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Example/Program.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Example/ImageRepository.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameter.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameterCollection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteSession.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/generate/generate.rsp",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Backup.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteErrorHelper.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteExtendedErrorCode.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteInteropException.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteOpenFlags.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqlitePrepareFlags.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteResult.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/SqliteType.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Native/Sqlite3Native.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Native/NativeTypeNameAttribute.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/generate/Sqlite3NativeFixes.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop/Native/NativeAnnotationAttribute.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/.gitignore",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Benchmark/CiccioSoft.Sqlite.Interop.Benchmark.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests/CiccioSoft.Data.Sqlite.AdoNet.Specification.Tests.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.Interop.Example/CiccioSoft.Sqlite.Interop.Example.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/README.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionInternal.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionFactory.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/Extensions/SqliteConnectionExtensions.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/README.md",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Repository.slnx",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Interop/generate/generate.rsp",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Interop/generate/generate.fsx",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Interop/generate/Sqlite3NativeFixes.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.Interop/Native/Sqlite3Native.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/msbuild_bundle_fragments/e_sqlite3_dllimport.xml",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/Directory.Build.props",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.provider.e_sqlite3/SQLitePCLRaw.provider.e_sqlite3.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.config.e_sqlite3/pack.nuspec",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.config.e_sqlite3/SQLitePCLRaw.config.e_sqlite3.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.bundle_e_sqlite3/pack.nuspec",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite/Microsoft.Data.Sqlite.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.bundle_e_sqlite3/SQLitePCLRaw.bundle_e_sqlite3.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.core/SQLitePCLRaw.core.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.batteries.e_sqlite3.dllimport/SQLitePCLRaw.batteries_v2.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/Microsoft.Data.Sqlite.Core.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.core/raw.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/common/batteries_v2.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/.gitignore",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/Core/IMySqlCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnectorFactory.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlGuidFormat.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlDateTimeKind.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlServerRedirectionMode.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlCertificateStoreLocation.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnectionProtocol.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlLoadBalance.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedTransaction.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlSslMode.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/tests/IntegrationTests/ClientFactoryTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedParameter.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/$metadata$/Project/MySqlConnector/Assembly/System/Data/Common/Symbol/System/Data/Common/DbConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/tests/IntegrationTests/Transaction.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded.slnx",
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector.Authentication.Ed25519/MySqlConnector.Authentication.Ed25519.csproj"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 98.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"CommandType_validates_value",
+			"ExecuteNonQuery",
+			"Bind_requires_set_name",
+			"Prepare_works_when_no_command_text",
+			"Ctor_throws_when_invalid_isolation_level",
+			"ExecuteNonQuery_throws_when_busy_with_returning",
+			"GetFieldValue",
+			"GetByte_throws_for_empty_String_with_GetFieldValue",
+			"GetByte_throws_for_maximum_Time_with_GetFieldValueAsync",
+			"GetGuid_throws_for_zero_Boolean",
+			"GetFieldValue",
+			"ConnectionString"
+		],
+		"highlight": false,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"scrollbar_highlights": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"use_gitignore": true,
+		"whole_word": true,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "CiccioSoft.Sqlite.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1397,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								874,
+								874
+							]
+						],
+						"settings":
+						{
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
+							"syntax": "Packages/JSON/JSON.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10901,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4049,
+								4057
+							]
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "25dbc1c4-5b68-404a-aeea-9ddc5331a5bc",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "25dbc1c4-5b68-404a-aeea-9ddc5331a5bc",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1620.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+					"selected": true,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13166,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7924,
+								7924
+							]
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "25dbc1c4-5b68-404a-aeea-9ddc5331a5bc",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "25dbc1c4-5b68-404a-aeea-9ddc5331a5bc",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3082.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"stack_multiselect": false,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 23.0
+	},
+	"input":
+	{
+		"height": 41.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.Debugger":
+	{
+		"height": 354.0,
+		"history":
+		[
+		]
+	},
+	"output.Debugger Console":
+	{
+		"height": 220.0,
+		"history":
+		[
+		]
+	},
+	"output.LSP Log Panel":
+	{
+		"height": 202.0,
+		"history":
+		[
+		]
+	},
+	"output.Workspace Edit":
+	{
+		"height": 358.0,
+		"history":
+		[
+		]
+	},
+	"output.diagnostics":
+	{
+		"height": 145.0,
+		"history":
+		[
+		]
+	},
+	"output.exec":
+	{
+		"height": 232.0,
+		"history":
+		[
+		]
+	},
+	"output.find_results":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"output.mdpopups":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"output.mdpopups-dummy":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"output.variable_get":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"pinned_build_system": "Packages/User/MSYS2_C.sublime-build",
+	"project": "CiccioSoft.Sqlite.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+		"lsp_show_inlay_hints": false
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 350.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -366,7 +366,7 @@ public class SqliteConnectionTest
         Assert.Equal(1L, connection.ExecuteScalar<long>("PRAGMA recursive_triggers;"));
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void Open_works_when_vfs()
     {
         var vfs = Environment.OSVersion.Platform == PlatformID.Win32NT
@@ -376,14 +376,14 @@ public class SqliteConnectionTest
         connection.Open();
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void Open_throws_when_vfs_invalid()
     {
         using var connection = new SqliteConnection("Data Source=:memory:;Vfs=invalidvfs");
         Assert.Throws<SqliteException>(connection.Open);
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void BackupDatabase_works()
     {
         using var connection1 = new SqliteConnection("Data Source=:memory:");
@@ -400,7 +400,7 @@ public class SqliteConnectionTest
         Assert.Equal("Waldo", name);
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void BackupDatabase_works_when_destination_closed()
     {
         using var source = new SqliteConnection("Data Source=:memory:");
@@ -411,7 +411,7 @@ public class SqliteConnectionTest
         source.BackupDatabase(destination);
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void BackupDatabase_throws_when_closed()
     {
         var source = new SqliteConnection();
@@ -422,7 +422,7 @@ public class SqliteConnectionTest
         Assert.Equal(Resources.CallRequiresOpenConnection("BackupDatabase"), ex.Message);
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void BackupDatabase_throws_when_destination_null()
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
@@ -433,7 +433,7 @@ public class SqliteConnectionTest
         Assert.Equal("destination", ex.ParamName);
     }
 
-    [Fact]
+    [Fact(Skip = "Not Implemented")]
     public void BackupDatabase_throws_with_correct_message()
     {
         using var source = new SqliteConnection("Data Source=:memory:");

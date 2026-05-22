@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+ <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <ImplicitUsings>false</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- <VersionPrefix>0.1.0</VersionPrefix> -->
+    <!-- <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <AssemblyOriginatorKeyFile>..\..\MySqlConnector.snk</AssemblyOriginatorKeyFile> -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+ <ItemGroup>
+	<PackageReference Include="Microsoft.Data.SQLite" Version="8.*" />
+    <!-- <PackageReference Include="AdoNet.Specification.Tests" Version="2.0.0-beta.2" /> -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+	<PackageReference Include="xunit.v3" Version="3.2.2" />
+	<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+	 </PackageReference>
+  </ItemGroup>
+
+ <ItemGroup>
+    <ProjectReference Include="..\AdoNet.Specification.Tests\AdoNet.Specification.Tests.csproj" />
+    <!-- <ProjectReference Include="..\CiccioSoft.Data.Sqlite\CiccioSoft.Data.Sqlite.csproj" /> -->
+    <!-- <ProjectReference Include="..\Microsoft.Data.Sqlite.Core\Microsoft.Data.Sqlite.Core.csproj" /> -->
+  </ItemGroup>
+
+</Project>

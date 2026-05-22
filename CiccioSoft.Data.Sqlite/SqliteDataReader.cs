@@ -317,7 +317,8 @@ public class SqliteDataReader : DbDataReader
                 return (T)value;
             }
 
-            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+            // throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+            throw new InvalidCastException(Resources.CalledOnNullValue(ordinal));
         }
 
         if (targetType == typeof(Stream))
@@ -501,7 +502,8 @@ public class SqliteDataReader : DbDataReader
             return insensitiveIndex;
         }
 
-        throw new ArgumentOutOfRangeException(nameof(name), name, $"Column '{name}' not found.");
+        //throw new ArgumentOutOfRangeException(nameof(name), name, $"Column '{name}' not found.");
+        throw new IndexOutOfRangeException($"Column '{name}' not found.");
     }
 
     public override string GetString(int ordinal)
@@ -992,7 +994,8 @@ public class SqliteDataReader : DbDataReader
     {
         if (ordinal < 0 || ordinal >= FieldCount)
         {
-            throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
+            // throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
+            throw new IndexOutOfRangeException("Column ordinal is out of range.");
         }
     }
 

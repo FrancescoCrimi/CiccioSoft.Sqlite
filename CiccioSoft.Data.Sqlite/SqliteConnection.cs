@@ -91,13 +91,11 @@ public class SqliteConnection : DbConnection
     }
 
 
-    // public override string ServerVersion => "3.0.0";
     public override string ServerVersion
     {
         get
         {
-            EnsureOpen();
-            return _session!.Native.LibVersion();
+            return Sqlite3.LibVersion();
         }
     }
 

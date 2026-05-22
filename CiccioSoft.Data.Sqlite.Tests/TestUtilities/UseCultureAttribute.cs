@@ -9,7 +9,8 @@
 using System;
 using System.Globalization;
 using System.Reflection;
-using Xunit.Sdk;
+// using Xunit.Sdk;
+using Xunit.v3;
 
 namespace CiccioSoft.Data.Sqlite.Tests.TestUtilities;
 
@@ -27,7 +28,7 @@ public sealed class UseCultureAttribute(string culture, string uiCulture) : Befo
     public CultureInfo Culture { get; } = new(culture);
     public CultureInfo UICulture { get; } = new(uiCulture);
 
-    public override void Before(MethodInfo methodUnderTest)
+    public override void Before(MethodInfo methodUnderTest, IXunitTest test)
     {
         _originalCulture = CultureInfo.CurrentCulture;
         _originalUICulture = CultureInfo.CurrentUICulture;
@@ -35,7 +36,7 @@ public sealed class UseCultureAttribute(string culture, string uiCulture) : Befo
         CultureInfo.CurrentUICulture = UICulture;
     }
 
-    public override void After(MethodInfo methodUnderTest)
+    public override void After(MethodInfo methodUnderTest, IXunitTest test)
     {
         CultureInfo.CurrentCulture = _originalCulture!;
         CultureInfo.CurrentUICulture = _originalUICulture!;

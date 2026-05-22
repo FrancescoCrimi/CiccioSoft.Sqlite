@@ -253,7 +253,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(sql);
+        int dataLength = Encoding.UTF8.GetByteCount(sql) + 1; // +1 per il null terminator
         byte[]? arrayFromPool = null;
         Span<byte> buffer = dataLength <= 1024
             ? stackalloc byte[dataLength]
@@ -313,7 +313,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(sql);
+        int dataLength = Encoding.UTF8.GetByteCount(sql) + 1; // +1 per il null terminator
         if ((uint)sqlByteOffset > (uint)dataLength)
         {
             throw new ArgumentOutOfRangeException(nameof(sqlByteOffset));
@@ -574,7 +574,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <returns>
     /// A version string in the form <c>major.minor.patch</c> (for example, <c>3.46.0</c>).
     /// </returns>
-    public string LibVersion()
+    public static string LibVersion()
     {
         byte* pLibVersion = Sqlite3Native.sqlite3_libversion();
         return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
@@ -586,7 +586,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <returns>
     /// An integer representation of the version in the format <c>MMmmpp</c> (major, minor, patch).
     /// </returns>
-    public int LibVersionNumber()
+    public static int LibVersionNumber()
     {
         return Sqlite3Native.sqlite3_libversion_number();
     }

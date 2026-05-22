@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -238,7 +238,11 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     /// At the moment encryption is not supported
     /// </summary>
     [AllowNull]
-    public string Password { get; set; }
+    public string Password
+    {
+        get {return "";}
+        set {}
+    }
 
     public bool? ForeignKeys
     {
@@ -294,6 +298,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         get;
         set;
     }
+
     public int MaxPoolSize
     {
         get => TryGetValue(MaxPoolSizeKey, out object? v) ? Convert.ToInt32(v) : 100;

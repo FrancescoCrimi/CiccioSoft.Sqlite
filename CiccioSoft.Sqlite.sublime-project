@@ -1,0 +1,46 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+    "settings": {},
+    "debugger_configurations": [
+        {
+            "name": "CiccioSoft.Sqlite.Tests",
+            "type": "netcoredbg",
+            "request": "launch",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "args": [
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}",
+            "stopAtEntry": false
+        },
+        {
+            "name": "CiccioSoft.Sqlite Single",
+            "type": "netcoredbg",
+            "request": "launch",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest/Password_defaults_to_empty",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Microsoft.Data.Sqlite.Tests",
+            "type": "netcoredbg",
+            "request": "launch",
+            "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
+            "args": [],
+            "cwd": "${folder}",
+            "stopAtEntry": false
+        },
+    ]
+}
