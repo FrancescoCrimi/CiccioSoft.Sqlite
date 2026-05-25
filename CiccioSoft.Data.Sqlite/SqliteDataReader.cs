@@ -220,14 +220,28 @@ public class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Stmt.GetColumnType(ordinal) switch
+        switch (Stmt.GetColumnType(ordinal))
         {
-            SqliteType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)),
-            SqliteType.Real => JulianDayToDateTime(Stmt.GetDouble(ordinal)),
-            SqliteType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture),
-            SqliteType.Null => throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)),
-            _ => throw new InvalidCastException(),
-        };
+            case SqliteType.Integer:
+                return JulianDayToDateTime(Stmt.GetLong(ordinal));
+            case SqliteType.Real:
+                return JulianDayToDateTime(Stmt.GetDouble(ordinal));
+            case SqliteType.Text:
+                DateTime value = DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture);
+#if !NET10_0_OR_GREATER
+                return value;
+#else
+                return value.Kind switch
+                {
+                    DateTimeKind.Local => value.ToUniversalTime(),
+                    _ => value,
+                };
+#endif
+            case SqliteType.Null:
+                throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+            default:
+                throw new InvalidCastException();
+        }
     }
 
     /// <summary>
@@ -236,12 +250,37 @@ public class SqliteDataReader : DbDataReader
     /// <param name="ordinal">The zero-based column ordinal.</param>
     /// <returns>The value of the column.</returns>
     public virtual DateTimeOffset GetDateTimeOffset(int ordinal)
-        => throw new NotImplementedException("Not Implemented");
-        // => _closed
-        //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetDateTimeOffset)))
-        //     : _record == null
-        //         ? throw new InvalidOperationException(Resources.NoData)
-        //         : _record.GetDateTimeOffset(ordinal);
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        switch (Stmt.GetColumnType(ordinal))
+        {
+            case SqliteType.Real:
+            case SqliteType.Integer:
+                {
+                    var value = JulianDayToDateTime(GetDouble(ordinal));
+                    // Before .NET 10, for DateTimeOffset the offset was set incorrectly.
+#if !NET10_0_OR_GREATER
+                    return new DateTimeOffset(value)
+#else
+                    return new DateTimeOffset(value, TimeSpan.Zero);
+#endif
+                }
+
+            default:
+                {
+                    var value = GetString(ordinal);
+                    // Before .NET 10, DateTimeOffset, when without offset, incorrectly did not assume UTC,
+                    // which is what it is for SQLite.
+#if !NET10_0_OR_GREATER
+                    return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture)
+#else
+                    return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+#endif
+                }
+        }
+    }
 
     /// <summary>
     ///     Gets the value of the specified column as a <see cref="TimeSpan" />.
@@ -249,12 +288,25 @@ public class SqliteDataReader : DbDataReader
     /// <param name="ordinal">The zero-based column ordinal.</param>
     /// <returns>The value of the column.</returns>
     public virtual TimeSpan GetTimeSpan(int ordinal)
-        => throw new NotImplementedException("Not Implemented");
-        // => _closed
-        //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
-        //     : _record == null
-        //         ? throw new InvalidOperationException(Resources.NoData)
-        //         : _record.GetTimeSpan(ordinal);
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        switch (Stmt.GetColumnType(ordinal))
+        {
+            case SqliteType.Real:
+            case SqliteType.Integer:
+                return TimeSpan.FromDays(GetDouble(ordinal));
+            default:
+                return TimeSpan.Parse(GetString(ordinal));
+        }
+    }
+        // => throw new NotImplementedException("Not Implemented");
+    // => _closed
+    //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
+    //     : _record == null
+    //         ? throw new InvalidOperationException(Resources.NoData)
+    //         : _record.GetTimeSpan(ordinal);
 
     public override decimal GetDecimal(int ordinal)
     {
@@ -317,8 +369,8 @@ public class SqliteDataReader : DbDataReader
                 return (T)value;
             }
 
-            // throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
-            throw new InvalidCastException(Resources.CalledOnNullValue(ordinal));
+            throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
+            // throw new InvalidCastException(Resources.CalledOnNullValue(ordinal));
         }
 
         if (targetType == typeof(Stream))
@@ -502,8 +554,8 @@ public class SqliteDataReader : DbDataReader
             return insensitiveIndex;
         }
 
-        //throw new ArgumentOutOfRangeException(nameof(name), name, $"Column '{name}' not found.");
-        throw new IndexOutOfRangeException($"Column '{name}' not found.");
+        throw new ArgumentOutOfRangeException(nameof(name), name, $"Column '{name}' not found.");
+        // throw new IndexOutOfRangeException($"Column '{name}' not found.");
     }
 
     public override string GetString(int ordinal)
@@ -994,8 +1046,8 @@ public class SqliteDataReader : DbDataReader
     {
         if (ordinal < 0 || ordinal >= FieldCount)
         {
-            // throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
-            throw new IndexOutOfRangeException("Column ordinal is out of range.");
+            throw new ArgumentOutOfRangeException(nameof(ordinal), ordinal, "Column ordinal is out of range.");
+            // throw new IndexOutOfRangeException("Column ordinal is out of range.");
         }
     }
 

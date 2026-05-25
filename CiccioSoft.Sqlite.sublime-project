@@ -26,7 +26,7 @@
             "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest/Password_defaults_to_empty",
+                "//CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest/GetDateTime_works_with_text_with_offset",
                 "-parallel",
                 "none"
             ],
@@ -38,7 +38,12 @@
             "type": "netcoredbg",
             "request": "launch",
             "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
-            "args": [],
+            "args": [
+                "-filter", 
+                "//Microsoft.Data.Sqlite/SqliteDataReaderTest/GetDateTime_*",
+                "-parallel",
+                "none"
+            ],
             "cwd": "${folder}",
             "stopAtEntry": false
         },
