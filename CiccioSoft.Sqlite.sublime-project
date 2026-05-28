@@ -20,13 +20,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "CiccioSoft.Sqlite Single",
+            "name": "Single",
             "type": "netcoredbg",
             "request": "launch",
             "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest/GetDateTime_works_with_text_with_offset",
+                "//CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest/Ctor_parses_mode",
                 "-parallel",
                 "none"
             ],
@@ -40,7 +40,7 @@
             "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//Microsoft.Data.Sqlite/SqliteDataReaderTest/GetDateTime_*",
+                "//Microsoft.Data.Sqlite/SqliteConnectionStringBuilderTest/Ctor_parses_mode",
                 "-parallel",
                 "none"
             ],

@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using CiccioSoft.Data.Sqlite.Properties;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -70,9 +72,9 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         ConnectionString = connectionString;
     }
 
-    [Browsable(false)]
-    [AllowNull]
-    public override object this[string keyword]
+    // [Browsable(false)]
+    // [AllowNull]
+    public override object? this[string keyword]
     {
         get
         {
@@ -88,11 +90,12 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                 MaxPoolSizeKey => MaxPoolSize,
                 BusyTimeoutKey or BusyTimeoutPragmaKey => BusyTimeout,
                 JournalModeKey or JournalModePragmaKey => JournalMode,
-                ForeignKeysKey or ForeignKeysPragmaKey => ForeignKeys ?? false,
+                ForeignKeysKey or ForeignKeysPragmaKey => ForeignKeys,
                 RecursiveTriggersKey or RecursiveTriggersPragmaKey => RecursiveTriggers ?? false,
                 ModeKey => Mode,
                 CacheKey => Cache,
-                _ => base[keyword]
+                // _ => base[keyword]
+                _ => throw new ArgumentException(Resources.KeywordNotSupported(keyword))
             };
         }
         set
@@ -136,8 +139,9 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
                     Cache = ConvertToEnum<SqliteCacheMode>(value);
                     break;
                 default:
-                    base[keyword] = value;
-                    break;
+                    // base[keyword] = value;
+                    throw new ArgumentException(Resources.KeywordNotSupported(keyword));
+                    // break;
             }
         }
     }
@@ -396,7 +400,6 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         Remove(pragmaKey);
     }
 
-
     private static TEnum ConvertToEnum<TEnum>(object value)
         where TEnum : struct
     {
@@ -405,37 +408,33 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             return (TEnum)Enum.Parse(typeof(TEnum), stringValue, ignoreCase: true);
         }
 
-        if (value is TEnum enumValue)
+        TEnum enumValue;
+        if (value is TEnum)
         {
-            return enumValue;
+            enumValue = (TEnum)value;
+        }
+        else if (value.GetType().IsEnum)
+        {
+            throw new ArgumentException(Resources.ConvertFailed(value.GetType(), typeof(TEnum)));
+        }
+        else
+        {
+            enumValue = (TEnum)Enum.ToObject(typeof(TEnum), value);
         }
 
-        return (TEnum)Enum.ToObject(typeof(TEnum), value);
+        if (!Enum.IsDefined(typeof(TEnum), enumValue))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(value),
+                value,
+                Resources.InvalidEnumValue(typeof(TEnum), enumValue));
+        }
+
+        return enumValue;
     }
 
-    private static bool? ConvertToNullableBoolean(object? value)
-    {
-        if (value is null)
-        {
-            return null;
-        }
-
-        if (value is bool typed)
-        {
-            return typed;
-        }
-
-        string text = Convert.ToString(value) ?? string.Empty;
-        if (string.Equals(text, "1", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (string.Equals(text, "0", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        return Convert.ToBoolean(value);
-    }
+    private static bool? ConvertToNullableBoolean(object value)
+        => value is null or string { Length: 0 }
+            ? null
+            : Convert.ToBoolean(value, CultureInfo.InvariantCulture);
 }

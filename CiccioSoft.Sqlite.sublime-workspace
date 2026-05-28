@@ -240,343 +240,59 @@
 	"buffers":
 	[
 		{
+			"file": "CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+			"settings":
+			{
+				"buffer_size": 10901,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
+			"file": "CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+			"settings":
+			{
+				"buffer_size": 13548,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
+			"file": "Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+			"settings":
+			{
+				"buffer_size": 10867,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
+			"file": "Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+			"settings":
+			{
+				"buffer_size": 17168,
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		},
+		{
 			"file": "CiccioSoft.Sqlite.sublime-project",
 			"settings":
 			{
-				"buffer_size": 1594,
+				"buffer_size": 1556,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			},
 			"undo_stack":
 			[
-				[
-					11,
-					1,
-					"paste",
-					null,
-					"AQAAAD8CAAAAAAAAHQQAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAD8CAAAAAAAAPwIAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					25,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAGsBAAAAAAAAfAEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAGsBAAAAAAAAawEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					26,
-					1,
-					"insert_snippet",
-					{
-						"contents": "\"$0\""
-					},
-					"AQAAAHwBAAAAAAAAfgEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAHwBAAAAAAAAfAEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					31,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 381,
-							"x": 516.5,
-							"y": 252.5
-						}
-					},
-					"AQAAAH0BAAAAAAAAhgEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAH0BAAAAAAAAfQEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					34,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAIcBAAAAAAAAmAEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAIcBAAAAAAAAhwEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					35,
-					1,
-					"insert_snippet",
-					{
-						"contents": "\"$0\""
-					},
-					"AQAAAJgBAAAAAAAAmgEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAJgBAAAAAAAAmAEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					37,
-					1,
-					"insert",
-					{
-						"characters": ","
-					},
-					"AQAAAJoBAAAAAAAAmwEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAJoBAAAAAAAAmgEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					39,
-					1,
-					"insert",
-					{
-						"characters": "none"
-					},
-					"BAAAAJkBAAAAAAAAmgEAAAAAAAAAAAAAmgEAAAAAAACbAQAAAAAAAAAAAACbAQAAAAAAAJwBAAAAAAAAAAAAAJwBAAAAAAAAnQEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAJkBAAAAAAAAmQEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					42,
-					1,
-					"insert",
-					{
-						"characters": ","
-					},
-					"AQAAAIcBAAAAAAAAiAEAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAIcBAAAAAAAAhwEAAAAAAAD////////vfw"
-				],
-				[
-					47,
-					4,
-					"left_delete",
-					null,
-					"BAAAAKUBAAAAAAAApQEAAAAAAABzAAAAICAgICAgICAgICAgIi1maWx0ZXIiLCAKICAgICAgICAgICAgICAgICIvL0NpY2Npb1NvZnQuRGF0YS5TcWxpdGUuVGVzdHMvU3FsaXRlUGFyYW1ldGVyVGVzdC9CaW5kX3JlcXVpcmVzX3NldF9uYW1lIqEBAAAAAAAAoQEAAAAAAAAEAAAAICAgIKABAAAAAAAAoAEAAAAAAAABAAAACp8BAAAAAAAAnwEAAAAAAAABAAAALA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAABgCAAAAAAAApQEAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					57,
-					1,
-					"left_delete",
-					null,
-					"AgAAAIsAAAAAAAAAiwAAAAAAAAAEAAAARGF0YYoAAAAAAAAAigAAAAAAAAABAAAALg",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAIsAAAAAAAAAjwAAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					70,
-					2,
-					"left_delete",
-					null,
-					"AgAAACACAAAAAAAAIAIAAAAAAAAEAAAARGF0YR8CAAAAAAAAHwIAAAAAAAABAAAALg",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACACAAAAAAAAJAIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					79,
-					1,
-					"insert",
-					{
-						"characters": " "
-					},
-					"AQAAACcCAAAAAAAAKAIAAAAAAAAFAAAAVGVzdHM",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACcCAAAAAAAALAIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					81,
-					1,
-					"left_delete",
-					null,
-					"AQAAACYCAAAAAAAAJgIAAAAAAAABAAAALg",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACcCAAAAAAAAJwIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					83,
-					1,
-					"insert",
-					{
-						"characters": " "
-					},
-					"AQAAACcCAAAAAAAAKAIAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACcCAAAAAAAAJwIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					84,
-					1,
-					"left_delete",
-					null,
-					"AQAAACcCAAAAAAAAJwIAAAAAAAABAAAAIA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACgCAAAAAAAAKAIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					85,
-					1,
-					"insert",
-					{
-						"characters": "Single"
-					},
-					"BgAAACcCAAAAAAAAKAIAAAAAAAAAAAAAKAIAAAAAAAApAgAAAAAAAAAAAAApAgAAAAAAACoCAAAAAAAAAAAAACoCAAAAAAAAKwIAAAAAAAAAAAAAKwIAAAAAAAAsAgAAAAAAAAAAAAAsAgAAAAAAAC0CAAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAACcCAAAAAAAAJwIAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					96,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 851,
-							"x": 786.5,
-							"y": 431.5
-						}
-					},
-					"AQAAAEkDAAAAAAAAWgMAAAAAAAATAAAAU3FsaXRlUGFyYW1ldGVyVGVzdA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAEkDAAAAAAAAXAMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					107,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 870,
-							"x": 916.5,
-							"y": 432.5
-						}
-					},
-					"AQAAAFsDAAAAAAAAdgMAAAAAAAAWAAAAQmluZF9yZXF1aXJlc19zZXRfbmFtZQ",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAFsDAAAAAAAAcQMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					114,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 867,
-							"x": 898.5,
-							"y": 432.5
-						}
-					},
-					"AQAAAFsDAAAAAAAAdgMAAAAAAAAbAAAAQ29tbWFuZFR5cGVfdGV4dF9ieV9kZWZhdWx0",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAFsDAAAAAAAAdgMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					125,
-					1,
-					"paste",
-					null,
-					"AQAAAHgDAAAAAAAArAMAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAHgDAAAAAAAAeAMAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					128,
-					1,
-					"insert",
-					{
-						"characters": ","
-					},
-					"AQAAAHcDAAAAAAAAeAMAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAHcDAAAAAAAAdwMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					143,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 875,
-							"x": 950.5,
-							"y": 438.5
-						}
-					},
-					"AQAAAFsDAAAAAAAAdQMAAAAAAAAbAAAAQ29tbWFuZFR5cGVfdmFsaWRhdGVzX3ZhbHVl",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAFsDAAAAAAAAdgMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					148,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 848,
-							"x": 771.5,
-							"y": 435.5
-						}
-					},
-					"AQAAAEkDAAAAAAAAagMAAAAAAAARAAAAU3FsaXRlQ29tbWFuZFRlc3Q",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAEkDAAAAAAAAWgMAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					7,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 883,
-							"x": 1002.5,
-							"y": 434.5
-						}
-					},
-					"AQAAAGsDAAAAAAAAjwMAAAAAAAAaAAAAUGFzc3dvcmRfZGVmYXVsdHNfdG9fZW1wdHk",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAABrAwAAAAAAAIUDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					12,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 862,
-							"x": 862.5,
-							"y": 433.5
-						}
-					},
-					"AQAAAEkDAAAAAAAAXQMAAAAAAAAhAAAAU3FsaXRlQ29ubmVjdGlvblN0cmluZ0J1aWxkZXJUZXN0",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAABJAwAAAAAAAGoDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					19,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 886,
-							"x": 1021.5,
-							"y": 434.5
-						}
-					},
-					"AQAAAF4DAAAAAAAAhgMAAAAAAAAkAAAAR2V0RGF0ZVRpbWVPZmZzZXRfdGhyb3dzX3doZW5fY2xvc2Vk",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAABeAwAAAAAAAIIDAAAAAAAAAAAAAAAA8L8"
-				],
 				[
 					5,
 					1,
@@ -587,16 +303,16 @@
 							"modifier_keys":
 							{
 							},
-							"text_point": 877,
-							"x": 963.5,
-							"y": 430.5
+							"text_point": 879,
+							"x": 1092.5,
+							"y": 436.5
 						}
 					},
-					"AQAAAF4DAAAAAAAAiQMAAAAAAAAoAAAAR2V0TmFtZV90aHJvd3Nfd2hlbl9vcmRpbmFsX291dF9vZl9yYW5nZQ",
-					"AQAAAAAAAAABAAAAXgMAAAAAAACGAwAAAAAAAAAAAAAAAPC/"
+					"AQAAAFkDAAAAAAAAaQMAAAAAAAAuAAAASXRlbV90aHJvd3Nfd2hlbl9jYW5ub3RfY29udmVydF90b19lbnVtX29uX3NldA",
+					"AQAAAAAAAAABAAAAWQMAAAAAAACHAwAAAAAAAAAAAAAAAPC/"
 				],
 				[
-					12,
+					10,
 					1,
 					"paste",
 					{
@@ -605,471 +321,14 @@
 							"modifier_keys":
 							{
 							},
-							"text_point": 882,
-							"x": 994.5,
-							"y": 430.5
-						}
-					},
-					"AQAAAF4DAAAAAAAAggMAAAAAAAArAAAAR2V0RmllbGRWYWx1ZV9vZl9ieXRlQXJyYXlfdGhyb3dzX3doZW5fbnVsbA",
-					"AQAAAAAAAAABAAAAXgMAAAAAAACJAwAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					22,
-					1,
-					"paste",
-					null,
-					"AQAAABsFAAAAAAAA5AUAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAGwUAAAAAAAAbBQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					32,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 1359,
-							"x": 556.5,
-							"y": 633.5
-						}
-					},
-					"AQAAAEsFAAAAAAAAVAUAAAAAAAAKAAAAQ2ljY2lvU29mdA",
-					"AQAAAAAAAAABAAAASwUAAAAAAABVBQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					39,
-					2,
-					"left_delete",
-					null,
-					"AgAAAGEFAAAAAAAAYQUAAAAAAAAFAAAAVGVzdHNgBQAAAAAAAGAFAAAAAAAAAQAAAC4",
-					"AQAAAAAAAAABAAAAYQUAAAAAAABmBQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					44,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 1420,
-							"x": 959.5,
+							"text_point": 1407,
+							"x": 1041.5,
 							"y": 631.5
 						}
 					},
-					"AQAAAHYFAAAAAAAAnQUAAAAAAAAkAAAAR2V0RGF0ZVRpbWVPZmZzZXRfd29ya3Nfd2l0aF9pbnRlZ2Vy",
-					"AQAAAAAAAAABAAAAdgUAAAAAAACaBQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					54,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 876,
-							"x": 953.5,
-							"y": 435.5
-						}
-					},
-					"AQAAAF4DAAAAAAAAhQMAAAAAAAAkAAAAR2V0RGF0ZVRpbWVPZmZzZXRfd29ya3Nfd2l0aF9pbnRlZ2Vy",
-					"AQAAAAAAAAABAAAAXgMAAAAAAACCAwAAAAAAAAAAAAAAAPC/"
+					"AQAAAGoFAAAAAAAAegUAAAAAAAAuAAAASXRlbV90aHJvd3Nfd2hlbl9jYW5ub3RfY29udmVydF90b19lbnVtX29uX3NldA",
+					"AQAAAAAAAAABAAAAagUAAAAAAACYBQAAAAAAAAAAAAAAAPC/"
 				]
-			]
-		},
-		{
-			"file": "CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
-			"settings":
-			{
-				"buffer_size": 84347,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			},
-			"undo_stack":
-			[
-			]
-		},
-		{
-			"file": "CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
-			"settings":
-			{
-				"buffer_size": 43989,
-				"encoding": "UTF-8 with BOM",
-				"line_ending": "Windows"
-			},
-			"undo_stack":
-			[
-				[
-					41,
-					1,
-					"toggle_comment",
-					{
-						"block": false
-					},
-					"AQAAADsnAAAAAAAAPicAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAOycAAAAAAAA7JwAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					44,
-					1,
-					"toggle_comment",
-					{
-						"block": false
-					},
-					"AQAAAOEmAAAAAAAA4SYAAAAAAAADAAAALy8g",
-					"AQAAAAAAAAABAAAA5SYAAAAAAADlJgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					144,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAIscAAAAAAAAjBwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAixwAAAAAAACLHAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					146,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAEocAAAAAAAASxwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAShwAAAAAAABKHAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					147,
-					1,
-					"toggle_comment",
-					{
-						"block": false
-					},
-					"AQAAAFMcAAAAAAAAVhwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAASxwAAAAAAABLHAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					149,
-					1,
-					"insert_snippet",
-					{
-						"contents": "{$0}"
-					},
-					"AQAAAEocAAAAAAAATBwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAShwAAAAAAABKHAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					151,
-					1,
-					"insert",
-					{
-						"characters": "\t"
-					},
-					"AQAAAEocAAAAAAAAThwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAShwAAAAAAABKHAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					153,
-					1,
-					"run_macro_file",
-					{
-						"file": "res://Packages/Default/Add Line in Braces.sublime-macro"
-					},
-					"BAAAAE8cAAAAAAAAVBwAAAAAAAAAAAAAVBwAAAAAAABZHAAAAAAAAAAAAABQHAAAAAAAAFAcAAAAAAAABAAAACAgICBQHAAAAAAAAFgcAAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAATxwAAAAAAABPHAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					157,
-					1,
-					"paste",
-					null,
-					"AQAAAFAcAAAAAAAAKiAAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAUBwAAAAAAABQHAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					171,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 7280,
-							"x": 629.5,
-							"y": 503.5
-						}
-					},
-					"AQAAAGkcAAAAAAAAexwAAAAAAAANAAAAR2V0U3FsaXRlVHlwZQ",
-					"AQAAAAAAAAABAAAAaRwAAAAAAAB2HAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					181,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 7367,
-							"x": 597.5,
-							"y": 546.5
-						}
-					},
-					"AQAAAL0cAAAAAAAAzBwAAAAAAAAMAAAAU1FMSVRFX0ZMT0FU",
-					"AQAAAAAAAAABAAAAvRwAAAAAAADJHAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					191,
-					1,
-					"paste",
-					{
-						"event":
-						{
-							"modifier_keys":
-							{
-							},
-							"text_point": 7393,
-							"x": 548.5,
-							"y": 563.5
-						}
-					},
-					"AQAAAN8cAAAAAAAA8RwAAAAAAAAOAAAAU1FMSVRFX0lOVEVHRVI",
-					"AQAAAAAAAAABAAAA3xwAAAAAAADtHAAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					203,
-					1,
-					"paste",
-					null,
-					"AQAAAFAcAAAAAAAAixwAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAUBwAAAAAAABQHAAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					240,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAGgZAAAAAAAAdRkAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAaBkAAAAAAABoGQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					241,
-					1,
-					"paste",
-					null,
-					"AQAAAHUZAAAAAAAAiRkAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAdRkAAAAAAAB1GQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					244,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAIUaAAAAAAAAkhoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAhRoAAAAAAACFGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					245,
-					1,
-					"paste",
-					null,
-					"AQAAAJIaAAAAAAAAlxoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAkhoAAAAAAACSGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					246,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAJcaAAAAAAAApBoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAlxoAAAAAAACXGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					247,
-					1,
-					"paste",
-					null,
-					"AQAAAKQaAAAAAAAAqRoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAApBoAAAAAAACkGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					250,
-					1,
-					"paste",
-					null,
-					"AQAAAKQaAAAAAAAAqhoAAAAAAAAFAAAAI2Vsc2U",
-					"AQAAAAAAAAABAAAApBoAAAAAAACpGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					259,
-					1,
-					"paste",
-					null,
-					"AQAAAJgaAAAAAAAAlBsAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAmBoAAAAAAACYGgAAAAAAAAAAAAAAAAAA"
-				],
-				[
-					265,
-					1,
-					"paste",
-					null,
-					"AQAAANYZAAAAAAAA6BkAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAA1hkAAAAAAADWGQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					270,
-					1,
-					"paste",
-					null,
-					"AQAAADUaAAAAAAAARxoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAANRoAAAAAAAA1GgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					273,
-					1,
-					"paste",
-					null,
-					"AQAAAKgaAAAAAAAAuhoAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAqBoAAAAAAACoGgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					288,
-					1,
-					"toggle_comment",
-					{
-						"block": false
-					},
-					"GgAAAPYhAAAAAAAA+SEAAAAAAAAAAAAA5CEAAAAAAADnIQAAAAAAAAAAAADWIQAAAAAAANkhAAAAAAAAAAAAAGUhAAAAAAAAaCEAAAAAAAAAAAAAFSEAAAAAAAAYIQAAAAAAAAAAAADoIAAAAAAAAOsgAAAAAAAAAAAAALUgAAAAAAAAuCAAAAAAAAAAAAAATSAAAAAAAABQIAAAAAAAAAAAAAAdIAAAAAAAACAgAAAAAAAAAAAAAA8gAAAAAAAAEiAAAAAAAAAAAAAA+h8AAAAAAAD9HwAAAAAAAAAAAADrHwAAAAAAAO4fAAAAAAAAAAAAAKsfAAAAAAAArh8AAAAAAAAAAAAAex8AAAAAAAB+HwAAAAAAAAAAAABOHwAAAAAAAFEfAAAAAAAAAAAAAPgeAAAAAAAA+x4AAAAAAAAAAAAAuB4AAAAAAAC7HgAAAAAAAAAAAACqHgAAAAAAAK0eAAAAAAAAAAAAAIUeAAAAAAAAiB4AAAAAAAAAAAAAYx4AAAAAAABmHgAAAAAAAAAAAABZHgAAAAAAAFweAAAAAAAAAAAAAD0eAAAAAAAAQB4AAAAAAAAAAAAABx4AAAAAAAAKHgAAAAAAAAAAAADkHQAAAAAAAOcdAAAAAAAAAAAAAMwdAAAAAAAAzx0AAAAAAAAAAAAAxh0AAAAAAADJHQAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAA9iEAAAAAAADCHQAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					291,
-					1,
-					"toggle_comment",
-					{
-						"block": false
-					},
-					"AQAAAE4iAAAAAAAATiIAAAAAAAADAAAALy8g",
-					"AQAAAAAAAAABAAAAViIAAAAAAABWIgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					298,
-					1,
-					"lsp_apply_text_document_edit",
-					{
-						"edits":
-						[
-							{
-								"newText": "// => _closed\n    //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))\n    //     : _record == null\n    //         ? throw new InvalidOperationException(Resources.NoData)\n",
-								"range":
-								{
-									"end":
-									{
-										"character": 4,
-										"line": 291
-									},
-									"start":
-									{
-										"character": 4,
-										"line": 287
-									}
-								}
-							},
-							{
-								"newText": "// => _closed\n    //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetDateTimeOffset)))\n    //     : _record == null\n    //         ? throw new InvalidOperationException(Resources.NoData)\n",
-								"range":
-								{
-									"end":
-									{
-										"character": 4,
-										"line": 278
-									},
-									"start":
-									{
-										"character": 4,
-										"line": 274
-									}
-								}
-							},
-							{
-								"newText": "",
-								"range":
-								{
-									"end":
-									{
-										"character": 12,
-										"line": 232
-									},
-									"start":
-									{
-										"character": 0,
-										"line": 232
-									}
-								}
-							},
-							{
-								"newText": "#if NET10_OR_GREATER\n            SqliteType.Integer => JulianDayToDateTime(Stmt.GetLong(ordinal)).ToUniversalTime(),\n            SqliteType.Real => JulianDayToDateTime(Stmt.GetDouble(ordinal)).ToUniversalTime(),\n            SqliteType.Text => DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture).ToUniversalTime(),\n",
-								"range":
-								{
-									"end":
-									{
-										"character": 12,
-										"line": 228
-									},
-									"start":
-									{
-										"character": 0,
-										"line": 224
-									}
-								}
-							}
-						],
-						"label": "Format File"
-					},
-					"BAAAABklAAAAAAAA7SUAAAAAAADoAAAAICAgIC8vID0+IF9jbG9zZWQKICAgICAgICAvLyAgICAgPyB0aHJvdyBuZXcgSW52YWxpZE9wZXJhdGlvbkV4Y2VwdGlvbihSZXNvdXJjZXMuRGF0YVJlYWRlckNsb3NlZChuYW1lb2YoR2V0VGltZVNwYW4pKSkKICAgICAgICAvLyAgICAgOiBfcmVjb3JkID09IG51bGwKICAgICAgICAvLyAgICAgICAgID8gdGhyb3cgbmV3IEludmFsaWRPcGVyYXRpb25FeGNlcHRpb24oUmVzb3VyY2VzLk5vRGF0YSkKICAgIIwiAAAAAAAAZiMAAAAAAADuAAAAICAgIC8vID0+IF9jbG9zZWQKICAgICAgICAvLyAgICAgPyB0aHJvdyBuZXcgSW52YWxpZE9wZXJhdGlvbkV4Y2VwdGlvbihSZXNvdXJjZXMuRGF0YVJlYWRlckNsb3NlZChuYW1lb2YoR2V0RGF0ZVRpbWVPZmZzZXQpKSkKICAgICAgICAvLyAgICAgOiBfcmVjb3JkID09IG51bGwKICAgICAgICAvLyAgICAgICAgID8gdGhyb3cgbmV3IEludmFsaWRPcGVyYXRpb25FeGNlcHRpb24oUmVzb3VyY2VzLk5vRGF0YSkKICAgIMobAAAAAAAAyhsAAAAAAAAMAAAAICAgICAgICAgICAgaRkAAAAAAACwGgAAAAAAAF8BAAAgICAgICAgICAgICAjaWYgTkVUMTBfT1JfR1JFQVRFUgogICAgICAgICAgICBTcWxpdGVUeXBlLkludGVnZXIgPT4gSnVsaWFuRGF5VG9EYXRlVGltZShTdG10LkdldExvbmcob3JkaW5hbCkpLlRvVW5pdmVyc2FsVGltZSgpLAogICAgICAgICAgICBTcWxpdGVUeXBlLlJlYWwgPT4gSnVsaWFuRGF5VG9EYXRlVGltZShTdG10LkdldERvdWJsZShvcmRpbmFsKSkuVG9Vbml2ZXJzYWxUaW1lKCksCiAgICAgICAgICAgIFNxbGl0ZVR5cGUuVGV4dCA9PiBEYXRlVGltZS5QYXJzZShHZXRTdHJpbmcob3JkaW5hbCksIEN1bHR1cmVJbmZvLkludmFyaWFudEN1bHR1cmUpLlRvVW5pdmVyc2FsVGltZSgpLAogICAgICAgICAgICA",
-					"AQAAAAAAAAABAAAACx4AAAAAAAALHgAAAAAAAAAAAAAAAPC/"
-				]
-			]
-		},
-		{
-			"file": "Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
-			"settings":
-			{
-				"buffer_size": 33555,
-				"line_ending": "Windows"
-			},
-			"undo_stack":
-			[
-			]
-		},
-		{
-			"file": "Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
-			"settings":
-			{
-				"buffer_size": 13263,
-				"line_ending": "Windows"
-			},
-			"undo_stack":
-			[
 			]
 		}
 	],
@@ -1167,38 +426,47 @@
 	],
 	"file_history":
 	[
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnection.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameter.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteValueBinder.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/Properties/Resources.Designer.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Properties/Resources.Designer.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataRecord.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.Interop/SqliteType.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameterCollection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteException.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Utilities/SharedStopwatch.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnection.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteTransactionTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteCommandTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameterCollection.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameter.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameterCollection.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Properties/Resources.Designer.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteCommand.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteBlobTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/Microsoft.Data.Sqlite.Tests.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/SqliteTestFramework.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Conformance/CiccioSoft.Data.Sqlite.Tests.Conformance.csproj",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataRecord.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/README.md",
 		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/README.md",
 		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/CiccioSoft.Sqlite.slnx",
@@ -1285,16 +553,7 @@
 		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlDateTimeKind.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlServerRedirectionMode.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlCertificateStoreLocation.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnectionProtocol.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlLoadBalance.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedTransaction.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlSslMode.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/tests/IntegrationTests/ClientFactoryTests.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnectionStringBuilder.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedParameter.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlConnection.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnection.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/$metadata$/Project/MySqlConnector/Assembly/System/Data/Common/Symbol/System/Data/Common/DbConnection.cs"
+		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MySqlConnectionProtocol.cs"
 	],
 	"find":
 	{
@@ -1313,6 +572,19 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"Ctor_parses_mode",
+			"Keys_works",
+			"Item_throws_when_cannot_convert_to_enum_on_set",
+			"Item_converts_to_bool_on_set",
+			"ArgumentException",
+			"Item_validates_argument",
+			"ToString_builds_string",
+			"ToString",
+			"ToString_builds_string",
+			"ToString",
+			"ToString_builds_string",
+			"RecordsAffected_works_with_returning_multiple",
+			"GetOrdinal_throws_when_out_of_range",
 			"GetDateTime_works_with_text_with_offset",
 			"Microsoft.Data.Sqlite.Pre10TimeZoneHandling",
 			"GetDateTimeOffset_works_with_integer",
@@ -1357,19 +629,220 @@
 			[
 				{
 					"buffer": 0,
+					"file": "CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10901,
+						"regions":
+						{
+						},
+						"selection":
+						[
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+					"selected": true,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13548,
+						"regions":
+						{
+						},
+						"selection":
+						[
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 917.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10867,
+						"regions":
+						{
+						},
+						"selection":
+						[
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								},
+								{
+									"characters": ". ",
+									"registration_id": "7d5eb06c-85b6-4845-8cbf-4ba57624c0e2",
+									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
+									"server": "OmniSharp"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 17168,
+						"regions":
+						{
+						},
+						"selection":
+						[
+						],
+						"settings":
+						{
+							"auto_complete_triggers":
+							[
+								{
+									"characters": "<",
+									"selector": "text.html, text.xml"
+								},
+								{
+									"rhs_empty": true,
+									"selector": "punctuation.accessor"
+								}
+							],
+							"lsp_active": true,
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+							"show_definitions": false,
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3409.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"stack_multiselect": false,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
 					"file": "CiccioSoft.Sqlite.sublime-project",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1594,
+						"buffer_size": 1556,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1056,
-								1056
+								1553,
+								1553
 							]
 						],
 						"settings":
@@ -1383,184 +856,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 84347,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								22146,
-								22157
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								}
-							],
-							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
-							"show_definitions": false,
-							"syntax": "Packages/C#/C#.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 8742.0,
-						"zoom_level": 1.0
-					},
 					"stack_index": 4,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
-					"selected": true,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 43989,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7655,
-								7655
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								}
-							],
-							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
-							"show_definitions": false,
-							"syntax": "Packages/C#/C#.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2988.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 33555,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								14145,
-								14156
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								}
-							],
-							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataReader.cs",
-							"show_definitions": false,
-							"syntax": "Packages/C#/C#.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4984.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 13263,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1988,
-								2006
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								}
-							],
-							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
-							"show_definitions": false,
-							"syntax": "Packages/C#/C#.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 354.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
 					"stack_multiselect": false,
 					"type": "text"
 				}
