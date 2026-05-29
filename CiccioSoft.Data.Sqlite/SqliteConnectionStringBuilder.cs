@@ -353,38 +353,62 @@ internal sealed class SqliteConnectionStringOption<T>(
     /// </summary>
     private static T ConvertTo(object value)
     {
-        if (value is T typed)
-            return typed;
-
         var underlyingType = Nullable.GetUnderlyingType(typeof(T));
         var target = underlyingType ?? typeof(T);
 
-        // For Nullable<> types, treat empty string as null (unset)
-        if (value is string { Length: 0 } && underlyingType is not null)
-            return default!;
-
-        if (value is string text)
+        try
         {
-            // Boolean: handle "yes"/"no" and "1"/"0" consistently
-            if (target == typeof(bool))
+            if (value is T typed)
             {
-                if (text.Equals("yes", StringComparison.OrdinalIgnoreCase) || text == "1")
-                    return (T)(object)true;
-                if (text.Equals("no", StringComparison.OrdinalIgnoreCase) || text == "0")
-                    return (T)(object)false;
+                if (target.IsEnum && !Enum.IsDefined(target, typed))
+                    throw new ArgumentException($"The value '{value}' is not valid for enum {target.Name}.");
+                return typed;
             }
 
-            // Enum: parse by name
-            if (target.IsEnum)
-                return (T)Enum.Parse(target, text, ignoreCase: true);
-        }
-        else if (target.IsEnum)
-        {
-            // Enum: convert from numeric value
-            var numeric = Convert.ChangeType(value, Enum.GetUnderlyingType(target), CultureInfo.InvariantCulture);
-            return (T)Enum.ToObject(target, numeric);
-        }
+            // For Nullable<> types, treat empty string as null (unset)
+            if (value is string { Length: 0 } && underlyingType is not null)
+                return default!;
 
-        return (T)Convert.ChangeType(value, target, CultureInfo.InvariantCulture);
+            if (value is string text)
+            {
+                // Boolean: handle "yes"/"no" and "1"/"0" consistently
+                if (target == typeof(bool))
+                {
+                    if (text.Equals("yes", StringComparison.OrdinalIgnoreCase) || text == "1")
+                        return (T)(object)true;
+                    if (text.Equals("no", StringComparison.OrdinalIgnoreCase) || text == "0")
+                        return (T)(object)false;
+                }
+
+                // Enum: parse by name
+                if (target.IsEnum)
+                {
+                    var parsed = Enum.Parse(target, text, ignoreCase: true);
+                    if (!Enum.IsDefined(target, parsed))
+                        throw new ArgumentException($"The value '{text}' is not valid for enum {target.Name}.");
+                    return (T)parsed;
+                }
+            }
+            else if (target.IsEnum)
+            {
+                // Prevent implicit conversion between different enum types
+                if (value is Enum && value.GetType() != target)
+                    throw new ArgumentException($"Cannot convert enum {value.GetType().Name} to {target.Name}.");
+
+                var numeric = Convert.ChangeType(value, Enum.GetUnderlyingType(target), CultureInfo.InvariantCulture);
+                var enumVal = Enum.ToObject(target, numeric);
+                
+                if (!Enum.IsDefined(target, enumVal))
+                    throw new ArgumentException($"The value '{value}' is not valid for enum {target.Name}.");
+                
+                return (T)enumVal;
+            }
+
+            return (T)Convert.ChangeType(value, target, CultureInfo.InvariantCulture);
+        }
+        catch (Exception ex) when (ex is not ArgumentException)
+        {
+            throw new ArgumentException($"Cannot convert value '{value}' to type {target.Name}.", ex);
+        }
     }
 }
