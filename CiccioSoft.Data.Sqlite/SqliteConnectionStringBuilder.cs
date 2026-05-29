@@ -13,6 +13,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using CiccioSoft.Data.Sqlite.Properties;
+using System.Collections.ObjectModel;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -66,7 +67,10 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
     }
 #pragma warning restore CS8764
 
-    public override ICollection Keys => SqliteConnectionStringOption.OptionNames;
+    public override ICollection Keys
+        // => SqliteConnectionStringOption.OptionNames;
+        => SqliteConnectionStringOption.OptionNames.AsReadOnly();
+        // => new ReadOnlyCollection<string>(SqliteConnectionStringOption.OptionNames);
 
     public override ICollection Values
     {
@@ -77,7 +81,8 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             {
                 values.Add(this[key]);
             }
-            return values;
+            // return values;
+            return values.AsReadOnly();
         }
     }
 

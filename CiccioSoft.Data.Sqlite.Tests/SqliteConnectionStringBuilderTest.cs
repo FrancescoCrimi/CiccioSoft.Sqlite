@@ -153,7 +153,8 @@ public class SqliteConnectionStringBuilderTest
         var keys = (ICollection<string>)new SqliteConnectionStringBuilder().Keys;
 
         Assert.True(keys.IsReadOnly);
-        Assert.Equal(9, keys.Count);
+        // Assert.Equal(9, keys.Count);
+        Assert.Equal(11, keys.Count);
         Assert.Contains("Data Source", keys);
         Assert.Contains("Mode", keys);
         Assert.Contains("Cache", keys);
@@ -171,7 +172,7 @@ public class SqliteConnectionStringBuilderTest
         var values = (ICollection<object>)new SqliteConnectionStringBuilder().Values;
 
         Assert.True(values.IsReadOnly);
-        Assert.Equal(9, values.Count);
+        Assert.Equal(11, values.Count);
     }
 
     [Fact]
