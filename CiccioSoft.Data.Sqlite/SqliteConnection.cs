@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -544,7 +544,7 @@ public class SqliteConnection : DbConnection
     private void ApplyConnectionSettings(Sqlite3 native)
     {
         native.SetExtendedResultCodes(true);
-        native.SetBusyTimeout(Math.Max(0, _settings.BusyTimeout));
+        native.SetBusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
 
         // Intelligent default: Foreign Keys ON if not specified
         bool foreignKeysSpecified = _settings.HasForeignKeys;

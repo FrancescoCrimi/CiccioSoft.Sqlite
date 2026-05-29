@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -150,11 +150,11 @@ public class SqliteCommand : DbCommand
     protected override DbParameterCollection DbParameterCollection
         => _parameters;
 
-    private int _commandTimeout = 30;
+    private int? _commandTimeout;
 
     /// <summary>
     ///     Gets or sets the number of seconds to wait before terminating the attempt to execute the command.
-    ///     Defaults to 30. A value of 0 means no timeout.
+    ///     Defaults to 30 (or the connection's DefaultTimeout if set). A value of 0 means no timeout.
     /// </summary>
     /// <value>The number of seconds to wait before terminating the attempt to execute the command.</value>
     /// <remarks>
@@ -162,7 +162,7 @@ public class SqliteCommand : DbCommand
     /// </remarks>
     public override int CommandTimeout
     {
-        get => _commandTimeout;
+        get => _commandTimeout ?? (Connection?.DefaultTimeout ?? 30);
         set => _commandTimeout = value < 0
             ? throw new ArgumentOutOfRangeException(nameof(value), value, "CommandTimeout cannot be negative.")
             : value;
