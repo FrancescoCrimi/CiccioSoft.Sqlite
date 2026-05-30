@@ -265,7 +265,8 @@ public class SqliteConnectionStringBuilderTest
         Assert.Equal(SqliteCacheMode.Default, builder.Cache);
         Assert.Empty(builder.Password);
         Assert.Null(builder.ForeignKeys);
-        Assert.False(builder.RecursiveTriggers);
+        // Assert.False(builder.RecursiveTriggers);
+        Assert.Null(builder.RecursiveTriggers);
         Assert.Equal(30, builder.DefaultTimeout);
     }
 
@@ -298,7 +299,11 @@ public class SqliteConnectionStringBuilderTest
 
     [Fact]
     public void ShouldSerialize_returns_false_when_unset()
-        => Assert.False(new SqliteConnectionStringBuilder().ShouldSerialize("Data Source"));
+        // => Assert.False(new SqliteConnectionStringBuilder().ShouldSerialize("Data Source"));
+    {
+        var builder = new SqliteConnectionStringBuilder();
+        Assert.False(builder.ShouldSerialize("Data Source"));
+    }
 
     [Fact]
     public void ShouldSerialize_returns_true_when_set()

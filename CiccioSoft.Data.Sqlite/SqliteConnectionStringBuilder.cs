@@ -8,12 +8,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Frozen;
-using System.ComponentModel;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using CiccioSoft.Data.Sqlite.Properties;
-using System.Collections.ObjectModel;
 
 namespace CiccioSoft.Data.Sqlite;
 

@@ -26,7 +26,7 @@
             "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest/Keys_works",
+                "//CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest/Bind_with_restricted_size_works_on_string_values",
                 "-parallel",
                 "none"
             ],
@@ -40,7 +40,7 @@
             "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//Microsoft.Data.Sqlite/SqliteConnectionStringBuilderTest/Keys_works",
+                "//Microsoft.Data.Sqlite/SqliteParameterTest/Bind_with_restricted_size_works_on_string_values",
                 "-parallel",
                 "none"
             ],
