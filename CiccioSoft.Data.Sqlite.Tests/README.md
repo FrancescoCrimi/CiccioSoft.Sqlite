@@ -6,7 +6,6 @@ Core xUnit test suite for `CiccioSoft.Data.Sqlite`.
 
 - This test project targets `net10.0` only.
 - It follows the same support baseline as `CiccioSoft.Data.Sqlite` and `CiccioSoft.Sqlite.Interop`: .NET 10.0 or later runtimes are supported.
-- No `net9.0`, `netstandard`, or earlier test target is provided.
 
 ## Running the tests
 

@@ -28,11 +28,7 @@ public class SqliteTransactionTest
             connection.Open();
         }
 
-#if NET5_0_OR_GREATER
         using var transaction = async ? await connection.BeginTransactionAsync() : connection.BeginTransaction();
-#else
-        using var transaction = connection.BeginTransaction();
-#endif
 
         await AddNewTable("Table1");
 
@@ -40,7 +36,6 @@ public class SqliteTransactionTest
 
         try
         {
-#if NET5_0_OR_GREATER
             if (async)
             {
                 await transaction.DisposeAsync();
@@ -49,9 +44,6 @@ public class SqliteTransactionTest
             {
                 transaction.Dispose();
             }
-#else
-            transaction.Dispose();
-#endif
 
             Assert.Fail();
         }
@@ -64,15 +56,10 @@ public class SqliteTransactionTest
 
         connection.SimulateFailureOnRollback = false;
 
-#if NET5_0_OR_GREATER
         using var transaction2 = async ? await connection.BeginTransactionAsync() : connection.BeginTransaction();
-#else
-        using var transaction2 = connection.BeginTransaction();
-#endif
 
         await AddNewTable("Table2");
 
-#if NET5_0_OR_GREATER
         if (async)
         {
             await transaction2.DisposeAsync();
@@ -81,9 +68,6 @@ public class SqliteTransactionTest
         {
             transaction2.Dispose();
         }
-#else
-        transaction2.Dispose();
-#endif
 
         Assert.Null(connection.Transaction);
 

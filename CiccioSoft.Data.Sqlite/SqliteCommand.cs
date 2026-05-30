@@ -686,7 +686,6 @@ public class SqliteCommand : DbCommand
             case DateTime dateTime: BindTextParameter(stmt, index, parameter, dateTime.ToString(@"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFF", CultureInfo.InvariantCulture)); break;
             case DateTimeOffset dateTimeOffset when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateTimeOffset.ToUniversalTime().DateTime)); break;
             case DateTimeOffset dateTimeOffset: BindTextParameter(stmt, index, parameter, dateTimeOffset.ToString(@"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFFzzz", CultureInfo.InvariantCulture)); break;
-#if NET6_0_OR_GREATER
             case DateOnly dateOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, 0)); break;
             case DateOnly dateOnly: BindTextParameter(stmt, index, parameter, dateOnly.ToString(@"yyyy\-MM\-dd", CultureInfo.InvariantCulture)); break;
             case TimeOnly timeOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, GetTotalDays(timeOnly.Hour, timeOnly.Minute, timeOnly.Second, timeOnly.Millisecond)); break;
@@ -699,7 +698,6 @@ public class SqliteCommand : DbCommand
                         ? timeOnly.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture)
                         : timeOnly.ToString(@"HH\:mm\:ss.fffffff", CultureInfo.InvariantCulture));
                 break;
-#endif
             case TimeSpan timeSpan when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, timeSpan.TotalDays); break;
             case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", CultureInfo.InvariantCulture)); break;
             case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;

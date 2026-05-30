@@ -61,7 +61,7 @@ while (await reader.ReadAsync())
 ## Dependencies
 
 - `CiccioSoft.Sqlite.Interop`: Raw P/Invoke bindings targeting `net10.0`
-- .NET 10.0 or later; this provider targets `net10.0` as the minimum supported TFM and does not provide `net9.0`, `netstandard`, or earlier builds
+- .NET 10.0 or later; this provider targets `net10.0` as the minimum supported TFM
 
 ## Architecture
 
