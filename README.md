@@ -28,12 +28,17 @@ This repository is organized into multiple projects, each with its own README:
 
 ### 2. **CiccioSoft.Data.Sqlite** (OOP Abstraction Layer)
 - Idiomatic C# object-oriented wrapper
-- Higher-level abstractions built on top of `CiccioSoft.Data.Sqlite.Interop`
+- Higher-level abstractions built on top of `CiccioSoft.Sqlite.Interop`
 - Type-safe operations and modern C# patterns
 - More accessible API for typical database tasks
 - [📖 Project README](CiccioSoft.Data.Sqlite/README.md)
 
-### 3. **CiccioSoft.Data.Sqlite.Tests.Extra** (Test Suite)
+### 3. **CiccioSoft.Data.Sqlite.Tests** (Core Test Suite)
+- Core xUnit tests for the ADO.NET provider surface
+- Targets `net10.0` only, matching the provider and interop projects
+- [📖 Project README](CiccioSoft.Data.Sqlite.Tests/README.md)
+
+### 4. **CiccioSoft.Data.Sqlite.Tests.Extra** (Extended Test Suite)
 - Comprehensive tests for async and concurrency features
 - Validation of WAL journaling benefits
 - Cancellation token and timeout testing
@@ -117,7 +122,7 @@ These are useful in long-running applications where you want deterministic WAL f
 
 ### Requirements
 
-- **.NET 9.0** or later
+- **.NET 10.0** or later. The CiccioSoft.Data.Sqlite, CiccioSoft.Data.Sqlite.Tests, and CiccioSoft.Sqlite.Interop projects target `net10.0` as their minimum supported TFM; no `net9.0`, `netstandard`, or earlier targets are provided.
 - SQLite 3.x (embedded with the library)
 
 ### Installation
@@ -133,10 +138,10 @@ dotnet build
 
 ### Basic Usage
 
-#### Using the Raw Interop Layer (CiccioSoft.Data.Sqlite.Interop)
+#### Using the Raw Interop Layer (CiccioSoft.Sqlite.Interop)
 
 ```csharp
-using CiccioSoft.Data.Sqlite.Interop;
+using CiccioSoft.Sqlite.Interop;
 
 // Direct SQLite API access
 using var db = Sqlite3.Open("mydata.db");
@@ -176,6 +181,8 @@ CiccioSoft.Sqlite/
 │   ├── SqliteCommand.cs                 # Command execution
 │   ├── SqliteDataReader.cs              # Result reading
 │   └── *.cs                             # Additional abstractions
+├── CiccioSoft.Data.Sqlite.Tests/        # Core provider tests (net10.0 only)
+│   └── *.cs                             # xUnit test cases
 ├── CiccioSoft.Sqlite.Interop.Example/   # Example applications
 │   └── Program.cs                       # Usage examples
 ├── CiccioSoft.Sqlite.slnx               # Solution file
@@ -202,7 +209,7 @@ CiccioSoft.Sqlite/
 
 ## 📖 Examples
 
-For practical examples and use cases, see the [CiccioSoft.Data.Sqlite.Interop.Example](./CiccioSoft.Sqlite.Interop.Example/) project.
+For practical examples and use cases, see the [CiccioSoft.Sqlite.Interop.Example](./CiccioSoft.Sqlite.Interop.Example/) project.
 
 ### Example: Creating a Table
 
