@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
@@ -674,18 +675,88 @@ public class SqliteCommand : DbCommand
             case ulong ul: BindTextParameter(stmt, index, parameter, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
             case ushort us: stmt.BindInt(index, us); break;
             case bool bo: stmt.BindInt(index, bo ? 1 : 0); break;
-            case float f: stmt.BindDouble(index, f); break;
-            case double d: stmt.BindDouble(index, d); break;
-            case decimal m: BindTextParameter(stmt, index, parameter, m.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+            case float f: BindDoubleParameter(stmt, index, f); break;
+            case double d: BindDoubleParameter(stmt, index, d); break;
+            case decimal m: BindTextParameter(stmt, index, parameter, m.ToString("0.0###########################", CultureInfo.InvariantCulture)); break;
+            case char c when parameter.SqliteType == SqliteType.Integer: stmt.BindLong(index, c); break;
             case char c: BindTextParameter(stmt, index, parameter, c.ToString()); break;
+            case Guid guid when parameter.SqliteType == SqliteType.Blob: BindBlobParameter(stmt, index, parameter, guid.ToByteArray()); break;
             case Guid guid: BindTextParameter(stmt, index, parameter, guid.ToString("D").ToUpperInvariant()); break;
-            case DateTime dateTime: BindTextParameter(stmt, index, parameter, dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture)); break;
-            case DateTimeOffset dateTimeOffset: BindTextParameter(stmt, index, parameter, dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz", System.Globalization.CultureInfo.InvariantCulture)); break;
-            case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", System.Globalization.CultureInfo.InvariantCulture)); break;
-            case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, System.Globalization.CultureInfo.InvariantCulture)); break;
+            case DateTime dateTime when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateTime)); break;
+            case DateTime dateTime: BindTextParameter(stmt, index, parameter, dateTime.ToString(@"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFF", CultureInfo.InvariantCulture)); break;
+            case DateTimeOffset dateTimeOffset when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateTimeOffset.ToUniversalTime().DateTime)); break;
+            case DateTimeOffset dateTimeOffset: BindTextParameter(stmt, index, parameter, dateTimeOffset.ToString(@"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFFzzz", CultureInfo.InvariantCulture)); break;
+#if NET6_0_OR_GREATER
+            case DateOnly dateOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, 0)); break;
+            case DateOnly dateOnly: BindTextParameter(stmt, index, parameter, dateOnly.ToString(@"yyyy\-MM\-dd", CultureInfo.InvariantCulture)); break;
+            case TimeOnly timeOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, GetTotalDays(timeOnly.Hour, timeOnly.Minute, timeOnly.Second, timeOnly.Millisecond)); break;
+            case TimeOnly timeOnly:
+                BindTextParameter(
+                    stmt,
+                    index,
+                    parameter,
+                    timeOnly.Ticks % TimeSpan.TicksPerSecond == 0
+                        ? timeOnly.ToString(@"HH\:mm\:ss", CultureInfo.InvariantCulture)
+                        : timeOnly.ToString(@"HH\:mm\:ss.fffffff", CultureInfo.InvariantCulture));
+                break;
+#endif
+            case TimeSpan timeSpan when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, timeSpan.TotalDays); break;
+            case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", CultureInfo.InvariantCulture)); break;
+            case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
             case byte[] bytes: BindBlobParameter(stmt, index, parameter, bytes); break;
             default: BindTextParameter(stmt, index, parameter, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty); break;
         }
+    }
+
+    private static void BindDoubleParameter(Sqlite3Stmt stmt, int index, double value)
+    {
+        if (double.IsNaN(value))
+        {
+            throw new InvalidOperationException(Resources.CannotStoreNaN);
+        }
+
+        stmt.BindDouble(index, value);
+    }
+
+    private static double ToJulianDate(DateTime dateTime)
+        => ToJulianDate(
+            dateTime.Year,
+            dateTime.Month,
+            dateTime.Day,
+            dateTime.Hour,
+            dateTime.Minute,
+            dateTime.Second,
+            dateTime.Millisecond);
+
+    private static double ToJulianDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
+    {
+        // computeJD
+        var y = year;
+        var m = month;
+        var d = day;
+
+        if (m <= 2)
+        {
+            y--;
+            m += 12;
+        }
+
+        var a = y / 100;
+        var b = 2 - a + (a / 4);
+        var x1 = 36525 * (y + 4716) / 100;
+        var x2 = 306001 * (m + 1) / 10000;
+        var julianMilliseconds = (long)((x1 + x2 + d + b - 1524.5) * 86400000);
+
+        julianMilliseconds += hour * 3600000 + minute * 60000 + (long)((second + millisecond / 1000.0) * 1000);
+
+        return julianMilliseconds / 86400000.0;
+    }
+
+    private static double GetTotalDays(int hour, int minute, int second, int millisecond)
+    {
+        var milliseconds = hour * 3600000 + minute * 60000 + (long)((second + millisecond / 1000.0) * 1000);
+
+        return milliseconds / 86400000.0;
     }
 
     private static void BindTextParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter, string value)
