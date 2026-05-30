@@ -60,7 +60,7 @@ This layer provides the foundation for higher-level abstractions:
 ## Dependencies
 
 - Native `SourceGear.sqlite3` binary (bundled or system-installed)
-- .NET 10.0 or later
+- .NET 10.0 or later; this interop project targets `net10.0` as the minimum supported TFM and does not provide `net9.0`, `netstandard`, or earlier builds
 
 ## Build Process
 

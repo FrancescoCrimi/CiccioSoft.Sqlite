@@ -8,7 +8,7 @@ The ADO.NET provider layer for CiccioSoft.Data.Sqlite, inspired by `Microsoft.Da
 
 ## Overview
 
-This project contains the high-level provider abstractions built on top of `CiccioSoft.Data.Sqlite.Interop`. It provides:
+This project contains the high-level provider abstractions built on top of `CiccioSoft.Sqlite.Interop`. It provides:
 
 - **Idiomatic C# APIs**: Modern .NET patterns for database operations
 - **ADO.NET Provider**: Implementation of `DbConnection`, `DbCommand`, `DbDataReader`, and related ADO.NET types
@@ -60,8 +60,8 @@ while (await reader.ReadAsync())
 
 ## Dependencies
 
-- `CiccioSoft.Data.Sqlite.Interop`: Raw P/Invoke bindings
-- .NET 10.0 or later
+- `CiccioSoft.Sqlite.Interop`: Raw P/Invoke bindings targeting `net10.0`
+- .NET 10.0 or later; this provider targets `net10.0` as the minimum supported TFM and does not provide `net9.0`, `netstandard`, or earlier builds
 
 ## Architecture
 
