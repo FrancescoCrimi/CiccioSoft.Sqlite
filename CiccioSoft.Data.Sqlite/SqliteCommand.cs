@@ -671,21 +671,40 @@ public class SqliteCommand : DbCommand
             case byte b: stmt.BindInt(index, b); break;
             case uint ui: stmt.BindLong(index, ui); break;
             case ulong ul when ul <= long.MaxValue: stmt.BindLong(index, (long)ul); break;
-            case ulong ul: stmt.BindText(index, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+            case ulong ul: BindTextParameter(stmt, index, parameter, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
             case ushort us: stmt.BindInt(index, us); break;
             case bool bo: stmt.BindInt(index, bo ? 1 : 0); break;
             case float f: stmt.BindDouble(index, f); break;
             case double d: stmt.BindDouble(index, d); break;
-            case decimal m: stmt.BindText(index, m.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
-            case char c: stmt.BindText(index, c.ToString()); break;
-            case Guid guid: stmt.BindText(index, guid.ToString("D").ToUpperInvariant()); break;
-            case DateTime dateTime: stmt.BindText(index, dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture)); break;
-            case DateTimeOffset dateTimeOffset: stmt.BindText(index, dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz", System.Globalization.CultureInfo.InvariantCulture)); break;
-            case TimeSpan timeSpan: stmt.BindText(index, timeSpan.ToString("c", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case decimal m: BindTextParameter(stmt, index, parameter, m.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+            case char c: BindTextParameter(stmt, index, parameter, c.ToString()); break;
+            case Guid guid: BindTextParameter(stmt, index, parameter, guid.ToString("D").ToUpperInvariant()); break;
+            case DateTime dateTime: BindTextParameter(stmt, index, parameter, dateTime.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFF", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case DateTimeOffset dateTimeOffset: BindTextParameter(stmt, index, parameter, dateTimeOffset.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz", System.Globalization.CultureInfo.InvariantCulture)); break;
+            case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", System.Globalization.CultureInfo.InvariantCulture)); break;
             case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, System.Globalization.CultureInfo.InvariantCulture)); break;
-            case byte[] bytes: stmt.BindBlob(index, bytes); break;
-            default: stmt.BindText(index, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty); break;
+            case byte[] bytes: BindBlobParameter(stmt, index, parameter, bytes); break;
+            default: BindTextParameter(stmt, index, parameter, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty); break;
         }
+    }
+
+    private static void BindTextParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter, string value)
+    {
+        if (parameter.TryGetTruncatedSize(value.Length, out int size))
+        {
+            value = value.Substring(0, size);
+        }
+
+        stmt.BindText(index, value);
+    }
+
+    private static void BindBlobParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter, byte[] value)
+    {
+        stmt.BindBlob(
+            index,
+            parameter.TryGetTruncatedSize(value.Length, out int size)
+                ? value.AsSpan(0, size)
+                : value);
     }
 
     private SqliteConnection RequireOpenConnection(string methodName)

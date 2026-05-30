@@ -162,6 +162,20 @@ public class SqliteParameter : DbParameter
         }
     }
 
+    internal bool TryGetTruncatedSize(int length, out int size)
+    {
+        if (_size.HasValue
+            && length > _size.Value
+            && _size.Value != -1)
+        {
+            size = _size.Value;
+            return true;
+        }
+
+        size = length;
+        return false;
+    }
+
     /// <summary>
     ///     Gets or sets the source column used for loading the value.
     /// </summary>
