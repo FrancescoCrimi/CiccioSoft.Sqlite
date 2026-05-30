@@ -247,10 +247,8 @@ public class SqliteParameter : DbParameter
             { typeof(char), SqliteType.Text },
             { typeof(DateTime), SqliteType.Text },
             { typeof(DateTimeOffset), SqliteType.Text },
-#if NET6_0_OR_GREATER
             { typeof(DateOnly), SqliteType.Text },
             { typeof(TimeOnly), SqliteType.Text },
-#endif
             { typeof(DBNull), SqliteType.Text },
             { typeof(decimal), SqliteType.Text },
             { typeof(double), SqliteType.Real },

@@ -228,15 +228,11 @@ public class SqliteDataReader : DbDataReader
                 return JulianDayToDateTime(Stmt.GetDouble(ordinal));
             case SqliteType.Text:
                 DateTime value = DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture);
-#if !NET10_0_OR_GREATER
-                return value;
-#else
                 return value.Kind switch
                 {
                     DateTimeKind.Local => value.ToUniversalTime(),
                     _ => value,
                 };
-#endif
             case SqliteType.Null:
                 throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
             default:
@@ -260,24 +256,13 @@ public class SqliteDataReader : DbDataReader
             case SqliteType.Integer:
                 {
                     var value = JulianDayToDateTime(GetDouble(ordinal));
-                    // Before .NET 10, for DateTimeOffset the offset was set incorrectly.
-#if !NET10_0_OR_GREATER
-                    return new DateTimeOffset(value)
-#else
                     return new DateTimeOffset(value, TimeSpan.Zero);
-#endif
                 }
 
             default:
                 {
                     var value = GetString(ordinal);
-                    // Before .NET 10, DateTimeOffset, when without offset, incorrectly did not assume UTC,
-                    // which is what it is for SQLite.
-#if !NET10_0_OR_GREATER
-                    return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture)
-#else
                     return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-#endif
                 }
         }
     }
