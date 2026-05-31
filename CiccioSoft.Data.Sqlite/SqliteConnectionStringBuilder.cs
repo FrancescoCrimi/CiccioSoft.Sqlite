@@ -104,6 +104,11 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         return false;
     }
 
+    public override bool ShouldSerialize(string keyword)
+        => SqliteConnectionStringOption.TryGetOptionForKey(keyword) is { } option
+            && base.ShouldSerialize(option.Key)
+            && option.HasNonEmptyValue(this);
+
     public override void Clear()
     {
         base.Clear();
@@ -280,6 +285,7 @@ internal abstract class SqliteConnectionStringOption(string[] keys)
 
     public abstract object? GetObject(SqliteConnectionStringBuilder builder);
     public abstract void SetObject(SqliteConnectionStringBuilder builder, object? value);
+    public abstract bool HasNonEmptyValue(SqliteConnectionStringBuilder builder);
 
     private static SqliteConnectionStringOption<T> Register<T>(
         Dictionary<string, SqliteConnectionStringOption> options,
@@ -347,6 +353,14 @@ internal sealed class SqliteConnectionStringOption<T>(
         else
             SetValue(builder, ConvertTo(value));
     }
+
+    public override bool HasNonEmptyValue(SqliteConnectionStringBuilder builder)
+        => GetValue(builder) switch
+        {
+            null => false,
+            string value => value.Length != 0,
+            _ => true
+        };
 
     /// <summary>
     /// Unified type conversion with consistent handling of:
