@@ -309,10 +309,10 @@ public class SqliteCommand : DbCommand
         CommandBehavior behavior,
         CancellationToken cancellationToken)
     {
-        // cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
-        // return Task.FromResult(ExecuteReader(behavior));
-        throw new NotImplementedException();
+        return Task.FromResult(ExecuteReader(behavior));
+        // throw new NotImplementedException();
     }
 
     /// <summary>
@@ -338,59 +338,9 @@ public class SqliteCommand : DbCommand
     /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
     public override int ExecuteNonQuery()
     {
-        SqliteConnection conn = RequireOpenConnection(nameof(ExecuteNonQuery));
-        ValidateTransaction(conn);
-        SqliteSession session = conn.GetSession();
-        using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-
-        if (IsSingleStatementCommand())
-        {
-            using CachedStatementLease statementLease = scope.Execute(() => AcquireCachedStatement(session));
-            Sqlite3Stmt statement = statementLease.Statement;
-            scope.Execute(() => BindParameters(statement, throwOnMissingParameter: true));
-
-            if (statement.IsReadOnly())
-            {
-                while (scope.Execute(statement.Step)) { }
-            }
-            else if (conn.HasActiveTransaction())
-            {
-                while (scope.Execute(statement.Step)) { }
-            }
-            else
-            {
-                using IDisposable writerGate = conn.AcquireWriterGate();
-                while (scope.Execute(statement.Step)) { }
-            }
-
-            return session.Native.Changes();
-        }
-
-        BatchExecutionState batchState = new(CommandText);
-        while (true)
-        {
-            using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true));
-            if (stmt is null)
-            {
-                break;
-            }
-
-            if (stmt.IsReadOnly())
-            {
-                while (scope.Execute(stmt.Step)) { }
-            }
-            else if (conn.HasActiveTransaction())
-            {
-                while (scope.Execute(stmt.Step)) { }
-            }
-            else
-            {
-                using IDisposable writerGate = conn.AcquireWriterGate();
-                while (scope.Execute(stmt.Step)) { }
-            }
-        }
-
-        return session.Native.Changes();
+        RequireOpenConnection(nameof(ExecuteNonQuery));
+        using SqliteDataReader reader = ExecuteReader();
+        return reader.RecordsAffected;
     }
 
     /// <summary>

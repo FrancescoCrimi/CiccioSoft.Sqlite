@@ -59,8 +59,10 @@ This repository is organized into multiple projects, each with its own README:
 
 - The provider serializes native SQLite access internally and is designed to be thread-safe by default for typical concurrent usage from async/sync ADO.NET APIs.
 - Async methods are non-blocking for the caller and support cancellation via token-driven native interrupt where applicable.
-- `SqliteCommand.CommandTimeout` is enforced on the full command execution scope (statement preparation + execution/reader lifecycle), with native interrupt on timeout. `0` means no timeout, values greater than `0` are interpreted as seconds.
-- Connection PRAGMA-like settings are applied at open and can be configured using Microsoft.Data.Sqlite-compatible names: `Busy Timeout`/`busy_timeout`, `Foreign Keys`/`foreign_keys`, and `Journal Mode`/`journal_mode`.
+- `SqliteCommand.CommandTimeout` (seconds, `0` = none) stops **active native work** on the command via `sqlite3_interrupt` inside `CommandExecutionScope` (prepare, step, reader drain). It is **not** the same as Microsoft.Data.Sqlite’s busy-retry loop while waiting for a table lock from another command on the same connection.
+- Do not run other commands on the same connection while a reader is open unless you accept undefined behavior; the provider serializes native access but does not emulate “connection busy until reader closes.”
+- Connection string `Default Timeout` / `Command Timeout` (default **30** seconds) sets the default `CommandTimeout` for new commands **and** the SQLite busy-handler wait (`sqlite3_busy_timeout`) at open.
+- Other open-time settings: `Foreign Keys`/`foreign_keys`, `Journal Mode`/`journal_mode`.
 - In WAL mode, you can explicitly trigger maintenance with `SqliteConnection.Checkpoint(...)` (default `PASSIVE`) and `SqliteConnection.Optimize()` / async counterparts to keep `-wal` growth under control in long-running workloads.
 
 ## 🔬 ADO.NET Provider Deep Dive (Defaults + Async)
@@ -73,7 +75,7 @@ When a connection is opened, the provider applies these defaults unless explicit
 
 - **Foreign keys ON by default** (`PRAGMA foreign_keys=ON`), to enforce referential integrity.
 - **WAL journal mode by default** (`PRAGMA journal_mode=WAL`) for file-backed databases, to improve reader/writer concurrency.
-- **Busy timeout default = 30s** (`Busy Timeout=30000` ms), to reduce transient lock failures under contention.
+- **Default timeout = 30s** (`Default Timeout=30` in the connection string), used both as default `CommandTimeout` for commands and as the SQLite busy-handler wait in milliseconds at open.
 
 For in-memory scenarios, behavior is intentionally adapted:
 
@@ -86,14 +88,15 @@ For in-memory scenarios, behavior is intentionally adapted:
 You can override these defaults explicitly in the connection string:
 
 ```ini
-Data Source=app.db;Foreign Keys=False;Journal Mode=DELETE;Busy Timeout=5000
+Data Source=app.db;Foreign Keys=False;Journal Mode=DELETE;Default Timeout=5
 ```
 
 Aliases compatible with common SQLite conventions are also accepted:
 
 - `foreign_keys` (alias of `Foreign Keys`)
 - `journal_mode` (alias of `Journal Mode`)
-- `busy_timeout` (alias of `Busy Timeout`)
+- `default_timeout` (alias of `Default Timeout`)
+- `Command Timeout` (alias of `Default Timeout`)
 
 ### Async model: what “true async” means here
 
@@ -105,9 +108,20 @@ SQLite itself is a native embedded engine with synchronous stepping semantics. I
 
 In practical terms:
 
-- async calls are cancellable and integrate correctly with `CancellationToken`;
-- `CommandTimeout` is enforced across full command lifecycle and translated into native interrupt;
-- execution on the same connection is still serialized by design (safety-first over unsafe parallel stepping on a single native handle).
+- async calls are cancellable and integrate correctly with `CancellationToken` where implemented (`OpenAsync`, `ReadAsync`, checkpoint/optimize async, and similar);
+- `CommandTimeout` applies while native work for that command is in progress and is translated into `sqlite3_interrupt` (not lock-contention polling like Microsoft.Data.Sqlite);
+- execution on the same connection is serialized through an internal session gate (safety-first over unsafe parallel stepping on a single native handle);
+- `ExecuteReader` prepares result sets lazily: the first `Read()` / `HasRows` advances the statement; an open reader without reading does not hold the same SQLite read locks as Microsoft’s immediate `NextResult` step.
+
+### `CommandTimeout` vs Microsoft.Data.Sqlite
+
+| Topic | Microsoft.Data.Sqlite | CiccioSoft.Data.Sqlite |
+|--------|----------------------|-------------------------|
+| Long-running statement | Busy retry + `CommandTimeout` budget | `CancellationTokenSource` + `interrupt` |
+| Reader open + second command on same connection | Often blocks until lock timeout | Serialized gate; reader may not hold a read lock until `Read()` |
+| Same-connection lock timeout test | `ExecuteReader_honors_CommandTimeout` | Intentionally skipped in the ported test suite |
+
+For typical ADO.NET usage (`using` reader, sequential commands, concurrency across **connections**), this model is sufficient. Avoid interleaving DDL/DML with an open reader on one connection.
 
 ### WAL lifecycle operations exposed by the provider
 

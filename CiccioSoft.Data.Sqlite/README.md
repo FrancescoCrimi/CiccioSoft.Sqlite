@@ -30,7 +30,7 @@ This project contains the high-level provider abstractions built on top of `Cicc
 
 - **Truly Asynchronous**: All async methods complete cooperatively without blocking threads
 - **Cancellation Support**: `CancellationToken` propagation with native interrupt
-- **Timeout Enforcement**: Command timeouts via native `sqlite3_interrupt`
+- **Timeout Enforcement**: `CommandTimeout` stops in-flight native work via `sqlite3_interrupt` (see below)
 - **WAL by Default**: File-backed databases use WAL journaling automatically
 - **Parameter Binding**: Named and positional parameter support
 - **Schema Discovery**: `GetSchema()` and `GetSchemaTable()` implementations
@@ -38,9 +38,19 @@ This project contains the high-level provider abstractions built on top of `Cicc
 - **Provider Scope**: Does not implement `DbDataAdapter`, matching Microsoft.Data.Sqlite's modern provider focus
 - **Api drop-in replacement for `Microsoft.Data.Sqlite`**:
 
-## Limitation
-- **No support encryption**:
-- **Create function not supported**:
+## CommandTimeout and concurrency (differences from Microsoft.Data.Sqlite)
+
+- **`CommandTimeout`** (seconds, `0` = none): enforced inside `CommandExecutionScope` with a linked cancellation token that calls `sqlite3_interrupt`. Applies while prepare/step/drain for that command is running.
+- **Not enforced** the Microsoft way: waiting on `SQLITE_BUSY` because another command on the **same connection** holds a read lock while a reader is open but idle (no `Read()` yet).
+- **Connection `Default Timeout`**: connection-string value (default 30) becomes the default command timeout and `sqlite3_busy_timeout` (milliseconds) at `Open()`.
+- **Same connection**: native access is serialized (`SqliteSession.Gate`). Prefer one operation at a time; do not rely on “connection busy” semantics while a reader is open.
+- **Deferred reader**: `ExecuteReader` prepares the batch; the first `Read()` or `HasRows` performs the first `Step()`.
+
+## Limitations
+
+- **No encryption support**
+- **Create function not supported**
+- **Command async surface**: some `DbCommand` async methods (for example `ExecuteReaderAsync` overloads with `CommandBehavior`) are not implemented yet; `OpenAsync` / `ReadAsync` use cooperative completion without `Task.Run`
 
 ## Usage Example
 
@@ -70,6 +80,7 @@ This layer sits atop the interop bindings, providing:
 - Connection state management
 - Command lifecycle handling
 - Data type mapping between SQLite and .NET
-- Thread safety through serialization
-- ADO.NET provider semantics inspired by Microsoft.Data.Sqlite
+- Thread safety through per-connection session serialization
+- ADO.NET provider semantics inspired by Microsoft.Data.Sqlite (with intentional differences documented above)
 - Intentional omission of legacy DataAdapter/CommandBuilder APIs
+- Deferred reader stepping and snapshot batch execution while a reader is active (see `CiccioSoft.Data.Sqlite.Tests.Extra`)
