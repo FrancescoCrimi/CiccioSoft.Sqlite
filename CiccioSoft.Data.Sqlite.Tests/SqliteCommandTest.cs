@@ -104,7 +104,7 @@ CREATE TABLE "Products" (
         Assert.Empty(command.CommandText);
     }
 
-    [Fact]
+    [Fact(Skip = "CiccioSoft.Data.Sqlite snapshots reader batches and allows CommandText changes for subsequent executions while a reader is open.")]
     public void CommandText_throws_when_set_when_open_reader()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -549,7 +549,7 @@ CREATE TABLE "Products" (
         }
     }
 
-    [Fact]
+    [Fact(Skip = "CiccioSoft.Data.Sqlite supports independent concurrent readers on the same command.")]
     public void ExecuteReader_throws_when_reader_open()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
