@@ -252,7 +252,7 @@ public class SqliteCommand : DbCommand
     {
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
         ValidateTransaction(conn);
-        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
+        return SqliteDataReader.Create(this, conn, conn.GetSession(), behavior);
     }
 
     #endregion
@@ -267,7 +267,7 @@ public class SqliteCommand : DbCommand
     {
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
         ValidateTransaction(conn);
-        return SqliteDataReader.Create(this, conn.GetSession(), behavior);
+        return SqliteDataReader.Create(this, conn, conn.GetSession(), behavior);
     }
 
 
@@ -404,7 +404,7 @@ public class SqliteCommand : DbCommand
 
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteScalar));
         ValidateTransaction(conn);
-        using DbDataReader reader =  SqliteDataReader.Create(this, conn.GetSession(), CommandBehavior.SingleRow);
+        using DbDataReader reader = SqliteDataReader.Create(this, conn, conn.GetSession(), CommandBehavior.SingleRow);
 
         return reader.Read() ? reader.GetValue(0) : null;
     }

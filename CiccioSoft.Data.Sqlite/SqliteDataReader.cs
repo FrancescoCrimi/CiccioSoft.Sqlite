@@ -28,6 +28,7 @@ public class SqliteDataReader : DbDataReader
     private const string SchemaIsUniqueColumn = "IsUnique";
 
     private readonly SqliteCommand _command;
+    private readonly SqliteConnection _connection;
     private readonly SqliteSession _session;
     private readonly System.Data.CommandBehavior _behavior;
     private readonly SqliteCommand.CommandExecutionScope _executionScope;
@@ -42,6 +43,7 @@ public class SqliteDataReader : DbDataReader
 
     private SqliteDataReader(
         SqliteCommand command,
+        SqliteConnection connection,
         SqliteSession session,
         System.Data.CommandBehavior behavior,
         Sqlite3Stmt? stmt,
@@ -49,6 +51,7 @@ public class SqliteDataReader : DbDataReader
         SqliteCommand.CommandExecutionScope executionScope)
     {
         _command = command;
+        _connection = connection;
         _session = session;
         _behavior = behavior;
         _stmt = stmt;
@@ -56,7 +59,11 @@ public class SqliteDataReader : DbDataReader
         _executionScope = executionScope;
     }
 
-    internal static SqliteDataReader Create(SqliteCommand command, SqliteSession session, System.Data.CommandBehavior behavior)
+    internal static SqliteDataReader Create(
+        SqliteCommand command,
+        SqliteConnection connection,
+        SqliteSession session,
+        System.Data.CommandBehavior behavior)
     {
         SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
         SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
@@ -71,7 +78,7 @@ public class SqliteDataReader : DbDataReader
             throw;
         }
 
-        return new SqliteDataReader(command, session, behavior, stmt, batchState, scope);
+        return new SqliteDataReader(command, connection, session, behavior, stmt, batchState, scope);
     }
 
 
@@ -741,7 +748,7 @@ public class SqliteDataReader : DbDataReader
             row[SchemaTableColumn.BaseSchemaName] = DBNull.Value;
             row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
             row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
-            row[SchemaTableOptionalColumn.BaseServerName] = _command.Connection?.DataSource ?? string.Empty;
+            row[SchemaTableOptionalColumn.BaseServerName] = _connection.DataSource;
             row[SchemaTableColumn.IsAliased] = isAliased;
             row[SchemaTableColumn.IsExpression] = !hasOrigin;
 
@@ -982,7 +989,7 @@ public class SqliteDataReader : DbDataReader
         _executionScope.Dispose();
         if (_behavior.HasFlag(System.Data.CommandBehavior.CloseConnection))
         {
-            _command.Connection?.Close();
+            _connection.Close();
         }
     }
 
@@ -1048,13 +1055,12 @@ public class SqliteDataReader : DbDataReader
             return _executionScope.Execute(Stmt.Step, cancellationToken);
         }
 
-        SqliteConnection? connection = _command.Connection;
-        if (connection is null || connection.HasActiveTransaction())
+        if (_connection.HasActiveTransaction())
         {
             return _executionScope.Execute(Stmt.Step, cancellationToken);
         }
 
-        using IDisposable writerGate = connection.AcquireWriterGate(cancellationToken);
+        using IDisposable writerGate = _connection.AcquireWriterGate(cancellationToken);
         return _executionScope.Execute(Stmt.Step, cancellationToken);
     }
 
