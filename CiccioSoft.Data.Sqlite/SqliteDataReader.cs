@@ -647,7 +647,7 @@ public class SqliteDataReader : DbDataReader
             _readStarted = false;
             _hasRow = false;
 
-            Sqlite3Stmt? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState));
+            Sqlite3Stmt? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState, throwOnMissingParameter: true));
             if (next is null)
             {
                 return false;

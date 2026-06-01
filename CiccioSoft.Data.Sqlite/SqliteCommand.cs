@@ -369,7 +369,7 @@ public class SqliteCommand : DbCommand
         BatchExecutionState batchState = new(CommandText);
         while (true)
         {
-            using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState));
+            using Sqlite3Stmt? stmt = scope.Execute(() => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true));
             if (stmt is null)
             {
                 break;
@@ -572,7 +572,7 @@ public class SqliteCommand : DbCommand
         return stmt;
     }
 
-    internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState)
+    internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
     {
         Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
@@ -581,23 +581,34 @@ public class SqliteCommand : DbCommand
             return null;
         }
 
-        BindParameters(stmt, throwOnMissingParameter: false);
+        BindParameters(stmt, throwOnMissingParameter);
         return stmt;
     }
 
     private void BindParameters(Sqlite3Stmt stmt, bool throwOnMissingParameter)
     {
+        int parameterCount = stmt.ParameterCount();
+        bool[] boundParameters = parameterCount == 0
+            ? Array.Empty<bool>()
+            : new bool[parameterCount + 1];
+
         for (int i = 0; i < _parameters.Count; i++)
         {
             SqliteParameter parameter = (SqliteParameter)_parameters[i]!;
             ValidateParameterDirection(parameter);
-            int parameterIndex = ResolveParameterIndex(stmt, parameter, i, throwOnMissingParameter);
+            int parameterIndex = ResolveParameterIndex(stmt, parameter, i);
             if (parameterIndex == 0)
             {
                 continue;
             }
 
             BindParameter(stmt, parameterIndex, parameter);
+            boundParameters[parameterIndex] = true;
+        }
+
+        if (throwOnMissingParameter && !IsExplainCommandText())
+        {
+            ThrowIfMissingParameters(stmt, boundParameters);
         }
     }
 
@@ -610,12 +621,15 @@ public class SqliteCommand : DbCommand
         }
     }
 
-    private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal, bool throwOnMissingParameter)
+    private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)
     {
         string parameterName = parameter.ParameterName;
         if (string.IsNullOrWhiteSpace(parameterName))
         {
-            return ordinal + 1;
+            int ordinalIndex = ordinal + 1;
+            return ordinalIndex <= stmt.ParameterCount()
+                ? ordinalIndex
+                : 0;
         }
 
         int index = stmt.GetParameterIndex(parameterName);
@@ -646,12 +660,33 @@ public class SqliteCommand : DbCommand
             return index;
         }
 
-        if (throwOnMissingParameter)
+        return 0;
+    }
+
+    private bool IsExplainCommandText()
+    {
+        string commandText = CommandText.TrimStart();
+        return commandText.StartsWith("EXPLAIN", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void ThrowIfMissingParameters(Sqlite3Stmt stmt, bool[] boundParameters)
+    {
+        List<string>? missingParameters = null;
+        for (int i = 1; i < boundParameters.Length; i++)
         {
-            throw new InvalidOperationException($"Parameter '{parameterName}' does not exist in the command text.");
+            if (boundParameters[i])
+            {
+                continue;
+            }
+
+            missingParameters ??= new List<string>();
+            missingParameters.Add(stmt.GetParameterName(i) ?? "?");
         }
 
-        return 0;
+        if (missingParameters is not null)
+        {
+            throw new InvalidOperationException(Resources.MissingParameters(string.Join(", ", missingParameters)));
+        }
     }
 
     private static void BindParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter)
