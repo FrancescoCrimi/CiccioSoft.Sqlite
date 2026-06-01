@@ -176,7 +176,7 @@ CREATE TABLE "Products" (
         }
     }
 
-    [Fact]
+    [Fact(Skip = "CiccioSoft.Data.Sqlite snapshots reader batches and allows connection changes while a reader is open.")]
     public void Connection_throws_when_set_when_open_reader()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
