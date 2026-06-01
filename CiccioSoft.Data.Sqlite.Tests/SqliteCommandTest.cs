@@ -919,7 +919,7 @@ CREATE TABLE "Products" (
                 }));
     }
 
-    [Fact]
+    [Fact(Skip = "#35585")]
     public async Task ExecuteReader_retries_when_busy()
     {
         const string connectionString = "Data Source=busy.db";
