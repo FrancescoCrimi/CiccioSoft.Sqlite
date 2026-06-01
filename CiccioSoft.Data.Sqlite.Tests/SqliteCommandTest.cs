@@ -540,8 +540,7 @@ CREATE TABLE "Products" (
         {
             var command = connection.CreateCommand();
             command.CommandText = "SELECT @Parameter, @Parameter2;";
-            // command.Parameters.AddWithValue("@Parameter", 1);
-            command.Parameters.Add(new SqliteParameter("@Parameter", 1));
+            command.Parameters.AddWithValue("@Parameter", 1);
             connection.Open();
 
             var ex = Assert.Throws<InvalidOperationException>(() => command.ExecuteScalar());
