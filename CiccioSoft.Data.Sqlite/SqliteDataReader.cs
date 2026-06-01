@@ -67,18 +67,18 @@ public class SqliteDataReader : DbDataReader
     {
         SqliteCommand.CommandExecutionScope scope = command.CreateExecutionScope(session, CancellationToken.None);
         SqliteCommand.BatchExecutionState batchState = new(command.CommandText);
-        Sqlite3Stmt? stmt;
+        SqliteDataReader reader = new(command, connection, session, behavior, null, batchState, scope);
         try
         {
-            stmt = scope.Execute(() => command.PrepareAndBindNext(session, batchState));
+            reader.NextResultCore(initialResult: true);
         }
         catch
         {
-            scope.Dispose();
+            reader.Dispose();
             throw;
         }
 
-        return new SqliteDataReader(command, connection, session, behavior, stmt, batchState, scope);
+        return reader;
     }
 
 
@@ -628,7 +628,12 @@ public class SqliteDataReader : DbDataReader
     {
         EnsureOpen();
 
-        if (_behavior.HasFlag(System.Data.CommandBehavior.SingleResult))
+        return NextResultCore(initialResult: false);
+    }
+
+    private bool NextResultCore(bool initialResult)
+    {
+        if (!initialResult && _behavior.HasFlag(System.Data.CommandBehavior.SingleResult))
         {
             return false;
         }
@@ -637,7 +642,7 @@ public class SqliteDataReader : DbDataReader
         {
             AddChangesFromCurrentStatement();
             _stmt?.Dispose();
-            _stmt = null;  // Sempre null prima di PrepareAndBindNext
+            _stmt = null;
             _prefetched = false;
             _readStarted = false;
             _hasRow = false;
@@ -649,7 +654,7 @@ public class SqliteDataReader : DbDataReader
             }
 
             _stmt = next;
-            if (_stmt is not null && Stmt.ColumnCount() > 0)
+            if (Stmt.ColumnCount() > 0)
             {
                 return true;
             }
