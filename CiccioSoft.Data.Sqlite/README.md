@@ -38,6 +38,15 @@ This project contains the high-level provider abstractions built on top of `Cicc
 - **Provider Scope**: Does not implement `DbDataAdapter`, matching Microsoft.Data.Sqlite's modern provider focus
 - **Api drop-in replacement for `Microsoft.Data.Sqlite`**:
 
+## Journal mode policy
+
+| Storage | Journal | Notes |
+|---------|---------|--------|
+| **File** (`Data Source=*.db`) | **WAL** by default | Target production path; reader/writer concurrency across connections |
+| **In-memory** (`:memory:`, `Mode=Memory`) | **DELETE** (WAL disabled) | Shared cache on by default for named memory DBs; only supported non-WAL scenario |
+
+Non-WAL file databases (`Journal Mode=DELETE` on disk) are not a design target. Edge cases around `RETURNING` and deferred commit under DELETE journaling are out of scope.
+
 ## CommandTimeout and concurrency (differences from Microsoft.Data.Sqlite)
 
 - **`CommandTimeout`** (seconds, `0` = none): enforced inside `CommandExecutionScope` with a linked cancellation token that calls `sqlite3_interrupt`. Applies while prepare/step/drain for that command is running.
@@ -45,6 +54,7 @@ This project contains the high-level provider abstractions built on top of `Cicc
 - **Connection `Default Timeout`**: connection-string value (default 30) becomes the default command timeout and `sqlite3_busy_timeout` (milliseconds) at `Open()`.
 - **Same connection**: native access is serialized (`SqliteSession.Gate`). Prefer one operation at a time; do not rely on “connection busy” semantics while a reader is open.
 - **Deferred reader**: `ExecuteReader` prepares the batch; the first `Read()` or `HasRows` performs the first `Step()`.
+- **`INSERT … RETURNING`**: with WAL (file DBs), concurrent reads/writes across connections are expected. Tests `*_busy_with_returning` from Microsoft are skipped (#35585); silent drain on reader close is intentional for trailing batch statements.
 
 ## Limitations
 

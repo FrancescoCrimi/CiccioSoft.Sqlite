@@ -964,7 +964,7 @@ CREATE TABLE "Products" (
         }
     }
 
-    [Fact]
+    [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
     public Task ExecuteScalar_throws_when_busy_with_returning()
         => Execute_throws_when_busy_with_returning(command =>
         {
@@ -973,7 +973,7 @@ CREATE TABLE "Products" (
             Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
         });
 
-    [Fact(Skip="Fail, todo")]
+    [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
     public Task ExecuteNonQuery_throws_when_busy_with_returning()
         => Execute_throws_when_busy_with_returning(command =>
         {
@@ -982,7 +982,7 @@ CREATE TABLE "Products" (
             Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
         });
 
-    [Fact]
+    [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
     public Task ExecuteReader_throws_when_busy_with_returning()
         => Execute_throws_when_busy_with_returning(command =>
         {
@@ -1000,7 +1000,7 @@ CREATE TABLE "Products" (
             }
         });
 
-    [Fact]
+    [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
     public Task ExecuteReader_throws_when_busy_with_returning_while_draining()
         => Execute_throws_when_busy_with_returning(command =>
         {

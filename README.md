@@ -79,9 +79,15 @@ When a connection is opened, the provider applies these defaults unless explicit
 
 For in-memory scenarios, behavior is intentionally adapted:
 
-- WAL is not used for in-memory databases.
-- The provider forces `journal_mode=DELETE` for in-memory connections.
-- In `Mode=Memory` configurations, the provider favors shared-cache URI behavior for named memory databases.
+- WAL is not used for in-memory databases (`journal_mode=DELETE`).
+- Named in-memory databases use **shared cache by default** (`Mode=Memory` / URI `cache=shared`) so multiple connections can see the same database.
+- This is the **only** non-WAL journal path the project targets by design; file-backed workloads assume WAL.
+
+### `INSERT … RETURNING` and lock contention
+
+File-backed connections use WAL so readers and writers on different connections can proceed concurrently. The provider does **not** target DELETE-journal semantics where `RETURNING` can defer persistence errors until reader drain (see [dotnet/efcore#31013](https://github.com/dotnet/efcore/pull/31013)).
+
+Ported tests `*_busy_with_returning` from Microsoft.Data.Sqlite are **skipped** ([dotnet/efcore#35585](https://github.com/dotnet/efcore/issues/35585)): they assume flaky cross-connection lock setup that WAL and deferred reader stepping do not reproduce. Typical usage: sequential commands, `using` readers, `RETURNING` on the same connection/transaction.
 
 ### How to override defaults
 
@@ -120,6 +126,7 @@ In practical terms:
 | Long-running statement | Busy retry + `CommandTimeout` budget | `CancellationTokenSource` + `interrupt` |
 | Reader open + second command on same connection | Often blocks until lock timeout | Serialized gate; reader may not hold a read lock until `Read()` |
 | Same-connection lock timeout test | `ExecuteReader_honors_CommandTimeout` | Intentionally skipped in the ported test suite |
+| `INSERT … RETURNING` + cross-connection busy | `*_busy_with_returning` (4 tests) | Skipped (#35585); WAL-by-default, not a supported contract |
 
 For typical ADO.NET usage (`using` reader, sequential commands, concurrency across **connections**), this model is sufficient. Avoid interleaving DDL/DML with an open reader on one connection.
 
