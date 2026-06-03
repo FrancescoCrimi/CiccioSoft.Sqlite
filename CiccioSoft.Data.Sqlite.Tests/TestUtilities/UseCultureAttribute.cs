@@ -12,7 +12,7 @@ using System.Reflection;
 // using Xunit.Sdk;
 using Xunit.v3;
 
-namespace CiccioSoft.Data.Sqlite.Tests.TestUtilities;
+namespace CiccioSoft.Data.Sqlite.TestUtilities;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public sealed class UseCultureAttribute(string culture, string uiCulture) : BeforeAfterTestAttribute

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnectionStringBuilderTest
 {
@@ -299,11 +299,7 @@ public class SqliteConnectionStringBuilderTest
 
     [Fact]
     public void ShouldSerialize_returns_false_when_unset()
-        // => Assert.False(new SqliteConnectionStringBuilder().ShouldSerialize("Data Source"));
-    {
-        var builder = new SqliteConnectionStringBuilder();
-        Assert.False(builder.ShouldSerialize("Data Source"));
-    }
+        => Assert.False(new SqliteConnectionStringBuilder().ShouldSerialize("Data Source"));
 
     [Fact]
     public void ShouldSerialize_returns_true_when_set()

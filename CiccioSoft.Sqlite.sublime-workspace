@@ -239,6 +239,18 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
+			"settings":
+			{
+				"buffer_size": 20342,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			},
+			"undo_stack":
+			[
+			]
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -332,23 +344,37 @@
 	],
 	"file_history":
 	[
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteCommandTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.slnx",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteCommandTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteExceptionTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteFactoryTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionFactoryTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteTransactionTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Extra/SqliteParameterCollectionContractTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Extra/SqliteTransactionSemanticsTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteTransaction.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Extra/SqliteConnectionStringBuilderTests.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Extra/CiccioSoft.Data.Sqlite.Tests.Extra.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.sublime-project",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteCommandTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameterCollection.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnectionStringBuilder.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteConnectionStringBuilderTest.cs",
+		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.slnx",
 		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/tests/Conformance.Tests/DbFactoryFixture.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/tests/Conformance.Tests/Conformance.Tests.csproj",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameter.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCommand.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteCommand.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameterCollection.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteParameter.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteParameterCollection.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteCacheMode.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteCacheMode.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteConnection.cs",
@@ -358,9 +384,7 @@
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteValueBinder.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Properties/Resources.Designer.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite/SqliteDataReader.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteDataReaderTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteValueReader.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteDataRecord.cs",
@@ -369,14 +393,11 @@
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/Extensions/SqliteConnectionExtensions.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/SqliteException.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Core/Utilities/SharedStopwatch.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Sqlite.Interop/Sqlite3Stmt.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteConnectionTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/SqliteBlobTest.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/Microsoft.Data.Sqlite.Tests.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/SqliteTestFramework.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/Microsoft.Data.Sqlite.Tests/TestUtilities/UseCultureAttribute.cs",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests.Conformance/CiccioSoft.Data.Sqlite.Tests.Conformance.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Sqlite/README.md",
@@ -450,16 +471,7 @@
 		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.bundle_e_sqlite3/SQLitePCLRaw.bundle_e_sqlite3.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.core/SQLitePCLRaw.core.csproj",
 		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.batteries.e_sqlite3.dllimport/SQLitePCLRaw.batteries_v2.csproj",
-		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/Microsoft.Data.Sqlite.Core.csproj",
-		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/SQLitePCLRaw.core/raw.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/SQLitePCL.raw/src/common/batteries_v2.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/.gitignore",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedCommand.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlCommand.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/MySqlDataReader.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/MySqlConnector-2.5.0/src/MySqlConnector/Core/IMySqlCommand.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnection.cs",
-		"/C/Users/franc/Dev/CiccioSoft.Data.MariaDbEmbedded/CiccioSoft.Data.MariaDbEmbedded/MariaDbEmbeddedConnectorFactory.cs"
+		"/C/Users/franc/Dev/CiccioSoft.Data.Sqlite/Microsoft.Data.Sqlite.Core/Microsoft.Data.Sqlite.Core.csproj"
 	],
 	"find":
 	{
@@ -477,6 +489,23 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Serialized_disallows_dirty_reads",
+			"/Serialized_disallows_dirty_reads",
+			"ExecuteScalar_throws_when_busy_with_returning",
+			"AsyncMethods_DoNotBlock",
+			"SingleWriterPattern_SerializesConcurrentWritersWithinProcess",
+			"Checkpoint_throws_when_closed",
+			"JournalMode_defaults_to_empty",
+			"Setters_update_values",
+			"ExecuteReader_honors_CommandTimeout",
+			"ExecuteReader_throws_when_parameter_unset",
+			"ExecuteNonQuery_works",
+			"ExecuteReader_skips_DML_statements",
+			"Connection_throws_when_set_when_open_reader",
+			"ExecuteReader_skips_DML_statements",
+			"Connection_throws_when_set_when_open_reader",
+			"ExecuteReader_retries_when_busy",
+			"CommandText_throws_when_set_when_open_reader"
 		],
 		"highlight": false,
 		"in_selection": false,
@@ -498,6 +527,39 @@
 		{
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
+					"selected": true,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20342,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								305,
+								355
+							]
+						],
+						"settings":
+						{
+							"lsp_uri": "file:///C:/Users/franc/Dev/CiccioSoft.Sqlite/CiccioSoft.Data.Sqlite.Tests/SqliteParameterTest.cs",
+							"syntax": "Packages/C#/C#.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"stack_multiselect": false,
+					"type": "text"
+				}
 			]
 		}
 	],

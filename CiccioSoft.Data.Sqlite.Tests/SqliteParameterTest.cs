@@ -7,10 +7,10 @@ using System.Data;
 using System.Data.Common;
 using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Data.Sqlite.Tests.TestUtilities;
+using CiccioSoft.Data.Sqlite.TestUtilities;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteParameterTest
 {

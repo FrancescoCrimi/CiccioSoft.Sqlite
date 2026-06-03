@@ -9,7 +9,7 @@ using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnectionTests
 {
@@ -35,7 +35,7 @@ public class SqliteConnectionTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => connection.Checkpoint());
 
-        Assert.Equal(Resources.CallRequiresOpenConnection("Checkpoint"), ex.Message);
+        Assert.Equal(Resources.CallRequiresOpenConnection("AcquireWriterGate"), ex.Message);
     }
 
     [Fact]

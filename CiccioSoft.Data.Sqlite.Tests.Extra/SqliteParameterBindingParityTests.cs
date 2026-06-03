@@ -4,10 +4,9 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteParameterBindingParityTests
 {

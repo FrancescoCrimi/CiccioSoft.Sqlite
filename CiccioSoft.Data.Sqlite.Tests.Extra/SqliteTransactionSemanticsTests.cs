@@ -8,11 +8,10 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteTransactionSemanticsTests
 {

@@ -8,7 +8,7 @@
 
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteExceptionTests
 {

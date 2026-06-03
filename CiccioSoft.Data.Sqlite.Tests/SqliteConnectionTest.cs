@@ -12,7 +12,7 @@ using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 // using static SQLitePCL.raw;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnectionTest
 {

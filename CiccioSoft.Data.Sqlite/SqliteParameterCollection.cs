@@ -81,7 +81,10 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public override int Add(object value)
     {
-        _parameters.Add((SqliteParameter)value);
+        ArgumentNullException.ThrowIfNull(value);
+        SqliteParameter parameter = (SqliteParameter) value;
+
+        _parameters.Add(parameter);
 
         return Count - 1;
     }

@@ -5,11 +5,10 @@
 
 using System;
 using System.Data;
-using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteParameterDirectionBehaviorTests
 {

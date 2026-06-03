@@ -4,10 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 /// <summary>
 /// Test suite per verificare le funzionalità asincrone e di concorrenza del provider CiccioSoft.Data.Sqlite.
@@ -230,7 +229,7 @@ public class AsyncConcurrencyTests : IDisposable
 
         // Since methods are sync wrappers, but cancellation is checked early
         var command = new SqliteCommand("SELECT * FROM Test", connection);
-        await Assert.ThrowsAsync<TaskCanceledException>(() => command.ExecuteReaderAsync(cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => command.ExecuteReaderAsync(cts.Token));
     }
 
     private async Task<List<string>> ReadAllValuesAsync(string connectionString)

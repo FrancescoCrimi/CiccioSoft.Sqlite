@@ -6,11 +6,10 @@
 using System;
 using System.Collections;
 using System.Data.Common;
-using CiccioSoft.Data.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteParameterCollectionContractTests
 {

@@ -8,7 +8,7 @@
 
 using CiccioSoft.Data.Sqlite;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 internal static class SqliteConnectionExtensions
 {

@@ -9,7 +9,7 @@ using System.IO;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteDataReaderTest
 {

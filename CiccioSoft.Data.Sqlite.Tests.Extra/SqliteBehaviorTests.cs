@@ -7,10 +7,9 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using CiccioSoft.Data.Sqlite;
 using Xunit;
 
-namespace CiccioSoft.Data.Sqlite.Tests.Extra;
+namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteBehaviorTests
 {
