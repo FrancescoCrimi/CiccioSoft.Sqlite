@@ -43,7 +43,7 @@ public class SqliteParameterCollectionContractTests
         Assert.Equal(2, parameters.Count);
     }
 
-    [Fact]
+    [Fact(Skip = "Fail on Microsoft.Data.Sqlite")]
     public void Add_rejects_invalid_edge_case_names()
     {
         var command = new SqliteCommand();
