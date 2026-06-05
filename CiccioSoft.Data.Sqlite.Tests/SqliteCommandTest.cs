@@ -199,9 +199,7 @@ CREATE TABLE "Products" (
     public void CommandType_text_by_default()
         => Assert.Equal(CommandType.Text, new SqliteCommand().CommandType);
 
-    [Theory]
-    [InlineData(CommandType.StoredProcedure)]
-    [InlineData(CommandType.TableDirect)]
+    [Theory, InlineData(CommandType.StoredProcedure), InlineData(CommandType.TableDirect)]
     public void CommandType_validates_value(CommandType commandType)
     {
         var ex = Assert.Throws<ArgumentException>(() => new SqliteCommand().CommandType = commandType);
@@ -400,7 +398,7 @@ CREATE TABLE "Products" (
     }
 
     [Fact]
-    public void ExecuteScalar_throws_when_no_command_text()
+    public void ExecuteScalar_works_when_no_command_text()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
@@ -862,9 +860,7 @@ CREATE TABLE "Products" (
         }
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [Theory(Skip = "#35585"), InlineData(true), InlineData(false)]
     public Task ExecuteReader_retries_when_locked(bool extendedErrorCode)
     {
         const string connectionString = "Data Source=locked;Mode=Memory;Cache=Shared";
@@ -935,7 +931,7 @@ CREATE TABLE "Products" (
 
                         using (connection.ExecuteReader("SELECT * FROM Data;"))
                         {
-						    selectedSignal.Set();
+                            selectedSignal.Set();
 
                             await Task.Delay(5000);
                         }

@@ -641,7 +641,7 @@ public class SqliteDataReader : DbDataReader
         while (true)
         {
             AddChangesFromCurrentStatement();
-            _stmt?.Dispose();
+            _command.ReleaseStatement(_stmt);
             _stmt = null;
             _prefetched = false;
             _readStarted = false;
@@ -990,7 +990,8 @@ public class SqliteDataReader : DbDataReader
         DrainRemainingStatements();
 
         _closed = true;
-        _stmt?.Dispose();
+        _command.ReleaseStatement(_stmt);
+        _stmt = null;
         _executionScope.Dispose();
         if (_behavior.HasFlag(System.Data.CommandBehavior.CloseConnection))
         {
@@ -1107,7 +1108,7 @@ public class SqliteDataReader : DbDataReader
 
             while (true)
             {
-                _stmt?.Dispose();
+                _command.ReleaseStatement(_stmt);
                 _stmt = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState));
                 if (_stmt is null)
                 {

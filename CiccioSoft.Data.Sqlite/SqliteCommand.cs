@@ -25,8 +25,10 @@ public class SqliteCommand : DbCommand
 
     private const SqlitePrepareFlags SqlitePreparePersistentFlag = SqlitePrepareFlags.Persistent;
     private readonly object _statementCacheSync = new();
+    private readonly List<(Sqlite3Stmt Statement, int ParamCount)> _preparedStatements = new(1);
     private SqliteConnection? _connection;
     private CachedStatement? _cachedStatement;
+    private bool _prepared;
 
     public SqliteCommand() { }
 
@@ -217,18 +219,24 @@ public class SqliteCommand : DbCommand
     /// </summary>
     public override void Prepare()
     {
+        if (_prepared)
+        {
+            return;
+        }
+
         SqliteConnection conn = RequireOpenConnection(nameof(Prepare));
         ValidateTransaction(conn);
         SqliteSession session = conn.GetSession();
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
-        if (IsSingleStatementCommand())
+        scope.Execute(() =>
         {
-            using CachedStatementLease _ = scope.Execute(() => AcquireCachedStatement(session));
-            return;
-        }
-
-        using Sqlite3Stmt stmt = scope.Execute(() => session.Native.Prepare(CommandText, SqlitePreparePersistentFlag));
+            foreach ((Sqlite3Stmt _, int _) in PrepareAndEnumerateStatements(session))
+            {
+            }
+        });
     }
+
+    internal bool Prepared => _prepared;
 
 
 
@@ -500,6 +508,7 @@ public class SqliteCommand : DbCommand
     internal sealed class BatchExecutionState
     {
         private int _sqlByteOffset;
+        private int _preparedStatementIndex;
 
         public BatchExecutionState(string sql)
         {
@@ -513,17 +522,24 @@ public class SqliteCommand : DbCommand
             get => _sqlByteOffset;
             set => _sqlByteOffset = value;
         }
+
+        public int PreparedStatementIndex
+        {
+            get => _preparedStatementIndex;
+            set => _preparedStatementIndex = value;
+        }
     }
 
-    internal Sqlite3Stmt PrepareAndBind(SqliteSession session)
-    {
-        Sqlite3Stmt stmt = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
-        BindParameters(stmt, throwOnMissingParameter: true);
-        return stmt;
-    }
+    internal Sqlite3Stmt? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
+        => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true);
 
     internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
     {
+        if (_prepared)
+        {
+            return PrepareAndBindFromCache(batchState, throwOnMissingParameter);
+        }
+
         Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
         if (stmt is null)
@@ -533,6 +549,24 @@ public class SqliteCommand : DbCommand
 
         BindParameters(stmt, throwOnMissingParameter);
         return stmt;
+    }
+
+    internal void ReleaseStatement(Sqlite3Stmt? stmt)
+    {
+        if (stmt is null)
+        {
+            return;
+        }
+
+        if (_prepared)
+        {
+            stmt.Reset();
+            stmt.ClearBindings();
+        }
+        else
+        {
+            stmt.Dispose();
+        }
     }
 
     private void BindParameters(Sqlite3Stmt stmt, bool throwOnMissingParameter)
@@ -789,8 +823,60 @@ public class SqliteCommand : DbCommand
         }
     }
 
-    private bool IsSingleStatementCommand()
-        => !CommandText.Contains(';');
+    private IEnumerable<(Sqlite3Stmt Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
+    {
+        DisposePreparedStatements();
+
+        var batchState = new BatchExecutionState(CommandText);
+        while (true)
+        {
+            Sqlite3Stmt? stmt = session.Native.Prepare(
+                batchState.Sql,
+                batchState.SqlByteOffset,
+                out int nextSqlByteOffset,
+                SqlitePreparePersistentFlag);
+            batchState.SqlByteOffset = nextSqlByteOffset;
+
+            if (stmt is null)
+            {
+                break;
+            }
+
+            int paramCount = stmt.ParameterCount();
+            var prepared = (stmt, paramCount);
+            _preparedStatements.Add(prepared);
+            yield return prepared;
+        }
+
+        _prepared = true;
+    }
+
+    private Sqlite3Stmt? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
+    {
+        int index = batchState.PreparedStatementIndex;
+        if (index >= _preparedStatements.Count)
+        {
+            return null;
+        }
+
+        Sqlite3Stmt stmt = _preparedStatements[index].Statement;
+        batchState.PreparedStatementIndex = index + 1;
+        stmt.Reset();
+        stmt.ClearBindings();
+        BindParameters(stmt, throwOnMissingParameter);
+        return stmt;
+    }
+
+    private void DisposePreparedStatements()
+    {
+        foreach ((Sqlite3Stmt stmt, int _) in _preparedStatements)
+        {
+            stmt.Dispose();
+        }
+
+        _preparedStatements.Clear();
+        _prepared = false;
+    }
 
     private CachedStatementLease AcquireCachedStatement(SqliteSession session)
     {
@@ -827,6 +913,8 @@ public class SqliteCommand : DbCommand
 
             _cachedStatement = null;
         }
+
+        DisposePreparedStatements();
     }
 
     private sealed class CachedStatement
