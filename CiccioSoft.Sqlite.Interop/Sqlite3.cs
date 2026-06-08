@@ -15,7 +15,6 @@ namespace CiccioSoft.Sqlite.Interop;
 
 public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
 {
-    // public Sqlite3Handle() : base(true) { }
     internal Sqlite3Handle(nint handle) : base(true)
     {
         SetHandle(handle);
@@ -137,7 +136,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
                 if (result != SqliteResult.OK)
                 {
-                    SqliteInteropException exception = SqliteErrorHelper.CreateException(result, pDb, "SQLite open");
+                    SqliteInteropException exception = SqliteInteropException.CreateException(result, pDb, "SQLite open");
 
                     // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
                     // Dobbiamo chiudere pDb manualmente o tramite l'handle.
@@ -205,7 +204,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     null,
                     null,
                     null);
-                SqliteErrorHelper.ThrowOnError(result, _handle.DangerousGetHandle(), "SQLite exec");
+                SqliteInteropException.ThrowOnError(result, _handle.DangerousGetHandle(), "SQLite exec");
             }
         }
         finally
@@ -277,7 +276,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 if (result != SqliteResult.OK)
                 {
-                    SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                    SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
 
                     // Se pStmt è stato allocato nonostante l'errore, va chiuso.
                     if (pStmt != nint.Zero)
@@ -345,7 +344,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 if (result != SqliteResult.OK)
                 {
-                    SqliteInteropException exception = SqliteErrorHelper.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                    SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
                     if (pStmt != nint.Zero)
                         Sqlite3Native.sqlite3_finalize(pStmt);
 
@@ -501,7 +500,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 int result = Sqlite3Native.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
                 if (result < 0)
                 {
-                    SqliteErrorHelper.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
+                    SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
                 }
 
                 return result != 0;
@@ -540,7 +539,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void SetBusyTimeout(int milliseconds)
     {
         ThrowIfInvalid();
-        SqliteErrorHelper.ThrowOnError(
+        SqliteInteropException.ThrowOnError(
             (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
             _handle.DangerousGetHandle(),
             "SQLite busy timeout");
@@ -553,7 +552,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void SetExtendedResultCodes(bool enabled)
     {
         ThrowIfInvalid();
-        SqliteErrorHelper.ThrowOnError(
+        SqliteInteropException.ThrowOnError(
             (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
             _handle.DangerousGetHandle(),
             "SQLite extended result codes");
@@ -640,7 +639,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 if (backupHandle == nint.Zero)
                 {
-                    throw SqliteErrorHelper.CreateException(
+                    throw SqliteInteropException.CreateException(
                         (SqliteResult)Sqlite3Native.sqlite3_errcode(destinationHandle),
                         destinationHandle,
                         "SQLite backup init");
@@ -749,7 +748,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 if (rc != SqliteResult.OK)
                 {
                     string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
-                    throw SqliteErrorHelper.CreateException(rc, dbHandle, operation);
+                    throw SqliteInteropException.CreateException(rc, dbHandle, operation);
                 }
             }
 

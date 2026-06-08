@@ -15,9 +15,6 @@ namespace CiccioSoft.Data.Sqlite;
 /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
 public class SqliteException : DbException
 {
-    // public int SqliteErrorCode { get; }
-    // public int SqliteExtendedErrorCode { get; }
-
     public SqliteException(string message, int baseCode = 0, int extendedCode = 0, Exception? innerException = null)
         : base(message, innerException)
     {

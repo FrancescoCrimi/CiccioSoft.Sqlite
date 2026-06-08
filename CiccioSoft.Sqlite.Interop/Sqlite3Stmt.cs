@@ -15,7 +15,6 @@ namespace CiccioSoft.Sqlite.Interop;
 
 public sealed class Sqlite3StmtHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
-    // public Sqlite3StmtHandle() : base(true) { }
     internal Sqlite3StmtHandle(nint handle) : base(true)
     {
         SetHandle(handle);
@@ -61,7 +60,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         if (res == SqliteResult.Row) return true;
         if (res == SqliteResult.Done) return false;
 
-        ThrowOnError(res, "SQLite step");
+        SqliteInteropException.ThrowOnError(res, GetDbHandle(), "SQLite step");
         return false;
     }
 
@@ -83,7 +82,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     {
         ThrowIfInvalid();
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_reset(_handle.DangerousGetHandle());
-        ThrowOnError(res, "SQLite reset");
+        SqliteInteropException.ThrowOnError(res, GetDbHandle(), "SQLite reset");
     }
 
     #endregion
@@ -110,7 +109,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     {
         ThrowIfInvalid();
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_clear_bindings(_handle.DangerousGetHandle());
-        ThrowOnError(res, "SQLite clear bindings");
+        SqliteInteropException.ThrowOnError(res, GetDbHandle(), "SQLite clear bindings");
     }
 
     #endregion
@@ -615,12 +614,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     // Piccolo helper per centralizzare il controllo degli errori
     private void CheckResult(SqliteResult res, int index)
     {
-        ThrowOnError(res, $"SQLite bind parameter {index}");
-    }
-
-    private void ThrowOnError(SqliteResult result, string operation)
-    {
-        SqliteErrorHelper.ThrowOnError(result, GetDbHandle(), operation);
+        SqliteInteropException.ThrowOnError(res, GetDbHandle(), $"SQLite bind parameter {index}");
     }
 
     private nint GetDbHandle()

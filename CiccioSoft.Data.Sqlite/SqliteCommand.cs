@@ -439,7 +439,8 @@ public class SqliteCommand : DbCommand
             }
             catch (SqliteInteropException ex)
             {
-                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+                // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode);
             }
             finally
             {
@@ -478,7 +479,8 @@ public class SqliteCommand : DbCommand
             }
             catch (SqliteInteropException ex)
             {
-                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+                // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode);
             }
             finally
             {
