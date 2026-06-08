@@ -48,14 +48,28 @@ while (stmt.Step() == SqliteResult.Row)
 }
 ```
 
-## Architecture
+## Design Principles & Modern C# Interop
 
-This layer provides the foundation for higher-level abstractions:
+`CiccioSoft.Sqlite.Interop` is not just a direct 1:1 P/Invoke translation; it acts as a modern, lightweight, and purely Object-Oriented bridge between the procedural C API of SQLite and idiomatic C# 10+.
 
-- **Minimal Managed State**: Only thin wrappers and handle lifetimes are managed
-- **Thread Safety**: Built on SQLite's configured threading mode
-- **Resource Management**: Ensures native handles are disposed cleanly
-- **Error Propagation**: Preserves native error metadata for upper layers
+### 1. Object-Oriented Architecture & Type Safety
+The raw procedural API (`sqlite3*`) is encapsulated into clean, distinct classes like `Sqlite3` (connection) and `Sqlite3Stmt` (prepared statement).  
+We eliminate C "magic numbers" by mapping all flags, result codes, and data types to strongly-typed .NET `enum`s (`SqliteResult`, `SqliteOpenFlags`, `SqliteType`). This ensures compile-time safety and full IntelliSense support.
+
+### 2. Robust Resource Management (No Memory Leaks)
+Memory leaks are a common pitfall in native wrappers. This library prevents them by design:
+- **`SafeHandle` Pattern**: Raw pointers (`IntPtr`/`nint`) are never exposed directly. They are wrapped in `SafeHandleZeroOrMinusOneIsInvalid` implementations (e.g., `Sqlite3Handle`). This guarantees that the .NET Garbage Collector will deterministically invoke `sqlite3_close_v2` or `sqlite3_finalize` during finalization, even if the developer forgets to call `Dispose()`.
+- **Pervasive `IDisposable`**: All core wrapper classes implement `IDisposable`, enabling native use of C# `using` blocks.
+
+### 3. Modern Performance: Zero-Allocation & Zero-Copy
+The interop layer heavily leverages modern .NET features to minimize Garbage Collector (GC) pressure:
+- **Hybrid String Allocation (`stackalloc` + `ArrayPool`)**: When marshaling C# strings (UTF-16) to SQLite (UTF-8), the wrapper uses `stackalloc` for small strings (< 1024 bytes) to achieve zero-cost allocation on the thread stack. For larger strings, it rents buffers from `ArrayPool<byte>.Shared`, effectively eliminating GC churn.
+- **Zero-Copy Reads (`ReadOnlySpan<byte>`)**: When reading BLOBs or texts, the wrapper exposes native memory directly via `ReadOnlySpan<byte>`. This avoids copying bytes into new managed arrays, vastly improving performance when reading large data.
+
+### 4. Idiomatic Control Flow & Error Handling
+We transform C-style conditional checks into standard .NET control flows:
+- **Boolean Iteration**: `Sqlite3Stmt.Step()` returns a clear `bool` (`true` for a new row, `false` for done), allowing clean `while (stmt.Step()) { ... }` loops.
+- **Rich Exceptions**: Any result other than `OK`, `ROW`, or `DONE` immediately throws a `SqliteInteropException`. Instead of forcing developers to check integer error codes manually, the exception automatically extracts and decodes the exact native error message (via `sqlite3_errmsg`), the base error code, and the extended error code, enabling "fail-fast" integration with standard `try-catch` blocks.
 
 ## Dependencies
 
