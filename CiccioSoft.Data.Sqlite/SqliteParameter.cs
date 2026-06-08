@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -25,6 +25,7 @@ public class SqliteParameter : DbParameter
 {
     private string _parameterName = string.Empty;
     private object? _value;
+    private bool _valueSet;
     private int? _size;
     private SqliteType? _sqliteType;
     private string _sourceColumn = string.Empty;
@@ -86,12 +87,18 @@ public class SqliteParameter : DbParameter
         : this(name, type, size)
         => SourceColumn = sourceColumn;
 
+    private DbType? _dbType;
+
     /// <summary>
     ///     Gets or sets the type of the parameter.
     /// </summary>
     /// <value>The type of the parameter.</value>
     /// <remarks>Due to SQLite's dynamic type system, parameter values are not converted.</remarks>
-    public override DbType DbType { get; set; } = DbType.Object;
+    public override DbType DbType
+    {
+        get => _dbType ?? DbType.String;
+        set => _dbType = value;
+    }
 
     /// <summary>
     ///     Gets or sets the SQLite type of the parameter.
@@ -111,14 +118,14 @@ public class SqliteParameter : DbParameter
     public override ParameterDirection Direction
     {
         get => _direction;
-        set => _direction = value switch
+        set
         {
-            ParameterDirection.Input or
-            ParameterDirection.Output or
-            ParameterDirection.InputOutput or
-            ParameterDirection.ReturnValue => value,
-            _ => throw new ArgumentException(Resources.InvalidParameterDirection(value))
-        };
+            if (value != ParameterDirection.Input)
+            {
+                throw new ArgumentException(Resources.InvalidParameterDirection(value));
+            }
+            _direction = value;
+        }
     }
 
     /// <summary>
@@ -203,8 +210,14 @@ public class SqliteParameter : DbParameter
     public override object? Value
     {
         get => _value;
-        set => _value = value;
+        set
+        {
+            _value = value;
+            _valueSet = true;
+        }
     }
+
+    internal bool IsValueSet => _valueSet;
 
     /// <summary>
     ///     Resets the <see cref="DbType" /> property to its original value.
@@ -218,7 +231,7 @@ public class SqliteParameter : DbParameter
     /// </summary>
     public virtual void ResetSqliteType()
     {
-        DbType = DbType.Object;
+        _dbType = null;
         _sqliteType = null;
     }
 

@@ -629,5 +629,17 @@ public class SqliteConnection : DbConnection
     ///     Gets or sets the transaction currently being used by the connection, or null if none.
     /// </summary>
     /// <value>The transaction currently being used by the connection.</value>
-    protected internal virtual SqliteTransaction? Transaction { get; set; }
+    protected internal virtual SqliteTransaction? Transaction
+    {
+        get
+        {
+            if (_activeTransaction != null && GetSession().Native.IsAutoCommit())
+            {
+                ClearActiveTransaction();
+            }
+
+            return _activeTransaction;
+        }
+        set => _activeTransaction = value;
+    }
 }

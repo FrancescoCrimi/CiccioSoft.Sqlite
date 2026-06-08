@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -40,7 +40,19 @@ public class SqliteTransaction : DbTransaction
 
     public override IsolationLevel IsolationLevel { get; }
 
-    protected override DbConnection? DbConnection => _completed ? null : _connection;
+    protected override DbConnection? DbConnection
+    {
+        get
+        {
+            if (!_completed && _connection.State == ConnectionState.Open && _connection.GetSession().Native.IsAutoCommit())
+            {
+                _completed = true;
+                _connection.ClearActiveTransaction();
+            }
+
+            return _completed ? null : _connection;
+        }
+    }
 
     public override void Commit()
     {
@@ -109,6 +121,13 @@ public class SqliteTransaction : DbTransaction
             throw new InvalidOperationException(Resources.TransactionCompleted);
         }
 
+        if (_connection.GetSession().Native.IsAutoCommit())
+        {
+            _completed = true;
+            _connection.ClearActiveTransaction();
+            throw new InvalidOperationException(Resources.TransactionCompleted);
+        }
+
         _connection.EnsureOpen();
     }
 
@@ -139,7 +158,7 @@ public class SqliteTransaction : DbTransaction
             IsolationLevel.Snapshot => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
             IsolationLevel.ReadCommitted => IsolationLevel.Serializable,
             IsolationLevel.RepeatableRead => IsolationLevel.Serializable,
-            IsolationLevel.ReadUncommitted => IsolationLevel.ReadUncommitted,
+            IsolationLevel.ReadUncommitted => IsolationLevel.Serializable,
             _ => isolationLevel,
         };
     }

@@ -582,6 +582,12 @@ public class SqliteCommand : DbCommand
         {
             SqliteParameter parameter = (SqliteParameter)_parameters[i]!;
             ValidateParameterDirection(parameter);
+
+            if (!parameter.IsValueSet)
+            {
+                throw new InvalidOperationException(Resources.RequiresSet("Value"));
+            }
+
             int parameterIndex = ResolveParameterIndex(stmt, parameter, i);
             if (parameterIndex == 0)
             {
@@ -610,12 +616,18 @@ public class SqliteCommand : DbCommand
     private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)
     {
         string parameterName = parameter.ParameterName;
-        if (string.IsNullOrWhiteSpace(parameterName))
+        if (string.IsNullOrEmpty(parameterName))
         {
             int ordinalIndex = ordinal + 1;
-            return ordinalIndex <= stmt.ParameterCount()
-                ? ordinalIndex
-                : 0;
+            if (ordinalIndex <= stmt.ParameterCount())
+            {
+                string? name = stmt.GetParameterName(ordinalIndex);
+                if (string.IsNullOrEmpty(name))
+                {
+                    return ordinalIndex;
+                }
+            }
+            throw new InvalidOperationException(Resources.RequiresSet("ParameterName"));
         }
 
         int index = stmt.GetParameterIndex(parameterName);
@@ -628,22 +640,26 @@ public class SqliteCommand : DbCommand
             ? parameterName.Substring(1)
             : parameterName;
 
-        index = stmt.GetParameterIndex($"@{coreName}");
-        if (index > 0)
+        int matchCount = 0;
+        int matchedIndex = 0;
+
+        int idx1 = stmt.GetParameterIndex($"@{coreName}");
+        if (idx1 > 0) { matchCount++; matchedIndex = idx1; }
+
+        int idx2 = stmt.GetParameterIndex($":{coreName}");
+        if (idx2 > 0) { matchCount++; matchedIndex = idx2; }
+
+        int idx3 = stmt.GetParameterIndex($"${coreName}");
+        if (idx3 > 0) { matchCount++; matchedIndex = idx3; }
+
+        if (matchCount > 1)
         {
-            return index;
+            throw new InvalidOperationException(Resources.AmbiguousParameterName(coreName));
         }
 
-        index = stmt.GetParameterIndex($":{coreName}");
-        if (index > 0)
+        if (matchCount == 1)
         {
-            return index;
-        }
-
-        index = stmt.GetParameterIndex($"${coreName}");
-        if (index > 0)
-        {
-            return index;
+            return matchedIndex;
         }
 
         return 0;
@@ -709,6 +725,7 @@ public class SqliteCommand : DbCommand
             case DateTimeOffset dateTimeOffset: BindTextParameter(stmt, index, parameter, dateTimeOffset.ToString(@"yyyy\-MM\-dd HH\:mm\:ss.FFFFFFFzzz", CultureInfo.InvariantCulture)); break;
             case DateOnly dateOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, ToJulianDate(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, 0)); break;
             case DateOnly dateOnly: BindTextParameter(stmt, index, parameter, dateOnly.ToString(@"yyyy\-MM\-dd", CultureInfo.InvariantCulture)); break;
+            case string s: BindTextParameter(stmt, index, parameter, s); break;
             case TimeOnly timeOnly when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, GetTotalDays(timeOnly.Hour, timeOnly.Minute, timeOnly.Second, timeOnly.Millisecond)); break;
             case TimeOnly timeOnly:
                 BindTextParameter(
@@ -723,7 +740,7 @@ public class SqliteCommand : DbCommand
             case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", CultureInfo.InvariantCulture)); break;
             case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
             case byte[] bytes: BindBlobParameter(stmt, index, parameter, bytes); break;
-            default: BindTextParameter(stmt, index, parameter, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty); break;
+            default: throw new InvalidOperationException(Resources.UnknownDataType(value.GetType()));
         }
     }
 
@@ -811,6 +828,11 @@ public class SqliteCommand : DbCommand
     {
         if (Transaction is null)
         {
+            if (connection.Transaction is not null)
+            {
+                throw new InvalidOperationException(Resources.TransactionRequired);
+            }
+
             return;
         }
 
