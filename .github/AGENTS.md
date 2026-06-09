@@ -562,6 +562,7 @@ CiccioSoft.Data.Sqlite/              Global project folder
 │   ├── sqlite-testing.agent.md    ← Testing specialist
 │   ├── sqlite-interop.agent.md    ← P/Invoke specialist
 │   ├── sqlite-async.agent.md      ← Async/concurrency specialist
+│   ├── sqlite-provider.agent.md   ← General provider support specialist
 ├── prompts/
 │   └── sqlite-feature-dev.prompt.md ← Feature planning template
 └── instructions/
