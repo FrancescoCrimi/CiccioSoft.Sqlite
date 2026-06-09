@@ -18,17 +18,19 @@ public class SqliteTransaction : DbTransaction
 {
     private readonly SqliteConnection _connection;
     private readonly IDisposable _writerGate;
+    private readonly bool _useReadUncommitted;
     private bool _completed;
 
     internal SqliteTransaction(SqliteConnection connection, IsolationLevel isolationLevel)
     {
         _connection = connection;
         _writerGate = connection.AcquireWriterGate();
+        _useReadUncommitted = isolationLevel == IsolationLevel.ReadUncommitted;
         IsolationLevel = NormalizeIsolationLevel(isolationLevel);
 
         try
         {
-            Execute(GetBeginStatement(IsolationLevel));
+            Execute(GetBeginStatement(_useReadUncommitted));
             _connection.SetActiveTransaction(this);
         }
         catch
@@ -163,10 +165,8 @@ public class SqliteTransaction : DbTransaction
         };
     }
 
-    private static string GetBeginStatement(IsolationLevel isolationLevel)
-    {
-        return isolationLevel == IsolationLevel.ReadUncommitted
+    private static string GetBeginStatement(bool useReadUncommitted)
+        => useReadUncommitted
             ? "PRAGMA read_uncommitted=1; BEGIN;"
             : "PRAGMA read_uncommitted=0; BEGIN IMMEDIATE;";
-    }
 }
