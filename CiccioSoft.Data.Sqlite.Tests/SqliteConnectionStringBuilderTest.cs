@@ -80,7 +80,6 @@ public class SqliteConnectionStringBuilderTest
 
         // Assert.Empty(builder.ConnectionString);
         Assert.Equal("Default Timeout=30;Pooling=True;Max Pool Size=100", builder.ToString());
-
     }
 
     [Fact]

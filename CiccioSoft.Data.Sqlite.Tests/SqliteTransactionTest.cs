@@ -87,7 +87,8 @@ public class SqliteTransactionTest
 
             if (connection.SimulateFailureOnRollback && CommandText.Contains("ROLLBACK"))
             {
-                throw new SqliteException("Simulated failure", 1);
+                // throw new SqliteException("Simulated failure", 1);
+                throw new SqliteException("Simulated failure");
             }
 
             return result;
@@ -191,8 +192,8 @@ public class SqliteTransactionTest
 
             // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
             // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
-            Assert.Equal((int)SqliteResult.Locked, ex.SqliteErrorCode);
-            Assert.Equal((int)SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
+            Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
+            Assert.Equal(SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
         }
     }
 
@@ -224,8 +225,8 @@ public class SqliteTransactionTest
 
             // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
             // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
-            Assert.Equal((int)SqliteResult.Locked, ex.SqliteErrorCode);
-            Assert.Equal((int)SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
+            Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
+            Assert.Equal(SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
         }
     }
 

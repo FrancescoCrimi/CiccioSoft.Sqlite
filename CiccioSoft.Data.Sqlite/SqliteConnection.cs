@@ -55,6 +55,14 @@ public class SqliteConnection : DbConnection
         }
     }
 
+    /// <summary>
+    ///     Gets a handle to underlying database connection.
+    /// </summary>
+    /// <value>A handle to underlying database connection.</value>
+    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/interop">Interoperability</seealso>
+    public virtual Sqlite3? Handle
+        => _session?.Native;
+
     [DefaultValue("")]
     [SettingsBindableAttribute(true)]
     [RefreshProperties(RefreshProperties.All)]
@@ -191,7 +199,7 @@ public class SqliteConnection : DbConnection
             }
             catch (SqliteInteropException ex)
             {
-                throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+                throw new SqliteException(ex.Message, ex);
             }
 
             OnStateChange(new StateChangeEventArgs(ConnectionState.Closed, ConnectionState.Open));
@@ -419,7 +427,7 @@ public class SqliteConnection : DbConnection
         }
         catch (SqliteInteropException ex)
         {
-            throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+            throw new SqliteException(ex.Message, ex);
         }
         finally
         {

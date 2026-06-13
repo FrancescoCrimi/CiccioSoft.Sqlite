@@ -6,6 +6,7 @@
 
 using System;
 using System.Data.Common;
+using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -15,11 +16,18 @@ namespace CiccioSoft.Data.Sqlite;
 /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
 public class SqliteException : DbException
 {
-    public SqliteException(string message, int baseCode = 0, int extendedCode = 0, Exception? innerException = null)
-        : base(message, innerException)
+    // public SqliteException(string message, int baseCode = 0, int extendedCode = 0, Exception? innerException = null)
+    //     : base(message, innerException)
+    // {
+    //     SqliteErrorCode = baseCode;
+    //     SqliteExtendedErrorCode = extendedCode;
+    // }
+
+    public SqliteException(string message, SqliteInteropException? innerException = null)
+    : base(message, innerException)
     {
-        SqliteErrorCode = baseCode;
-        SqliteExtendedErrorCode = extendedCode;
+        SqliteErrorCode = innerException.BaseErrorCode;
+        SqliteExtendedErrorCode = innerException.ExtendedErrorCode;
     }
 
     /// <summary>
@@ -27,12 +35,12 @@ public class SqliteException : DbException
     /// </summary>
     /// <value>The SQLite error code.</value>
     /// <seealso href="https://www.sqlite.org/rescode.html">SQLite Result Codes</seealso>
-    public virtual int SqliteErrorCode { get; }
+    public virtual SqliteResult SqliteErrorCode { get; }
 
     /// <summary>
     ///     Gets the extended SQLite error code.
     /// </summary>
     /// <value>The SQLite error code.</value>
     /// <seealso href="https://www.sqlite.org/rescode.html#extrc">SQLite Result Codes</seealso>
-    public virtual int SqliteExtendedErrorCode { get; }
+    public virtual SqliteExtendedErrorCode SqliteExtendedErrorCode { get; }
 }

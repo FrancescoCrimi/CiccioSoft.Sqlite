@@ -427,7 +427,7 @@ public class SqliteCommand : DbCommand
             }
             catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
-                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), (int)SqliteResult.Interrupt, (int)ex.ExtendedErrorCode, ex);
+                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
             catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
@@ -440,7 +440,7 @@ public class SqliteCommand : DbCommand
             catch (SqliteInteropException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
-                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
             }
             finally
             {
@@ -467,7 +467,7 @@ public class SqliteCommand : DbCommand
             }
             catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
-                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), (int)SqliteResult.Interrupt, (int)ex.ExtendedErrorCode, ex);
+                throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
             catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
@@ -480,7 +480,7 @@ public class SqliteCommand : DbCommand
             catch (SqliteInteropException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
-                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
             }
             finally
             {

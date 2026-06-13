@@ -52,7 +52,7 @@ CREATE TABLE "Products" (
         }
         catch (SqliteException ex)
         {
-            Assert.Equal(18, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.TooBig, ex.SqliteErrorCode);
         }
         finally
         {
@@ -279,9 +279,7 @@ CREATE TABLE "Products" (
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = "INSERT INTO Data (Value) VALUES (@value);";
-                // var valueParam = command.Parameters.AddWithValue("@value", -1);
-                var valueParam = new SqliteParameter("@value", -1);
-                command.Parameters.Add(valueParam);
+                var valueParam = command.Parameters.AddWithValue("@value", -1);
 
                 Assert.Equal(1, command.ExecuteNonQuery());
 
@@ -356,7 +354,7 @@ CREATE TABLE "Products" (
 
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteReader());
 
-            Assert.Equal((int)SqliteResult.Error, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode);
         }
     }
 
@@ -521,8 +519,7 @@ CREATE TABLE "Products" (
         {
             var command = connection.CreateCommand();
             command.CommandText = "SELECT @Parameter;";
-            // command.Parameters.AddWithValue("@Parameter", 1);
-            command.Parameters.Add(new SqliteParameter("@Parameter", 1));
+            command.Parameters.AddWithValue("@Parameter", 1);
             connection.Open();
 
             Assert.Equal(1L, command.ExecuteScalar());
@@ -699,8 +696,7 @@ CREATE TABLE "Products" (
 
             if (new Version(connection.ServerVersion) < new Version(3, 28, 0))
             {
-                // command.Parameters.AddWithValue("@a", 1);
-                command.Parameters.Add(new SqliteParameter("@a", 1));
+                command.Parameters.AddWithValue("@a", 1);
             }
 
             using (var reader = command.ExecuteReader())
@@ -966,7 +962,7 @@ CREATE TABLE "Products" (
         {
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteScalar());
 
-            Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
         });
 
     [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
@@ -975,7 +971,7 @@ CREATE TABLE "Products" (
         {
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteNonQuery());
 
-            Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
         });
 
     [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
@@ -992,7 +988,7 @@ CREATE TABLE "Products" (
             {
                 var ex = Assert.Throws<SqliteException>(() => reader.Dispose());
 
-                    Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
+                    Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
             }
         });
 
@@ -1008,7 +1004,7 @@ CREATE TABLE "Products" (
 
             var ex = Assert.Throws<SqliteException>(() => reader.Read());
 
-            Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
         });
 
     private static async Task Execute_throws_when_busy_with_returning(Action<SqliteCommand> action)
@@ -1148,7 +1144,7 @@ CREATE TABLE "Products" (
             command.CommandText = "SELECT 1 FROM dual";
 
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteScalar());
-            Assert.Equal((int)SqliteResult.Error, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode);
 
             connection.ExecuteNonQuery("CREATE TABLE dual (dummy); INSERT INTO dual (dummy) VALUES ('X');");
 

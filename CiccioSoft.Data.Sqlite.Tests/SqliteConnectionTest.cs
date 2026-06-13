@@ -184,7 +184,7 @@ public class SqliteConnectionTest
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
         // Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
-        Assert.Equal((int)SqliteResult.Error, ex.SqliteErrorCode); // TODO: fix ex.SqliteErrorCode = SqliteResult
+        Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode); // TODO: fix ex.SqliteErrorCode = SqliteResult
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class SqliteConnectionTest
             var ex = Assert.Throws<SqliteException>(() => connection.ExecuteNonQuery("INSERT INTO Idomic VALUES ('arimfexendrapuse');"));
 
             // Assert.Equal(SQLITE_READONLY, ex.SqliteErrorCode);
-            Assert.Equal((int)SqliteResult.ReadOnly, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.ReadOnly, ex.SqliteErrorCode);
         }
     }
 
@@ -244,7 +244,7 @@ public class SqliteConnectionTest
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
         // Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
-        Assert.Equal((int)SqliteResult.CantOpen, ex.SqliteErrorCode);
+        Assert.Equal(SqliteResult.CantOpen, ex.SqliteErrorCode);
     }
 
     [Fact]
@@ -446,7 +446,7 @@ public class SqliteConnectionTest
             source.ExecuteNonQuery("UPDATE Data SET Value = 1;");
 
             var ex = Assert.Throws<SqliteException>(() => source.BackupDatabase(destination));
-            Assert.Equal((int)SqliteResult.Busy, ex.SqliteErrorCode);
+            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
         }
     }
 
@@ -457,7 +457,7 @@ public class SqliteConnectionTest
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
         // Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
-        Assert.Equal((int)SqliteResult.CantOpen, ex.SqliteErrorCode);
+        Assert.Equal(SqliteResult.CantOpen, ex.SqliteErrorCode);
     }
 
     [Fact]

@@ -143,7 +143,7 @@ public class SqliteTransaction : DbTransaction
         }
         catch (SqliteInteropException ex)
         {
-            throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
+            throw new SqliteException(ex.Message, ex);
         }
         finally
         {
