@@ -1,12 +1,12 @@
 {
-	"folders":
-	[
-		{
-			"path": ".",
-		}
-	],
-	"debugger_configurations":
-	[
+    "folders":
+    [
+        {
+            "path": ".",
+        }
+    ],
+    "debugger_configurations":
+    [
         {
             "name": "CiccioSoft.Sqlite.Tests",
             "type": "netcoredbg",
@@ -47,5 +47,5 @@
             "cwd": "${folder}",
             "stopAtEntry": false
         },
-	],
+    ],
 }
