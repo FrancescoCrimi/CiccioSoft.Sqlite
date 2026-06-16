@@ -562,8 +562,3 @@ La tua intuizione di separazione delle responsabilità è **architetturalmente s
 **Proposta**: Sposta tutta la logica in `SqliteConnection` (focus on single responsibility)
 
 Questo è un **refactoring importante** che dovrebbe essere fatto per raggiungere **true enterprise quality**.
-
-
-
-"""
-
