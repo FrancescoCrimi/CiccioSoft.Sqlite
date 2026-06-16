@@ -252,7 +252,7 @@ public sealed class SqliteDataReader : DbDataReader
     /// </summary>
     /// <param name="ordinal">The zero-based column ordinal.</param>
     /// <returns>The value of the column.</returns>
-    public virtual DateTimeOffset GetDateTimeOffset(int ordinal)
+    public DateTimeOffset GetDateTimeOffset(int ordinal)
     {
         EnsureHasRow();
         ValidateOrdinal(ordinal);
@@ -279,7 +279,7 @@ public sealed class SqliteDataReader : DbDataReader
     /// </summary>
     /// <param name="ordinal">The zero-based column ordinal.</param>
     /// <returns>The value of the column.</returns>
-    public virtual TimeSpan GetTimeSpan(int ordinal)
+    public TimeSpan GetTimeSpan(int ordinal)
     {
         EnsureHasRow();
         ValidateOrdinal(ordinal);

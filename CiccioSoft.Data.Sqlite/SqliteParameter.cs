@@ -105,7 +105,7 @@ public sealed class SqliteParameter : DbParameter
     /// </summary>
     /// <value>The SQLite type of the parameter.</value>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
-    public virtual SqliteType SqliteType
+    public SqliteType SqliteType
     {
         get => _sqliteType ?? GetSqliteType(_value);
         set => _sqliteType = value;
@@ -229,7 +229,7 @@ public sealed class SqliteParameter : DbParameter
     /// <summary>
     ///     Resets the <see cref="SqliteType" /> property to its original value.
     /// </summary>
-    public virtual void ResetSqliteType()
+    public void ResetSqliteType()
     {
         _dbType = null;
         _sqliteType = null;

@@ -19,7 +19,7 @@ using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-public sealed class SqliteCommand : DbCommand
+public  class SqliteCommand : DbCommand
 {
     private SqliteParameterCollection _parameters = new();
 
@@ -143,7 +143,7 @@ public sealed class SqliteCommand : DbCommand
     ///     Gets the collection of parameters used by the command.
     /// </summary>
     /// <value>The collection of parameters used by the command.</value>
-    public new virtual SqliteParameterCollection Parameters
+    public new SqliteParameterCollection Parameters
         => _parameters ??= [];
 
     /// <summary>
@@ -204,7 +204,7 @@ public sealed class SqliteCommand : DbCommand
     ///     Creates a new parameter.
     /// </summary>
     /// <returns>The new parameter.</returns>
-    public new virtual SqliteParameter CreateParameter()
+    public new SqliteParameter CreateParameter()
         => new();
 
     /// <summary>
@@ -247,7 +247,7 @@ public sealed class SqliteCommand : DbCommand
     /// </summary>
     /// <returns>The data reader.</returns>
     /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
-    public new virtual SqliteDataReader ExecuteReader()
+    public new SqliteDataReader ExecuteReader()
         => ExecuteReader(CommandBehavior.Default);
 
     /// <summary>
@@ -256,7 +256,7 @@ public sealed class SqliteCommand : DbCommand
     /// <param name="behavior">A description of the results of the query and its effect on the database.</param>
     /// <returns>The data reader.</returns>
     /// <exception cref="SqliteException">A SQLite error occurs during execution.</exception>
-    public new virtual SqliteDataReader ExecuteReader(CommandBehavior behavior)
+    public new SqliteDataReader ExecuteReader(CommandBehavior behavior)
     {
         SqliteConnection conn = RequireOpenConnection(nameof(ExecuteReader));
         ValidateTransaction(conn);
@@ -286,7 +286,7 @@ public sealed class SqliteCommand : DbCommand
     ///     Executes the <see cref="CommandText" /> asynchronously against the database and returns a data reader.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public new virtual Task<SqliteDataReader> ExecuteReaderAsync()
+    public new Task<SqliteDataReader> ExecuteReaderAsync()
         => ExecuteReaderAsync(CommandBehavior.Default, CancellationToken.None);
 
     /// <summary>
@@ -295,7 +295,7 @@ public sealed class SqliteCommand : DbCommand
     /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
-    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
+    public new Task<SqliteDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
         => ExecuteReaderAsync(CommandBehavior.Default, cancellationToken);
 
     /// <summary>
@@ -303,7 +303,7 @@ public sealed class SqliteCommand : DbCommand
     /// </summary>
     /// <param name="behavior">A description of query's results and its effect on the database.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+    public new Task<SqliteDataReader> ExecuteReaderAsync(CommandBehavior behavior)
         => ExecuteReaderAsync(behavior, CancellationToken.None);
 
     /// <summary>
@@ -313,7 +313,7 @@ public sealed class SqliteCommand : DbCommand
     /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="OperationCanceledException">If the <see cref="CancellationToken" /> is canceled.</exception>
-    public new virtual Task<SqliteDataReader> ExecuteReaderAsync(
+    public new Task<SqliteDataReader> ExecuteReaderAsync(
         CommandBehavior behavior,
         CancellationToken cancellationToken)
     {

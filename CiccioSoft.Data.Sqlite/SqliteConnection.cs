@@ -23,7 +23,7 @@ namespace CiccioSoft.Data.Sqlite;
 /// Intelligent defaults: WAL enabled, Foreign Keys ON, Shared Cache for in-memory.
 /// True async support with native interrupt.
 /// </summary>
-public sealed class SqliteConnection : DbConnection
+public  class SqliteConnection : DbConnection
 {
     private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
@@ -60,7 +60,7 @@ public sealed class SqliteConnection : DbConnection
     /// </summary>
     /// <value>A handle to underlying database connection.</value>
     /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/interop">Interoperability</seealso>
-    public virtual Sqlite3? Handle
+    public Sqlite3? Handle
         => _session?.Native;
 
     [DefaultValue("")]
@@ -92,7 +92,7 @@ public sealed class SqliteConnection : DbConnection
     public override string DataSource => _dataSource;
 
     //TODO: fix DefaultTimeout
-    public virtual int DefaultTimeout
+    public int DefaultTimeout
     {
         get => _defaultTimeout ?? _settings.DefaultTimeout;
         set => _defaultTimeout = value;
@@ -216,13 +216,13 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     /// Executes <c>PRAGMA wal_checkpoint(PASSIVE)</c> on the current connection.
     /// </summary>
-    public virtual void Checkpoint()
+    public void Checkpoint()
         => Checkpoint(SqliteWalCheckpointMode.Passive);
 
     /// <summary>
     /// Executes a WAL checkpoint using the requested mode.
     /// </summary>
-    public virtual void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    public void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
     {
         using IDisposable writerGate = AcquireWriterGate(cancellationToken);
         ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
@@ -231,13 +231,13 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     /// Asynchronously executes <c>PRAGMA wal_checkpoint(PASSIVE)</c>.
     /// </summary>
-    public virtual Task CheckpointAsync(CancellationToken cancellationToken = default)
+    public Task CheckpointAsync(CancellationToken cancellationToken = default)
         => CheckpointAsync(SqliteWalCheckpointMode.Passive, cancellationToken);
 
     /// <summary>
     /// Asynchronously executes a WAL checkpoint using the requested mode.
     /// </summary>
-    public virtual Task CheckpointAsync(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    public Task CheckpointAsync(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Checkpoint(mode, cancellationToken);
@@ -247,7 +247,7 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     /// Executes <c>PRAGMA optimize</c> for lightweight planner/statistics maintenance.
     /// </summary>
-    public virtual void Optimize(CancellationToken cancellationToken = default)
+    public void Optimize(CancellationToken cancellationToken = default)
     {
         using IDisposable writerGate = AcquireWriterGate(cancellationToken);
         ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
@@ -256,7 +256,7 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     /// Asynchronously executes <c>PRAGMA optimize</c>.
     /// </summary>
-    public virtual Task OptimizeAsync(CancellationToken cancellationToken = default)
+    public Task OptimizeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Optimize(cancellationToken);
@@ -303,10 +303,10 @@ public sealed class SqliteConnection : DbConnection
         return GetSchema(normalizedCollectionName);
     }
 
-    public new virtual SqliteTransaction BeginTransaction()
+    public new SqliteTransaction BeginTransaction()
         => BeginTransaction(IsolationLevel.Unspecified);
 
-    public new virtual SqliteTransaction BeginTransaction(IsolationLevel isolationLevel)
+    public new SqliteTransaction BeginTransaction(IsolationLevel isolationLevel)
     {
         lock (_syncRoot)
         {
@@ -333,7 +333,7 @@ public sealed class SqliteConnection : DbConnection
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
         => BeginTransaction(isolationLevel);
 
-    public new virtual SqliteCommand CreateCommand()
+    public virtual new SqliteCommand CreateCommand()
     {
         return new SqliteCommand
         {
@@ -609,7 +609,7 @@ public sealed class SqliteConnection : DbConnection
             // if (string.IsNullOrEmpty(_settings.Cache) ||
             //     string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
             // {
-                cacheSuffix = "&cache=shared";
+            cacheSuffix = "&cache=shared";
             // }
             // else if (string.Equals(_settings.Cache, "Private", StringComparison.OrdinalIgnoreCase))
             // {
@@ -623,21 +623,21 @@ public sealed class SqliteConnection : DbConnection
             : Path.Combine(AppContext.BaseDirectory, dataSource);
     }
 
-    public virtual void BackupDatabase(SqliteConnection destination)
+    public void BackupDatabase(SqliteConnection destination)
     {
         throw new NotImplementedException("Not Implemented");
     }
 
-     public virtual void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
-     {
+    public void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
+    {
         throw new NotImplementedException("Not Implemented");
-     }
+    }
 
     /// <summary>
     ///     Gets or sets the transaction currently being used by the connection, or null if none.
     /// </summary>
     /// <value>The transaction currently being used by the connection.</value>
-    protected internal virtual SqliteTransaction? Transaction
+    internal SqliteTransaction? Transaction
     {
         get
         {
