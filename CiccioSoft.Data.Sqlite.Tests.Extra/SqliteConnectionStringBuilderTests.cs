@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Francesco Crimi
+//
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
@@ -12,20 +13,20 @@ namespace CiccioSoft.Data.Sqlite;
 public class SqliteConnectionStringBuilderTests
 {
     [Fact]
-    public void DataSource_defaults_to_empty()
-        => Assert.Empty(new SqliteConnectionStringBuilder().DataSource);
+    public void DataSource_defaults_to_null()
+        => Assert.Null(new SqliteConnectionStringBuilder().DataSource);
 
     [Fact]
-    public void Pooling_defaults_to_true()
-        => Assert.True(new SqliteConnectionStringBuilder().Pooling);
+    public void Pooling_defaults_to_null()
+        => Assert.Null(new SqliteConnectionStringBuilder().Pooling);
 
     [Fact]
-    public void MaxPoolSize_defaults_to_100()
-        => Assert.Equal(100, new SqliteConnectionStringBuilder().MaxPoolSize);
+    public void MaxPoolSize_defaults_to_null()
+        => Assert.Null(new SqliteConnectionStringBuilder().MaxPoolSize);
 
     [Fact]
-    public void DefaultTimeout_defaults_to_30()
-        => Assert.Equal(30, new SqliteConnectionStringBuilder().DefaultTimeout);
+    public void DefaultTimeout_defaults_to_null()
+        => Assert.Null(new SqliteConnectionStringBuilder().DefaultTimeout);
 
     [Fact(Skip = "outdate")]
     public void JournalMode_defaults_to_empty()

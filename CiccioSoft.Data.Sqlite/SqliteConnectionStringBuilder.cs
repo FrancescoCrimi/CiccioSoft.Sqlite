@@ -16,30 +16,21 @@ using CiccioSoft.Data.Sqlite.Properties;
 namespace CiccioSoft.Data.Sqlite;
 
 /// <summary>
-/// Builds SQLite connection strings with intelligent defaults:
-/// - WAL enabled by default (better concurrency)
-/// - Foreign Keys enabled by default (referential integrity)
-/// - For in-memory databases: Shared cache by default, WAL disabled
+/// Builds SQLite connection strings.
+/// This acts as a pure configuration parser. Defaults are handled by SqliteConnection.
 /// </summary>
 public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 {
-    /// <summary>
-    /// Initializes a new instance with intelligent defaults:
-    /// - Journal Mode: WAL (better concurrency)
-    /// - Foreign Keys: ON (referential integrity)
-    /// </summary>
     public SqliteConnectionStringBuilder()
     {
-        DataSource = string.Empty;
-        Pooling = true;
-        MaxPoolSize = 100;
-        DefaultTimeout = 30;
-        // No default for JournalMode and ForeignKeys here; defaults will be applied by SqliteConnection
     }
 
     public SqliteConnectionStringBuilder(string connectionString) : this()
     {
-        ConnectionString = connectionString;
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            ConnectionString = connectionString;
+        }
     }
 
 #pragma warning disable CS8764
@@ -53,9 +44,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
             {
                 base.Remove(option.Key);
                 foreach (var synonym in option.Keys)
-                {
                     base.Remove(synonym);
-                }
             }
             else
             {
@@ -66,9 +55,7 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
 #pragma warning restore CS8764
 
     public override ICollection Keys
-        // => SqliteConnectionStringOption.OptionNames;
         => SqliteConnectionStringOption.OptionNames.AsReadOnly();
-        // => new ReadOnlyCollection<string>(SqliteConnectionStringOption.OptionNames);
 
     public override ICollection Values
     {
@@ -76,43 +63,37 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         {
             var values = new List<object?>();
             foreach (string key in Keys)
-            {
                 values.Add(this[key]);
-            }
-            // return values;
             return values.AsReadOnly();
         }
     }
 
-    public override bool ContainsKey(string keyword) =>
-        SqliteConnectionStringOption.TryGetOptionForKey(keyword) is { } option && ContainsExplicitKey(option);
+    public override bool ContainsKey(string keyword)
+    {
+        if (SqliteConnectionStringOption.TryGetOptionForKey(keyword) is not { } option)
+            return false;
+        foreach (var key in option.Keys)
+            if (base.ContainsKey(key)) return true;
+        return false;
+    }
 
     public override bool Remove(string keyword)
     {
-        if (SqliteConnectionStringOption.TryGetOptionForKey(keyword) is { } option)
-        {
-            bool removed = false;
-            foreach (var key in option.Keys)
-            {
-                if (base.Remove(key))
-                {
-                    removed = true;
-                }
-            }
-            return removed;
-        }
-        return false;
+        if (SqliteConnectionStringOption.TryGetOptionForKey(keyword) is not { } option)
+            return false;
+        bool removed = false;
+        foreach (var key in option.Keys)
+            if (base.Remove(key)) removed = true;
+        return removed;
     }
 
     public override bool ShouldSerialize(string keyword)
         => SqliteConnectionStringOption.TryGetOptionForKey(keyword) is { } option
             && base.ShouldSerialize(option.Key)
-            && option.HasNonEmptyValue(this);
+            && option.GetObject(this) is { } value
+            && value is not string { Length: 0 };
 
-    public override void Clear()
-    {
-        base.Clear();
-    }
+    public override void Clear() => base.Clear();
 
 #pragma warning disable CS8765
     public override bool TryGetValue(string keyword, out object? value)
@@ -120,43 +101,33 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         if (SqliteConnectionStringOption.TryGetOptionForKey(keyword) is { } option)
         {
             foreach (var alias in option.Keys)
-            {
-                if (base.TryGetValue(alias, out value))
-                {
-                    return true;
-                }
-            }
-            // If not present in dictionary, return false and null
+                if (base.TryGetValue(alias, out value)) return true;
         }
         value = null;
         return false;
     }
 #pragma warning restore CS8765
 
-    public string DataSource
+    public string? DataSource
     {
         get => SqliteConnectionStringOption.DataSource.GetValue(this);
         set => SqliteConnectionStringOption.DataSource.SetValue(this, value);
     }
 
-    public virtual SqliteOpenMode Mode
+    public virtual SqliteOpenMode? Mode
     {
         get => SqliteConnectionStringOption.Mode.GetValue(this);
         set => SqliteConnectionStringOption.Mode.SetValue(this, value);
     }
 
-    public virtual SqliteCacheMode Cache
+    public virtual SqliteCacheMode? Cache
     {
         get => SqliteConnectionStringOption.Cache.GetValue(this);
         set => SqliteConnectionStringOption.Cache.SetValue(this, value);
     }
 
-    /// <summary>
-    /// Fake Property only for compatibility.
-    /// At the moment encryption is not supported
-    /// </summary>
     [AllowNull]
-    public string Password
+    public string? Password
     {
         get => SqliteConnectionStringOption.Password.GetValue(this);
         set => SqliteConnectionStringOption.Password.SetValue(this, value);
@@ -174,104 +145,66 @@ public class SqliteConnectionStringBuilder : DbConnectionStringBuilder
         set => SqliteConnectionStringOption.RecursiveTriggers.SetValue(this, value);
     }
 
-    /// <summary>
-    /// Gets or sets the default timeout in seconds (default: 30 seconds).
-    /// </summary>
-    public int DefaultTimeout
+    public int? DefaultTimeout
     {
         get => SqliteConnectionStringOption.DefaultTimeout.GetValue(this);
         set => SqliteConnectionStringOption.DefaultTimeout.SetValue(this, value);
     }
 
-    public bool Pooling
+    public bool? Pooling
     {
         get => SqliteConnectionStringOption.Pooling.GetValue(this);
         set => SqliteConnectionStringOption.Pooling.SetValue(this, value);
     }
 
-    /// <summary>
-    /// Fake property only for compatibility.
-    /// </summary>
     public string? Vfs
     {
         get => SqliteConnectionStringOption.Vfs.GetValue(this);
         set => SqliteConnectionStringOption.Vfs.SetValue(this, value);
     }
 
-    public int MaxPoolSize
+    public int? MaxPoolSize
     {
         get => SqliteConnectionStringOption.MaxPoolSize.GetValue(this);
         set => SqliteConnectionStringOption.MaxPoolSize.SetValue(this, value);
     }
 
-    public string JournalMode
+    public string? JournalMode
     {
         get => SqliteConnectionStringOption.JournalMode.GetValue(this);
         set => SqliteConnectionStringOption.JournalMode.SetValue(this, value);
     }
 
-    internal bool HasForeignKeys
-        => ContainsExplicitKey(SqliteConnectionStringOption.ForeignKeys);
-
-    internal bool HasJournalMode
-        => ContainsExplicitKey(SqliteConnectionStringOption.JournalMode);
-
-    private bool ContainsExplicitKey(SqliteConnectionStringOption option)
-    {
-        foreach (var key in option.Keys)
-        {
-            if (base.ContainsKey(key))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Determines if the connection is for an in-memory database.
-    /// </summary>
-    internal bool IsInMemoryMode()
-    {
-        // Check Data Source
-        if (DataSource == ":memory:")
-            return true;
-
-        // Check explicit Mode
-        if (Mode == SqliteOpenMode.Memory)
-            return true;
-
-        // Check URI format for shared memory
-        if (DataSource?.StartsWith("file:", StringComparison.OrdinalIgnoreCase) == true &&
-            DataSource.Contains("mode=memory", StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        return false;
-    }
-
+    // Bridge to protected DbConnectionStringBuilder members for internal option access.
     internal void DoSetValue(string key, object? value) => base[key] = value;
     internal void DoRemove(string key) => base.Remove(key);
 }
 
-/// <summary>
-/// Abstract base for connection string options. Provides the static registry
-/// of all known options and the <see cref="Register{T}"/> factory method.
-/// </summary>
+// ---------------------------------------------------------------------------
+// Registry of all known connection-string keys and their typed accessors.
+// Two-class design is structurally required: the non-generic base allows a
+// single Dictionary<string, SqliteConnectionStringOption> dispatch table,
+// while the generic subclass owns type-safe conversion & coercion logic.
+// ---------------------------------------------------------------------------
+
 internal abstract class SqliteConnectionStringOption(string[] keys)
 {
+    // Ordered list of canonical (first-alias) names – used for Keys/Values.
     public static List<string> OptionNames { get; } = [];
+
     private static readonly FrozenDictionary<string, SqliteConnectionStringOption> s_options;
 
-    public static readonly SqliteConnectionStringOption<string> DataSource;
-    public static readonly SqliteConnectionStringOption<SqliteOpenMode> Mode;
-    public static readonly SqliteConnectionStringOption<SqliteCacheMode> Cache;
-    public static readonly SqliteConnectionStringOption<string> Password;
+    // Typed option singletons – one per connection-string property.
+    public static readonly SqliteConnectionStringOption<string?> DataSource;
+    public static readonly SqliteConnectionStringOption<SqliteOpenMode?> Mode;
+    public static readonly SqliteConnectionStringOption<SqliteCacheMode?> Cache;
+    public static readonly SqliteConnectionStringOption<string?> Password;
     public static readonly SqliteConnectionStringOption<bool?> ForeignKeys;
     public static readonly SqliteConnectionStringOption<bool?> RecursiveTriggers;
-    public static readonly SqliteConnectionStringOption<int> DefaultTimeout;
-    public static readonly SqliteConnectionStringOption<bool> Pooling;
-    public static readonly SqliteConnectionStringOption<int> MaxPoolSize;
-    public static readonly SqliteConnectionStringOption<string> JournalMode;
+    public static readonly SqliteConnectionStringOption<int?> DefaultTimeout;
+    public static readonly SqliteConnectionStringOption<bool?> Pooling;
+    public static readonly SqliteConnectionStringOption<int?> MaxPoolSize;
+    public static readonly SqliteConnectionStringOption<string?> JournalMode;
     public static readonly SqliteConnectionStringOption<string?> Vfs;
 
     public string Key => keys[0];
@@ -283,17 +216,16 @@ internal abstract class SqliteConnectionStringOption(string[] keys)
     public static SqliteConnectionStringOption GetOptionForKey(string key) =>
         TryGetOptionForKey(key) ?? throw new ArgumentException(Resources.KeywordNotSupported(key));
 
+    // Non-generic surface used by the builder's indexer and ShouldSerialize.
     public abstract object? GetObject(SqliteConnectionStringBuilder builder);
     public abstract void SetObject(SqliteConnectionStringBuilder builder, object? value);
-    public abstract bool HasNonEmptyValue(SqliteConnectionStringBuilder builder);
 
-    private static SqliteConnectionStringOption<T> Register<T>(
+    protected static SqliteConnectionStringOption<T> Register<T>(
         Dictionary<string, SqliteConnectionStringOption> options,
         string[] keys,
-        T defaultValue,
         Func<T, T>? coerce = null)
     {
-        var option = new SqliteConnectionStringOption<T>(keys, defaultValue, coerce);
+        var option = new SqliteConnectionStringOption<T>(keys, coerce);
         foreach (var key in keys)
             options.Add(key, option);
         OptionNames.Add(keys[0]);
@@ -304,38 +236,32 @@ internal abstract class SqliteConnectionStringOption(string[] keys)
     {
         var options = new Dictionary<string, SqliteConnectionStringOption>(StringComparer.OrdinalIgnoreCase);
 
-        DataSource        = Register(options, ["Data Source", "DataSource", "Filename"], string.Empty);
-        Mode              = Register(options, ["Mode"], SqliteOpenMode.ReadWriteCreate);
-        Cache             = Register(options, ["Cache"], SqliteCacheMode.Default);
-        Password          = Register(options, ["Password"], string.Empty);
-        ForeignKeys       = Register<bool?>(options, ["Foreign Keys", "foreign_keys"], null);
-        RecursiveTriggers = Register<bool?>(options, ["Recursive Triggers", "recursive_triggers"], null);
-        DefaultTimeout    = Register(options, ["Default Timeout", "default_timeout", "Command Timeout"], 30, static val => Math.Max(0, val));
-        Pooling           = Register(options, ["Pooling"], true);
-        MaxPoolSize       = Register(options, ["Max Pool Size", "MaxPoolSize"], 100, static val => Math.Max(1, val));
-        JournalMode       = Register(options, ["Journal Mode", "journal_mode"], "WAL");
-        Vfs               = Register<string?>(options, ["Vfs"], null);
+        DataSource        = Register<string?>         (options, ["Data Source", "DataSource", "Filename"]);
+        Mode              = Register<SqliteOpenMode?> (options, ["Mode"]);
+        Cache             = Register<SqliteCacheMode?>(options, ["Cache"]);
+        Password          = Register<string?>         (options, ["Password"]);
+        ForeignKeys       = Register<bool?>           (options, ["Foreign Keys", "foreign_keys"]);
+        RecursiveTriggers = Register<bool?>           (options, ["Recursive Triggers", "recursive_triggers"]);
+        DefaultTimeout    = Register<int?>            (options, ["Default Timeout", "default_timeout", "Command Timeout"], val => val.HasValue ? Math.Max(0, val.Value) : null);
+        Pooling           = Register<bool?>           (options, ["Pooling"]);
+        MaxPoolSize       = Register<int?>            (options, ["Max Pool Size", "MaxPoolSize"], val => val.HasValue ? Math.Max(1, val.Value) : null);
+        JournalMode       = Register<string?>         (options, ["Journal Mode", "journal_mode"]);
+        Vfs               = Register<string?>         (options, ["Vfs"]);
 
         s_options = options.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 }
 
-/// <summary>
-/// Unified typed option — handles value types, nullable value types, and reference types
-/// without separate subclasses. Uses a single <see cref="ConvertTo"/> method for all
-/// type conversions with consistent boolean and enum parsing.
-/// </summary>
-internal sealed class SqliteConnectionStringOption<T>(
-    string[] keys,
-    T defaultValue,
-    Func<T, T>? coerce = null)
+internal sealed class SqliteConnectionStringOption<T>(string[] keys, Func<T, T>? coerce = null)
     : SqliteConnectionStringOption(keys)
 {
-    public T GetValue(SqliteConnectionStringBuilder builder) =>
-        builder.TryGetValue(Key, out var value) && value is not null
-            ? ConvertTo(value)
-            : defaultValue;
+    // Typed get: returns default(T) (null for nullable types) when key is absent.
+    public T? GetValue(SqliteConnectionStringBuilder builder) =>
+        builder.TryGetValue(Key, out var raw) && raw is not null
+            ? ConvertTo(raw)
+            : default;
 
+    // Typed set: null removes the key, non-null stores the (optionally coerced) value.
     public void SetValue(SqliteConnectionStringBuilder builder, [AllowNull] T value)
     {
         if (value is null)
@@ -344,30 +270,17 @@ internal sealed class SqliteConnectionStringOption<T>(
             builder.DoSetValue(Key, coerce is not null ? coerce(value) : value);
     }
 
+    // Non-generic bridge – delegates to the typed pair above.
     public override object? GetObject(SqliteConnectionStringBuilder builder) => GetValue(builder);
 
     public override void SetObject(SqliteConnectionStringBuilder builder, object? value)
     {
-        if (value is null)
-            builder.DoRemove(Key);
-        else
-            SetValue(builder, ConvertTo(value));
+        if (value is null) builder.DoRemove(Key);
+        else SetValue(builder, ConvertTo(value));
     }
 
-    public override bool HasNonEmptyValue(SqliteConnectionStringBuilder builder)
-        => GetValue(builder) switch
-        {
-            null => false,
-            string value => value.Length != 0,
-            _ => true
-        };
-
-    /// <summary>
-    /// Unified type conversion with consistent handling of:
-    /// - Boolean strings: "yes"/"no", "1"/"0", "true"/"false"
-    /// - Enum: by name (case-insensitive) or numeric value
-    /// - Nullable&lt;T&gt;: automatically unwraps to inner type for conversion
-    /// </summary>
+    // Converts an untyped value (from the base-class dictionary) to T.
+    // Handles: exact-type match, nullable unwrapping, string parsing, enum coercion.
     private static T ConvertTo(object value)
     {
         var underlyingType = Nullable.GetUnderlyingType(typeof(T));
@@ -382,13 +295,12 @@ internal sealed class SqliteConnectionStringOption<T>(
                 return typed;
             }
 
-            // For Nullable<> types, treat empty string as null (unset)
+            // Empty string resets a nullable value.
             if (value is string { Length: 0 } && underlyingType is not null)
                 return default!;
 
             if (value is string text)
             {
-                // Boolean: handle "yes"/"no" and "1"/"0" consistently
                 if (target == typeof(bool))
                 {
                     if (text.Equals("yes", StringComparison.OrdinalIgnoreCase) || text == "1")
@@ -397,7 +309,6 @@ internal sealed class SqliteConnectionStringOption<T>(
                         return (T)(object)false;
                 }
 
-                // Enum: parse by name
                 if (target.IsEnum)
                 {
                     var parsed = Enum.Parse(target, text, ignoreCase: true);
@@ -408,16 +319,13 @@ internal sealed class SqliteConnectionStringOption<T>(
             }
             else if (target.IsEnum)
             {
-                // Prevent implicit conversion between different enum types
                 if (value is Enum && value.GetType() != target)
                     throw new ArgumentException($"Cannot convert enum {value.GetType().Name} to {target.Name}.");
 
                 var numeric = Convert.ChangeType(value, Enum.GetUnderlyingType(target), CultureInfo.InvariantCulture);
                 var enumVal = Enum.ToObject(target, numeric);
-                
                 if (!Enum.IsDefined(target, enumVal))
                     throw new ArgumentException($"The value '{value}' is not valid for enum {target.Name}.");
-                
                 return (T)enumVal;
             }
 

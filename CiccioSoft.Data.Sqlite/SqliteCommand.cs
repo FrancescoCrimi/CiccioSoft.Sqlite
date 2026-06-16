@@ -19,7 +19,7 @@ using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-public  class SqliteCommand : DbCommand
+public sealed class SqliteCommand : DbCommand
 {
     private SqliteParameterCollection _parameters = new();
 

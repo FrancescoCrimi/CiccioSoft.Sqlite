@@ -23,7 +23,7 @@ namespace CiccioSoft.Data.Sqlite;
 /// Intelligent defaults: WAL enabled, Foreign Keys ON, Shared Cache for in-memory.
 /// True async support with native interrupt.
 /// </summary>
-public  class SqliteConnection : DbConnection
+public sealed class SqliteConnection : DbConnection
 {
     private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
@@ -31,7 +31,7 @@ public  class SqliteConnection : DbConnection
     private SqliteSession? _session;
     private bool _hasActiveTransaction;
     private SqliteTransaction? _activeTransaction;
-    private SqliteConnectionStringBuilder _settings = new();
+    private SqliteConnectionSettings _settings = new(new SqliteConnectionStringBuilder());
     private string _dataSource = string.Empty;
     private string _writerKey = string.Empty;
     private int? _defaultTimeout;
@@ -76,7 +76,7 @@ public  class SqliteConnection : DbConnection
             {
                 if (_state != ConnectionState.Closed) throw new InvalidOperationException(Resources.ConnectionStringRequiresClosedConnection);
                 _connectionString = value ?? string.Empty;
-                _settings = new SqliteConnectionStringBuilder { ConnectionString = _connectionString };
+                _settings = new SqliteConnectionSettings(new SqliteConnectionStringBuilder { ConnectionString = _connectionString });
                 _dataSource = _settings.DataSource;
                 _writerKey = ResolveWriterKey(_connectionString, _dataSource);
             }
@@ -177,8 +177,7 @@ public  class SqliteConnection : DbConnection
             string dataSource = ResolveDataSource();
             SqliteOpenFlags openFlags = GetOpenFlags(dataSource);
 
-            if (_settings.TryGetValue("Password", out object? password)
-                && !string.IsNullOrWhiteSpace(Convert.ToString(password)))
+            if (!string.IsNullOrWhiteSpace(_settings.Password))
             {
                 throw new InvalidOperationException(Resources.EncryptionNotSupported("sqlite3"));
             }
@@ -333,7 +332,7 @@ public  class SqliteConnection : DbConnection
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
         => BeginTransaction(isolationLevel);
 
-    public virtual new SqliteCommand CreateCommand()
+    public  new SqliteCommand CreateCommand()
     {
         return new SqliteCommand
         {
@@ -498,8 +497,7 @@ public  class SqliteConnection : DbConnection
             return false;
         }
 
-        if (_settings.TryGetValue("Mode", out object? modeValue)
-            && string.Equals(Convert.ToString(modeValue), "Memory", StringComparison.OrdinalIgnoreCase))
+        if (_settings.Mode == SqliteOpenMode.Memory)
         {
             return false;
         }
@@ -511,21 +509,17 @@ public  class SqliteConnection : DbConnection
     {
         SqliteOpenFlags flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.FullMutex;
 
-        if (_settings.TryGetValue("Mode", out object? modeValue))
+        if (_settings.Mode == SqliteOpenMode.ReadOnly)
         {
-            string mode = Convert.ToString(modeValue) ?? string.Empty;
-            if (string.Equals(mode, "ReadOnly", StringComparison.OrdinalIgnoreCase))
-            {
-                flags = SqliteOpenFlags.ReadOnly | SqliteOpenFlags.FullMutex;
-            }
-            else if (string.Equals(mode, "ReadWrite", StringComparison.OrdinalIgnoreCase))
-            {
-                flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.FullMutex;
-            }
-            else if (string.Equals(mode, "Memory", StringComparison.OrdinalIgnoreCase))
-            {
-                flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.Memory | SqliteOpenFlags.FullMutex;
-            }
+            flags = SqliteOpenFlags.ReadOnly | SqliteOpenFlags.FullMutex;
+        }
+        else if (_settings.Mode == SqliteOpenMode.ReadWrite)
+        {
+            flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.FullMutex;
+        }
+        else if (_settings.Mode == SqliteOpenMode.Memory)
+        {
+            flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.Memory | SqliteOpenFlags.FullMutex;
         }
 
         if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
@@ -533,17 +527,13 @@ public  class SqliteConnection : DbConnection
             flags |= SqliteOpenFlags.Uri;
         }
 
-        if (_settings.TryGetValue("Cache", out object? cacheValue))
+        if (_settings.Cache == SqliteCacheMode.Shared)
         {
-            string cache = Convert.ToString(cacheValue) ?? string.Empty;
-            if (string.Equals(cache, "Shared", StringComparison.OrdinalIgnoreCase))
-            {
-                flags |= SqliteOpenFlags.SharedCache;
-            }
-            else if (string.Equals(cache, "Private", StringComparison.OrdinalIgnoreCase))
-            {
-                flags |= SqliteOpenFlags.PrivateCache;
-            }
+            flags |= SqliteOpenFlags.SharedCache;
+        }
+        else if (_settings.Cache == SqliteCacheMode.Private)
+        {
+            flags |= SqliteOpenFlags.PrivateCache;
         }
 
         return flags;
@@ -554,28 +544,13 @@ public  class SqliteConnection : DbConnection
         native.SetExtendedResultCodes(true);
         native.SetBusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
 
-        // Intelligent default: Foreign Keys ON if not specified
-        bool foreignKeysSpecified = _settings.HasForeignKeys;
-        bool foreignKeysValue = foreignKeysSpecified ? (_settings.ForeignKeys ?? false) : true;
-        native.Execute($"PRAGMA foreign_keys={(foreignKeysValue ? "ON" : "OFF")};");
+        native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys ? "ON" : "OFF")};");
 
-        // Intelligent default: Journal Mode WAL if not specified, except for in-memory
-        bool isInMemory = _settings.IsInMemoryMode();
-        if (!_settings.HasJournalMode && !isInMemory)
-        {
-            native.Execute("PRAGMA journal_mode=WAL;");
-        }
-        else if (_settings.HasJournalMode && !string.IsNullOrWhiteSpace(_settings.JournalMode))
+        if (!string.IsNullOrWhiteSpace(_settings.JournalMode))
         {
             native.Execute($"PRAGMA journal_mode={_settings.JournalMode};");
         }
-        else if (isInMemory)
-        {
-            // In-memory: WAL not supported, force DELETE
-            native.Execute("PRAGMA journal_mode=DELETE;");
-        }
 
-        // Recursive triggers if specified
         if (_settings.RecursiveTriggers.HasValue)
         {
             native.Execute($"PRAGMA recursive_triggers={(_settings.RecursiveTriggers.Value ? "ON" : "OFF")};");
@@ -601,20 +576,9 @@ public  class SqliteConnection : DbConnection
             return dataSource;
         }
 
-        // Intelligent default for Mode=Memory: if user specified Mode=Memory but not Cache=Shared,
-        // we force Shared cache.
-        if (_settings.IsInMemoryMode() && !string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
+        if (_settings.IsInMemoryMode && !string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
         {
-            string cacheSuffix = string.Empty;
-            // if (string.IsNullOrEmpty(_settings.Cache) ||
-            //     string.Equals(_settings.Cache, "Shared", StringComparison.OrdinalIgnoreCase))
-            // {
-            cacheSuffix = "&cache=shared";
-            // }
-            // else if (string.Equals(_settings.Cache, "Private", StringComparison.OrdinalIgnoreCase))
-            // {
-            //     cacheSuffix = "&cache=private";
-            // }
+            string cacheSuffix = _settings.Cache == SqliteCacheMode.Private ? "&cache=private" : "&cache=shared";
             return $"file:{dataSource}?mode=memory{cacheSuffix}";
         }
 
