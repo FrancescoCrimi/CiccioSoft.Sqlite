@@ -12,7 +12,7 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteParameterDirectionBehaviorTests
 {
-    [Theory]
+    [Theory(Skip = "Rompe la compatibilità com MSSqlite, vecchio paradigma")]
     [InlineData(ParameterDirection.Output)]
     [InlineData(ParameterDirection.InputOutput)]
     [InlineData(ParameterDirection.ReturnValue)]

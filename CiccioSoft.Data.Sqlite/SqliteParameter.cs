@@ -21,7 +21,7 @@ namespace CiccioSoft.Data.Sqlite;
 /// <remarks>Due to SQLite's dynamic type system, parameter values are not converted.</remarks>
 /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
 /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
-public class SqliteParameter : DbParameter
+public sealed class SqliteParameter : DbParameter
 {
     private string _parameterName = string.Empty;
     private object? _value;

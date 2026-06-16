@@ -21,7 +21,7 @@ using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-public class SqliteDataReader : DbDataReader
+public sealed class SqliteDataReader : DbDataReader
 {
     private const string SchemaDataTypeNameColumn = "DataTypeName";
     private const string SchemaIsKeyColumn = "IsKey";

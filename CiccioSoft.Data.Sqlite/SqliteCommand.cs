@@ -19,7 +19,7 @@ using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Data.Sqlite;
 
-public class SqliteCommand : DbCommand
+public sealed class SqliteCommand : DbCommand
 {
     private SqliteParameterCollection _parameters = new();
 
@@ -581,7 +581,7 @@ public class SqliteCommand : DbCommand
         for (int i = 0; i < _parameters.Count; i++)
         {
             SqliteParameter parameter = (SqliteParameter)_parameters[i]!;
-            ValidateParameterDirection(parameter);
+            // ValidateParameterDirection(parameter);
 
             if (!parameter.IsValueSet)
             {
@@ -605,13 +605,13 @@ public class SqliteCommand : DbCommand
     }
 
 
-    private static void ValidateParameterDirection(SqliteParameter parameter)
-    {
-        if (parameter.Direction != ParameterDirection.Input)
-        {
-            throw new NotSupportedException(Resources.InvalidParameterDirection(parameter.Direction));
-        }
-    }
+    // private static void ValidateParameterDirection(SqliteParameter parameter)
+    // {
+    //     if (parameter.Direction != ParameterDirection.Input)
+    //     {
+    //         throw new NotSupportedException(Resources.InvalidParameterDirection(parameter.Direction));
+    //     }
+    // }
 
     private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)
     {

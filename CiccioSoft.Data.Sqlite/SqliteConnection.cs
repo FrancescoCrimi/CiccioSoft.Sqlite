@@ -23,7 +23,7 @@ namespace CiccioSoft.Data.Sqlite;
 /// Intelligent defaults: WAL enabled, Foreign Keys ON, Shared Cache for in-memory.
 /// True async support with native interrupt.
 /// </summary>
-public class SqliteConnection : DbConnection
+public sealed class SqliteConnection : DbConnection
 {
     private readonly object _syncRoot = new();
     private string _connectionString = string.Empty;
