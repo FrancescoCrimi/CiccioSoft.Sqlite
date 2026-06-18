@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Test support baseline: net10.0 only, matching the provider and interop projects. -->
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CiccioSoft.Data.Sqlite\CiccioSoft.Data.Sqlite.csproj" />
-    <!-- <ProjectReference Include="..\Microsoft.Data.Sqlite.Core\Microsoft.Data.Sqlite.Core.csproj" /> -->
   </ItemGroup>
 
   <ItemGroup>

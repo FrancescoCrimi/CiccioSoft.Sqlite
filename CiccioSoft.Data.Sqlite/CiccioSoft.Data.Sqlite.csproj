@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Provider support baseline: net10.0 is the minimum TFM. -->
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -26,10 +25,9 @@ CiccioSoft.Data.Sqlite.SqliteTransaction
 
   <ItemGroup>
     <ProjectReference Include="../CiccioSoft.Sqlite.Interop/CiccioSoft.Sqlite.Interop.csproj" />
-    <Compile Remove="MySqlConnectionStringBuilder.cs" />
+    <!-- <Compile Remove="MySqlConnectionStringBuilder.cs" /> -->
     <!-- <None Include="MySqlConnectionStringBuilder.cs" /> -->
   </ItemGroup>
-
 
 <!-- <ItemGroup>
   <EmbeddedResource Update="Properties\Resources.resx">

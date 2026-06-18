@@ -23,10 +23,11 @@ public class SqliteTransaction : DbTransaction
 
     internal SqliteTransaction(SqliteConnection connection, IsolationLevel isolationLevel)
     {
+        IsolationLevel = NormalizeIsolationLevel(isolationLevel);
+
         _connection = connection;
         _writerGate = connection.AcquireWriterGate();
         _useReadUncommitted = isolationLevel == IsolationLevel.ReadUncommitted;
-        IsolationLevel = NormalizeIsolationLevel(isolationLevel);
 
         try
         {
@@ -156,8 +157,12 @@ public class SqliteTransaction : DbTransaction
         return isolationLevel switch
         {
             IsolationLevel.Unspecified => IsolationLevel.Serializable,
-            IsolationLevel.Chaos => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
-            IsolationLevel.Snapshot => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
+
+            // IsolationLevel.Chaos => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
+            // IsolationLevel.Snapshot => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel), nameof(isolationLevel)),
+            IsolationLevel.Chaos => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel)),
+            IsolationLevel.Snapshot => throw new ArgumentException(Resources.InvalidIsolationLevel(isolationLevel)),
+
             IsolationLevel.ReadCommitted => IsolationLevel.Serializable,
             IsolationLevel.RepeatableRead => IsolationLevel.Serializable,
             IsolationLevel.ReadUncommitted => IsolationLevel.Serializable,

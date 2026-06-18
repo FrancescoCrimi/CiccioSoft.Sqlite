@@ -13,135 +13,10 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteTransactionTest
 {
-/*  This test has been re-implemented in "CiccioSoft.Data.Sqlite.Tests.Extra"  */
-//     [Theory, InlineData(false), InlineData(true)]
-//     public async Task SqliteTransaction_Dispose_does_not_leave_orphaned_transaction(bool async) // Issue #25119
-//     {
-//         using var connection = new FakeConnection("Data Source=:memory:");
-
-//         if (async)
-//         {
-//             await connection.OpenAsync();
-//         }
-//         else
-//         {
-//             connection.Open();
-//         }
-
-// #if NET5_0_OR_GREATER
-//         using var transaction = async ? await connection.BeginTransactionAsync() : connection.BeginTransaction();
-// #else
-//         using var transaction = connection.BeginTransaction();
-// #endif
-
-//         await AddNewTable("Table1");
-
-//         connection.SimulateFailureOnRollback = true;
-
-//         try
-//         {
-// #if NET5_0_OR_GREATER
-//             if (async)
-//             {
-//                 await transaction.DisposeAsync();
-//             }
-//             else
-//             {
-//                 transaction.Dispose();
-//             }
-// #else
-//             transaction.Dispose();
-// #endif
-
-//             Assert.Fail();
-//         }
-//         catch
-//         {
-//             // Expected to throw.
-//         }
-
-//         Assert.Null(connection.Transaction);
-
-//         connection.SimulateFailureOnRollback = false;
-
-// #if NET5_0_OR_GREATER
-//         using var transaction2 = async ? await connection.BeginTransactionAsync() : connection.BeginTransaction();
-// #else
-//         using var transaction2 = connection.BeginTransaction();
-// #endif
-
-//         await AddNewTable("Table2");
-
-// #if NET5_0_OR_GREATER
-//         if (async)
-//         {
-//             await transaction2.DisposeAsync();
-//         }
-//         else
-//         {
-//             transaction2.Dispose();
-//         }
-// #else
-//         transaction2.Dispose();
-// #endif
-
-//         Assert.Null(connection.Transaction);
-
-//         async Task AddNewTable(string tableName)
-//         {
-//             using var command = connection.CreateCommand();
-//             command.CommandText = $"CREATE TABLE {tableName} (ID INT PRIMARY KEY NOT NULL);";
-//             _ = async ? await command.ExecuteNonQueryAsync() : command.ExecuteNonQuery();
-//         }
-//     }
-
-//     private class FakeCommand(FakeConnection connection, SqliteCommand realCommand) : SqliteCommand
-//     {
-//         public override int ExecuteNonQuery()
-//         {
-//             var result = realCommand.ExecuteNonQuery();
-
-//             if (connection.SimulateFailureOnRollback && CommandText.Contains("ROLLBACK"))
-//             {
-//                 throw new SqliteException("Simulated failure", 1);
-//             }
-
-//             return result;
-//         }
-
-//         [AllowNull]
-//         public override string CommandText { get => realCommand.CommandText; set => realCommand.CommandText = value; }
-
-//         public override int CommandTimeout { get => realCommand.CommandTimeout; set => realCommand.CommandTimeout = value; }
-//         public override CommandType CommandType { get => realCommand.CommandType; set => realCommand.CommandType = value; }
-//         public override bool DesignTimeVisible { get => realCommand.DesignTimeVisible; set => realCommand.DesignTimeVisible = value; }
-
-//         public override UpdateRowSource UpdatedRowSource
-//         {
-//             get => realCommand.UpdatedRowSource;
-//             set => realCommand.UpdatedRowSource = value;
-//         }
-
-//         public override void Cancel()
-//             => realCommand.Cancel();
-
-//         public override object? ExecuteScalar()
-//             => realCommand.ExecuteScalar();
-
-//         public override void Prepare()
-//             => realCommand.Prepare();
-//     }
-
-//     private class FakeConnection(string connectionString) : SqliteConnection(connectionString)
-//     {
-//         public bool SimulateFailureOnRollback { get; set; }
-
-//         public override SqliteCommand CreateCommand()
-//             => new FakeCommand(this, base.CreateCommand());
-
-//         public new SqliteTransaction? Transaction
-//             => base.Transaction;
-//     }
+    [Theory(Skip = "This test has been re-implemented in CiccioSoft.Data.Sqlite.Tests.Extra"), InlineData(false), InlineData(true)]
+    public async Task SqliteTransaction_Dispose_does_not_leave_orphaned_transaction(bool async) // Issue #25119
+    {
+    }
 
     [Fact]
     public void Ctor_sets_read_uncommitted()
@@ -167,7 +42,7 @@ public class SqliteTransactionTest
         }
     }
 
-    [Theory(Skip = "Fail, todo"), InlineData(IsolationLevel.Chaos), InlineData(IsolationLevel.Snapshot)]
+    [Theory, InlineData(IsolationLevel.Chaos), InlineData(IsolationLevel.Snapshot)]
     public void Ctor_throws_when_invalid_isolation_level(IsolationLevel isolationLevel)
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
@@ -245,29 +120,11 @@ public class SqliteTransactionTest
         }
     }
 
-    [Fact(Skip = "Da Rivedere")]
+    [Fact(Skip = "CiccioSoft.Data.Sqlite uses BEGIN IMMEDIATE + SingleWriterCoordinator "
+               + "by design. Deferred transactions are not exposed; this eliminates "
+               + "SQLITE_BUSY promotion deadlocks at the cost of reduced read concurrency.")]
     public void Deferred_allows_parallel_reads()
     {
-        const string connectionString = "Data Source=deferred;Mode=Memory;Cache=Shared";
-
-        using var connection1 = new SqliteConnection(connectionString);
-        using var connection2 = new SqliteConnection(connectionString);
-        connection1.Open();
-        connection2.Open();
-
-        connection1.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (42);");
-
-        // using (connection1.BeginTransaction(deferred: true))
-        // {
-        //     var value1 = connection1.ExecuteScalar<long>("SELECT * FROM Data;");
-        //     Assert.Equal(42L, value1);
-
-        //     using (connection2.BeginTransaction(deferred: true))
-        //     {
-        //         var value2 = connection2.ExecuteScalar<long>("SELECT * FROM Data;");
-        //         Assert.Equal(42L, value2);
-        //     }
-        // }
     }
 
     [Fact]
