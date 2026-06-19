@@ -1901,7 +1901,7 @@ public class SqliteDataReaderTest
         }
     }
 
-    [Fact(Skip = "fail, todo")]
+    [Fact]
     public void RecordsAffected_works_with_returning()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
@@ -1947,7 +1947,7 @@ public class SqliteDataReaderTest
         }
     }
 
-    [Fact(Skip = "fail, todo")]
+    [Fact]
     public void RecordsAffected_works_with_returning_multiple()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
