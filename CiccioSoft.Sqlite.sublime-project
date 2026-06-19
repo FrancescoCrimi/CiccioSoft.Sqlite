@@ -11,7 +11,7 @@
             "name": "CiccioSoft.Sqlite.Tests",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests.Extra/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.Extra.exe",
             "args": [
                 "-parallel",
                 "none"
@@ -23,10 +23,10 @@
             "name": "Single",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests.Extra/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.Extra.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite/SqliteTransactionTest/ReadUncommitted_allows_dirty_reads",
+                "//CiccioSoft.Data.Sqlite/SqliteConnectionTests/",
                 "-parallel",
                 "none"
             ],
@@ -34,13 +34,13 @@
             "stopAtEntry": false
         },
         {
-            "name": "Microsoft.Data.Sqlite.Tests",
+            "name": "MsSqlite",
             "type": "netcoredbg",
             "request": "launch",
             "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//Microsoft.Data.Sqlite/SqliteCommandTest/ExecuteReader_throws_when_parameter_unset",
+                "//Microsoft.Data.Sqlite/SqliteTransactionTest/ReadUncommitted_allows_dirty_reads",
                 "-parallel",
                 "none"
             ],

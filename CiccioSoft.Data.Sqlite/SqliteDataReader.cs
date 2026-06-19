@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -82,12 +83,14 @@ public sealed class SqliteDataReader : DbDataReader
     }
 
 
-
-
     private Sqlite3Stmt Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
+
     public override object this[int ordinal] => GetValue(ordinal);
+
     public override object this[string name] => GetValue(GetOrdinal(name));
+
     public override int Depth => 0;
+
     public override int FieldCount
     {
         get
@@ -96,6 +99,7 @@ public sealed class SqliteDataReader : DbDataReader
             return _stmt?.ColumnCount() ?? 0;
         }
     }
+
     public override bool HasRows
     {
         get
@@ -107,6 +111,7 @@ public sealed class SqliteDataReader : DbDataReader
     }
 
     public override bool IsClosed => _closed;
+
     public override int RecordsAffected => _recordsAffected;
 
     public override bool GetBoolean(int ordinal)
@@ -293,7 +298,7 @@ public sealed class SqliteDataReader : DbDataReader
                 return TimeSpan.Parse(GetString(ordinal));
         }
     }
-        // => throw new NotImplementedException("Not Implemented");
+    // => throw new NotImplementedException("Not Implemented");
     // => _closed
     //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
     //     : _record == null
@@ -1063,11 +1068,24 @@ public sealed class SqliteDataReader : DbDataReader
 
         if (_connection.HasActiveTransaction())
         {
-            return _executionScope.Execute(Stmt.Step, cancellationToken);
+            if (!_connection.HasWriteLock)
+            {
+                _connection.AcquireWriterGate2();
+            }
+            var rtn2 = _executionScope.Execute(Stmt.Step, cancellationToken);
+            // _connection.DisposeWriterGate();
+            return rtn2;
         }
 
-        using IDisposable writerGate = _connection.AcquireWriterGate(cancellationToken);
-        return _executionScope.Execute(Stmt.Step, cancellationToken);
+        // using IDisposable writerGate = _connection.AcquireWriterGate(cancellationToken);
+        if (!_connection.HasWriteLock)
+        {
+             var aaa =_connection.GetHashCode().ToString();
+            _connection.AcquireWriterGate2();
+        }
+        var rtn = _executionScope.Execute(Stmt.Step, cancellationToken);
+        _connection.DisposeWriterGate();
+        return rtn;
     }
 
     private void ExecuteCurrentStatementToEnd(CancellationToken cancellationToken = default)

@@ -17,7 +17,7 @@ namespace CiccioSoft.Data.Sqlite;
 public class SqliteTransaction : DbTransaction
 {
     private readonly SqliteConnection _connection;
-    private readonly IDisposable _writerGate;
+    // private readonly IDisposable? _writerGate;
     private readonly bool _useReadUncommitted;
     private bool _completed;
 
@@ -26,7 +26,8 @@ public class SqliteTransaction : DbTransaction
         IsolationLevel = NormalizeIsolationLevel(isolationLevel);
 
         _connection = connection;
-        _writerGate = connection.AcquireWriterGate();
+        /* Disabilito acquisizione lock wal */
+        // _writerGate = connection.AcquireWriterGate();
         _useReadUncommitted = isolationLevel == IsolationLevel.ReadUncommitted;
 
         try
@@ -36,7 +37,7 @@ public class SqliteTransaction : DbTransaction
         }
         catch
         {
-            _writerGate.Dispose();
+            // _writerGate?.Dispose();
             throw;
         }
     }
@@ -68,7 +69,8 @@ public class SqliteTransaction : DbTransaction
         }
         finally
         {
-            _writerGate.Dispose();
+            // _writerGate?.Dispose();
+            _connection.DisposeWriterGate();
         }
     }
 
@@ -83,7 +85,8 @@ public class SqliteTransaction : DbTransaction
         }
         finally
         {
-            _writerGate.Dispose();
+            // _writerGate?.Dispose();
+            _connection.DisposeWriterGate();
         }
     }
 
@@ -111,7 +114,8 @@ public class SqliteTransaction : DbTransaction
         if (disposing)
         {
             _connection.ClearActiveTransaction();
-            _writerGate.Dispose();
+            // _writerGate?.Dispose();
+            _connection.DisposeWriterGate();
         }
 
         base.Dispose(disposing);

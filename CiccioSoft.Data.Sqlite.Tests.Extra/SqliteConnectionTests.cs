@@ -35,7 +35,8 @@ public class SqliteConnectionTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => connection.Checkpoint());
 
-        Assert.Equal(Resources.CallRequiresOpenConnection("AcquireWriterGate"), ex.Message);
+        // Assert.Equal(Resources.CallRequiresOpenConnection("AcquireWriterGate"), ex.Message);
+        Assert.Equal(Resources.CallRequiresOpenConnection("AcquireWriterGate2"), ex.Message);
     }
 
     [Fact]

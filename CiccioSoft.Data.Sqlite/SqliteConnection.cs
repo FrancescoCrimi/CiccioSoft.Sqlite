@@ -165,6 +165,8 @@ public sealed class SqliteConnection : DbConnection
                 session.Dispose();
             }
         }
+
+        if(_writerGate != null) DisposeWriterGate();
     }
 
     public override void Open()
@@ -223,8 +225,10 @@ public sealed class SqliteConnection : DbConnection
     /// </summary>
     public void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
     {
-        using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        AcquireWriterGate2();
         ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
+        DisposeWriterGate();
     }
 
     /// <summary>
@@ -248,8 +252,10 @@ public sealed class SqliteConnection : DbConnection
     /// </summary>
     public void Optimize(CancellationToken cancellationToken = default)
     {
-        using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        AcquireWriterGate2();
         ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
+        DisposeWriterGate();
     }
 
     /// <summary>
@@ -332,7 +338,7 @@ public sealed class SqliteConnection : DbConnection
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
         => BeginTransaction(isolationLevel);
 
-    public  new SqliteCommand CreateCommand()
+    public new SqliteCommand CreateCommand()
     {
         return new SqliteCommand
         {
@@ -391,6 +397,29 @@ public sealed class SqliteConnection : DbConnection
             return _activeTransaction is not null;
         }
     }
+
+    private IDisposable? _writerGate;
+    // public IDisposable? WriterGate {get; set;}
+    internal void AcquireWriterGate2(CancellationToken cancellationToken = default)
+    {
+        if (_writerGate == null)
+        {
+            lock (_syncRoot)
+            {
+                EnsureOpen();
+                _writerGate = SingleWriterCoordinator.Acquire(_writerKey, cancellationToken);
+            }
+        }
+    }
+    internal void DisposeWriterGate()
+    {
+        _writerGate?.Dispose();
+        _writerGate = null;
+    }
+    internal bool HasWriteLock => _writerGate != null;
+
+
+
 
     internal IDisposable AcquireWriterGate(CancellationToken cancellationToken = default)
     {
