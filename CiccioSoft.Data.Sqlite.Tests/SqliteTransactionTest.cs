@@ -64,7 +64,7 @@ public class SqliteTransactionTest
     {
     }
 
-    [Fact(Skip = "Fail, todo")]
+    [Fact]
     public void Serialized_disallows_dirty_reads()
     {
         const string connectionString = "Data Source=serialized;Mode=Memory;Cache=Shared";
@@ -187,7 +187,7 @@ public class SqliteTransactionTest
         Assert.Equal(1L, connection.ExecuteScalar<long>("SELECT COUNT(*) FROM TestTable;"));
     }
 
-    [Fact(Skip = "todo")]
+    [Fact]
     public void Rollback_noops_once_when_completed_externally()
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
