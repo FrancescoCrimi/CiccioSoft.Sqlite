@@ -1922,7 +1922,7 @@ public class SqliteDataReaderTest
         }
     }
 
-    [Fact(Skip = "fail, todo")]
+    [Fact]
     public void RecordsAffected_works_with_returning_before_dispose_after_draining()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))

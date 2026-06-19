@@ -1080,7 +1080,6 @@ public sealed class SqliteDataReader : DbDataReader
         // using IDisposable writerGate = _connection.AcquireWriterGate(cancellationToken);
         if (!_connection.HasWriteLock)
         {
-             var aaa =_connection.GetHashCode().ToString();
             _connection.AcquireWriterGate2();
         }
         var rtn = _executionScope.Execute(Stmt.Step, cancellationToken);
@@ -1103,7 +1102,8 @@ public sealed class SqliteDataReader : DbDataReader
         }
 
         // only count changes for non-query statements (column count == 0)
-        if (Stmt.ColumnCount() == 0)
+        // if (Stmt.ColumnCount() == 0)
+        if (!Stmt.IsReadOnly())
         {
             int changes = _session.Native.Changes();
             if (changes > 0)
