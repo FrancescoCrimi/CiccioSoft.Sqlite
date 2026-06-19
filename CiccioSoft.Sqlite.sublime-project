@@ -11,7 +11,7 @@
             "name": "CiccioSoft.Sqlite.Tests",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests.Extra/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.Extra.exe",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-parallel",
                 "none"
@@ -23,10 +23,10 @@
             "name": "Single",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests.Extra/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.Extra.exe",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite/SqliteConnectionTests/",
+                "//CiccioSoft.Data.Sqlite/SqliteTransactionTest/Rollback_noops_once_when_completed_externally",
                 "-parallel",
                 "none"
             ],

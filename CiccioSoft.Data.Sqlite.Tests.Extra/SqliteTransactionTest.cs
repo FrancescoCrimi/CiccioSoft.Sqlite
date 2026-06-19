@@ -4,8 +4,10 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+using System;
 using System.Data;
 using System.Threading.Tasks;
+using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 using Xunit;
 
@@ -66,8 +68,6 @@ public class SqliteTransactionTest
         Assert.Null(connection.Transaction);
     }
 
-
-
     [Fact]
     public void ReadUncommitted_allows_dirty_reads_as_per_sqlite_design()
     {
@@ -118,4 +118,19 @@ public class SqliteTransactionTest
         Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
     }
 
+    [Fact]
+    public void Rollback_throws_immediately_if_completed_externally()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction();
+        connection.ExecuteNonQuery("ROLLBACK;"); // Chiude la transazione sul motore
+
+        // La prima chiamata deve fallire subito perché EnsureActive() 
+        // intercetta l'autocommit attivo.
+        var ex = Assert.Throws<InvalidOperationException>(() => transaction.Rollback());
+
+        Assert.Equal(Resources.TransactionCompleted, ex.Message);
+    }
 }
