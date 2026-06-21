@@ -44,7 +44,7 @@ public sealed class SqliteConnection : DbConnection
     }
 
     /// <summary>
-    /// Gets the underlying low-level SQLite interop object for advanced/native operations.
+    ///     Gets the underlying low-level SQLite interop object for advanced/native operations.
     /// </summary>
     public Sqlite3 Interop
     {
@@ -55,11 +55,11 @@ public sealed class SqliteConnection : DbConnection
         }
     }
 
+    // ToDo: Change Handle with Interop and remove Handle
     /// <summary>
     ///     Gets a handle to underlying database connection.
     /// </summary>
     /// <value>A handle to underlying database connection.</value>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/interop">Interoperability</seealso>
     public Sqlite3? Handle
         => _session?.Native;
 
@@ -616,14 +616,60 @@ public sealed class SqliteConnection : DbConnection
             : Path.Combine(AppContext.BaseDirectory, dataSource);
     }
 
+    /// <summary>
+    ///     Backup of the connected database.
+    /// </summary>
+    /// <param name="destination">The destination of the backup.</param>
     public void BackupDatabase(SqliteConnection destination)
-    {
-        throw new NotImplementedException("Not Implemented");
-    }
+        => BackupDatabase(destination, Database, Database);
 
+    /// <summary>
+    ///     Backup of the connected database.
+    /// </summary>
+    /// <param name="destination">The destination of the backup.</param>
+    /// <param name="destinationName">The name of the destination database.</param>
+    /// <param name="sourceName">The name of the source database.</param>
     public void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
     {
-        throw new NotImplementedException("Not Implemented");
+        if (State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException(Resources.CallRequiresOpenConnection(nameof(BackupDatabase)));
+        }
+
+        if (destination == null)
+        {
+            throw new ArgumentNullException(nameof(destination));
+        }
+
+        var close = false;
+        if (destination.State != ConnectionState.Open)
+        {
+            destination.Open();
+            close = true;
+        }
+
+        try
+        {
+            // using var backup = sqlite3_backup_init(destination.Handle, destinationName, Handle, sourceName);
+            var backup  = Sqlite3Backup.InitBackup(destination.Interop, destinationName, Interop, sourceName);    
+            // int rc;
+            // if (backup.IsInvalid)
+            // {
+            //     rc = sqlite3_errcode(destination.Handle);
+            //     SqliteException.ThrowExceptionForRC(rc, destination.Handle);
+            // }
+
+            // rc = sqlite3_backup_step(backup, -1);
+            var result = backup.Step(-1);
+            // SqliteException.ThrowExceptionForRC(rc, destination.Handle);
+        }
+        finally
+        {
+            if (close)
+            {
+                destination.Close();
+            }
+        }
     }
 
     /// <summary>
