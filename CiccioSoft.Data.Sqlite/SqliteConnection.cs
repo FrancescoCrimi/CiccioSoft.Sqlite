@@ -226,7 +226,7 @@ public sealed class SqliteConnection : DbConnection
     public void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
     {
         // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
-        AcquireWriterGate2();
+        AcquireWriterGate();
         ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
         DisposeWriterGate();
     }
@@ -253,7 +253,7 @@ public sealed class SqliteConnection : DbConnection
     public void Optimize(CancellationToken cancellationToken = default)
     {
         // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
-        AcquireWriterGate2();
+        AcquireWriterGate();
         ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
         DisposeWriterGate();
     }
@@ -399,8 +399,7 @@ public sealed class SqliteConnection : DbConnection
     }
 
     private IDisposable? _writerGate;
-    // public IDisposable? WriterGate {get; set;}
-    internal void AcquireWriterGate2(CancellationToken cancellationToken = default)
+    internal void AcquireWriterGate(CancellationToken cancellationToken = default)
     {
         if (_writerGate == null)
         {
@@ -411,24 +410,14 @@ public sealed class SqliteConnection : DbConnection
             }
         }
     }
+
     internal void DisposeWriterGate()
     {
         _writerGate?.Dispose();
         _writerGate = null;
     }
-    internal bool HasWriteLock => _writerGate != null;
 
-
-
-
-    internal IDisposable AcquireWriterGate(CancellationToken cancellationToken = default)
-    {
-        lock (_syncRoot)
-        {
-            EnsureOpen();
-            return SingleWriterCoordinator.Acquire(_writerKey, cancellationToken);
-        }
-    }
+    internal bool HasWriteLock => _writerGate != null;  
 
     private static string ResolveWriterKey(string connectionString, string dataSource)
     {

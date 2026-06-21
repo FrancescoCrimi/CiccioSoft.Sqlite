@@ -1070,7 +1070,7 @@ public sealed class SqliteDataReader : DbDataReader
         {
             if (!_connection.HasWriteLock)
             {
-                _connection.AcquireWriterGate2();
+                _connection.AcquireWriterGate();
             }
             var rtn2 = _executionScope.Execute(Stmt.Step, cancellationToken);
             // _connection.DisposeWriterGate();
@@ -1080,7 +1080,7 @@ public sealed class SqliteDataReader : DbDataReader
         // using IDisposable writerGate = _connection.AcquireWriterGate(cancellationToken);
         if (!_connection.HasWriteLock)
         {
-            _connection.AcquireWriterGate2();
+            _connection.AcquireWriterGate();
         }
         var rtn = _executionScope.Execute(Stmt.Step, cancellationToken);
         _connection.DisposeWriterGate();
