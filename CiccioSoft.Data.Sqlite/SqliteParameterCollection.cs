@@ -16,7 +16,6 @@ namespace CiccioSoft.Data.Sqlite;
 /// <summary>
 ///     Represents a collection of SQLite parameters.
 /// </summary>
-/// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
 public class SqliteParameterCollection : DbParameterCollection
 {
     private readonly List<SqliteParameter> _parameters = [];
@@ -78,7 +77,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// </summary>
     /// <param name="value">The parameter to add. Must be a <see cref="SqliteParameter" />.</param>
     /// <returns>The zero-based index of the parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public override int Add(object value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -94,7 +92,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// </summary>
     /// <param name="value">The parameter to add.</param>
     /// <returns>The parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual SqliteParameter Add(SqliteParameter value)
     {
         ValidateParameterName(value);
@@ -109,7 +106,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="parameterName">The name of the parameter.</param>
     /// <param name="type">The SQLite type of the parameter.</param>
     /// <returns>The parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual SqliteParameter Add(string? parameterName, SqliteType type)
         => Add(new SqliteParameter(parameterName, type));
 
@@ -120,7 +116,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="type">The SQLite type of the parameter.</param>
     /// <param name="size">The maximum size, in bytes, of the parameter.</param>
     /// <returns>The parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual SqliteParameter Add(string? parameterName, SqliteType type, int size)
         => Add(new SqliteParameter(parameterName, type, size));
 
@@ -134,7 +129,6 @@ public class SqliteParameterCollection : DbParameterCollection
     ///     The source column used for loading the value of the parameter. Can be null.
     /// </param>
     /// <returns>The parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual SqliteParameter Add(string? parameterName, SqliteType type, int size, string? sourceColumn)
         => Add(new SqliteParameter(parameterName, type, size, sourceColumn));
 
@@ -144,7 +138,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="values">
     ///     An array of parameters to add. They must be <see cref="SqliteParameter" /> objects.
     /// </param>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public override void AddRange(Array values)
     {
         ArgumentNullException.ThrowIfNull(values);
@@ -159,7 +152,6 @@ public class SqliteParameterCollection : DbParameterCollection
     ///     Adds multiple parameters to the collection.
     /// </summary>
     /// <param name="values">The parameters to add.</param>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
     public virtual void AddRange(IEnumerable<SqliteParameter> values)
     {
         ArgumentNullException.ThrowIfNull(values);
@@ -176,8 +168,6 @@ public class SqliteParameterCollection : DbParameterCollection
     /// <param name="parameterName">The name of the parameter.</param>
     /// <param name="value">The value of the parameter. Can be null.</param>
     /// <returns>The parameter that was added.</returns>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/parameters">Parameters</seealso>
-    /// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
     public virtual SqliteParameter AddWithValue(string? parameterName, object? value)
         => Add(new SqliteParameter(parameterName, value));
 

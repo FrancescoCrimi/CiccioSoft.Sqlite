@@ -13,7 +13,6 @@ namespace CiccioSoft.Data.Sqlite;
 /// <summary>
 ///     Represents a SQLite error.
 /// </summary>
-/// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/database-errors">Database Errors</seealso>
 public class SqliteException : DbException
 {
     public SqliteException(string message, SqliteInteropException? innerException = null)
@@ -27,13 +26,11 @@ public class SqliteException : DbException
     ///     Gets the SQLite error code.
     /// </summary>
     /// <value>The SQLite error code.</value>
-    /// <seealso href="https://www.sqlite.org/rescode.html">SQLite Result Codes</seealso>
     public virtual SqliteResult? SqliteErrorCode { get; }
 
     /// <summary>
     ///     Gets the extended SQLite error code.
     /// </summary>
     /// <value>The SQLite error code.</value>
-    /// <seealso href="https://www.sqlite.org/rescode.html#extrc">SQLite Result Codes</seealso>
     public virtual SqliteExtendedErrorCode? SqliteExtendedErrorCode { get; }
 }

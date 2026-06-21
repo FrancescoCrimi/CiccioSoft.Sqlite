@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 using Xunit;
-// using static SQLitePCL.raw;
 
 namespace CiccioSoft.Data.Sqlite;
 

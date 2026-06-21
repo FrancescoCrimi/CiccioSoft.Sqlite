@@ -5,12 +5,11 @@
 // https://opensource.org/licenses/MIT.
 
 using System.Data;
-using CiccioSoft.Data.Sqlite;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;
 
-public class SqliteCommandReaderBehaviorTests
+public class SqliteDataReaderTest
 {
     [Fact]
     public void CommandText_can_be_changed_while_reader_keeps_original_batch()

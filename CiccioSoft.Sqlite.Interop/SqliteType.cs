@@ -14,7 +14,6 @@ namespace CiccioSoft.Sqlite.Interop;
 /// <summary>
 ///     Represents the type affinities used by columns in SQLite tables.
 /// </summary>
-/// <seealso href="https://docs.microsoft.com/dotnet/standard/data/sqlite/types">Data Types</seealso>
 public enum SqliteType
 {
     /// <summary>

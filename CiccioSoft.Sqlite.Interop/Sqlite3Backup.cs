@@ -34,20 +34,15 @@ public sealed unsafe class Sqlite3Backup : IDisposable
         _handle = handle;
     }
 
-    // public Sqlite3Backup InitBackup(Sqlite3 source)
-    // {
-    //     return InitBackup("main", source, "main");
-    // }
-
     public static Sqlite3Backup InitBackup(Sqlite3 destination, string destinationDatabaseName, Sqlite3 source, string sourceDatabaseName = "main")
     {
         ArgumentNullException.ThrowIfNull(destination);
         // ThrowIfInvalid();
-         if (destination.Handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
+        if (destination.Handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
 
         ArgumentNullException.ThrowIfNull(source);
         // source.ThrowIfInvalid();
-         if (source.Handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
+        if (source.Handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
 
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationDatabaseName);
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceDatabaseName);
