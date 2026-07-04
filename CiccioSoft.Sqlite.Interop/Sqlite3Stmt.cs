@@ -131,10 +131,23 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return Sqlite3Native.sqlite3_bind_parameter_count(_handle.DangerousGetHandle());
     }
 
+    public ReadOnlySpan<byte> GetParameterName(int index)
+    {
+        ThrowIfInvalid();
+        byte* pName = Sqlite3Native.sqlite3_bind_parameter_name(_handle.DangerousGetHandle(), index);
+
+        if (pName == null)
+            return ReadOnlySpan<byte>.Empty;
+
+        int length = 0;
+        while (pName[length] != 0) length++;
+        return new ReadOnlySpan<byte>(pName, length);
+    }
+
     /// <summary>
     /// Returns the name of the SQL parameter at the specified 1-based index.
     /// </summary>
-    public string? GetParameterName(int index)
+    public string? GetParameterNameString(int index)
     {
         ThrowIfInvalid();
         byte* pName = Sqlite3Native.sqlite3_bind_parameter_name(_handle.DangerousGetHandle(), index);
@@ -264,6 +277,27 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return Sqlite3Native.sqlite3_column_double(_handle.DangerousGetHandle(), index);
     }
 
+
+
+
+    public ReadOnlySpan<byte> GetText(int index)
+    {
+        ThrowIfInvalid();
+
+        // Otteniamo il puntatore alla memoria nativa gestita da SQLite
+        byte* pText = Sqlite3Native.sqlite3_column_text(_handle.DangerousGetHandle(), index);
+        if (pText == null)
+            return ReadOnlySpan<byte>.Empty;
+
+        // Chiediamo a SQLite la lunghezza esatta in byte
+        int byteCount = Sqlite3Native.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
+
+        if (byteCount == 0)        
+            return ReadOnlySpan<byte>.Empty;        
+
+        return new ReadOnlySpan<byte>(pText, byteCount);
+    }
+
     /// <summary>
     /// Retrieves the value of a result column as a managed string, distinguishing between NULL and empty values.
     /// </summary>
@@ -273,30 +307,16 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <c>null</c> if the database value is SQL NULL; 
     /// <see cref="string.Empty"/> if the database value is an empty string.
     /// </returns>
-    /// <remarks>
-    /// <b>High-Performance Retrieval:</b>
-    /// - Native Access: Uses <c>sqlite3_column_text</c> to access native UTF-8 memory directly without intermediate copies.
-    /// - Fast Path: Bypasses string decoding for empty values (byteCount == 0) to return <see cref="string.Empty"/> instantly.
-    /// - Pointer Conversion: Leverages <see cref="System.Text.Encoding.GetString(byte*, int)"/> for the fastest pointer-to-string conversion available in .NET.
-    /// </remarks>
     /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
-    public string? GetString(int index)
+    public string? GetTextString(int index)
     {
         ThrowIfInvalid();
 
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
         byte* pText = Sqlite3Native.sqlite3_column_text(_handle.DangerousGetHandle(), index);
-        if (pText == null) return null;
 
-        // Chiediamo a SQLite la lunghezza esatta in byte
-        int byteCount = Sqlite3Native.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
-
-        if (byteCount == 0)
-        {
-            return string.Empty;
-        }
-
-        return Encoding.UTF8.GetString(pText, byteCount);
+        // Marshal.PtrToStringUTF8 gestisce internamente il controllo null e la terminazione \0
+        return pText == null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
     /// <summary>

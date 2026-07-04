@@ -453,10 +453,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <returns>
     /// A version string in the form <c>major.minor.patch</c> (for example, <c>3.46.0</c>).
     /// </returns>
-    public static string LibVersion()
+    public static string? LibVersion()
     {
         byte* pLibVersion = Sqlite3Native.sqlite3_libversion();
-        return Marshal.PtrToStringUTF8((nint)pLibVersion)!;
+        return Marshal.PtrToStringUTF8((nint)pLibVersion);
     }
 
     /// <summary>

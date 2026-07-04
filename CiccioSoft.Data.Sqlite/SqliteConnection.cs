@@ -640,7 +640,7 @@ public sealed class SqliteConnection : DbConnection
         try
         {
             // using var backup = sqlite3_backup_init(destination.Handle, destinationName, Handle, sourceName);
-            var backup  = Sqlite3Backup.InitBackup(destination.Interop, destinationName, Interop, sourceName);    
+            var backup  = Sqlite3Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);    
             // int rc;
             // if (backup.IsInvalid)
             // {

@@ -621,7 +621,7 @@ public sealed class SqliteCommand : DbCommand
             int ordinalIndex = ordinal + 1;
             if (ordinalIndex <= stmt.ParameterCount())
             {
-                string? name = stmt.GetParameterName(ordinalIndex);
+                string? name = stmt.GetParameterNameString(ordinalIndex);
                 if (string.IsNullOrEmpty(name))
                 {
                     return ordinalIndex;
@@ -682,7 +682,7 @@ public sealed class SqliteCommand : DbCommand
             }
 
             missingParameters ??= new List<string>();
-            missingParameters.Add(stmt.GetParameterName(i) ?? "?");
+            missingParameters.Add(stmt.GetParameterNameString(i) ?? "?");
         }
 
         if (missingParameters is not null)
