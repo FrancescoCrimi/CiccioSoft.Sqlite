@@ -79,7 +79,7 @@ public class DotNetBenchmarkWriter
     // ==========================================
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public void Write_SQLitePCLRaw()
+    public void WriteSQLitePCLRaw()
     {
         sqlite3 dbRaw;
         raw.sqlite3_open(":memory:", out dbRaw); // Usiamo :memory: per non subire l'I/O del disco
@@ -104,63 +104,34 @@ public class DotNetBenchmarkWriter
         raw.sqlite3_close(dbRaw);
     }
 
-    // [Benchmark]
-    // public void Write_CiccioSoftInterop()
-    // {
-    //     using (var db = CiccioSoft.Sqlite.Interop.Sqlite3.Open(":memory:")) // In-Memory
-    //     {
-    //         // db.Execute("PRAGMA journal_mode = WAL;");
-    //         db.Execute("PRAGMA synchronous = OFF;");
-    //         db.Execute("DROP TABLE IF EXISTS Users;");
-    //         db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-    //         db.Execute("BEGIN;");
-    //         using var stmt = db.Prepare("INSERT INTO Users VALUES (?, ?, ?);");
-    //         for (int i = 0; i < RowCount; i++)
-    //         {
-    //             stmt.Reset();
-    //             stmt.BindLong(1, i);
-    //             stmt.BindText(2, TestString);
-    //             stmt.BindDouble(3, i * 1.1);
-    //             stmt.Step();
-    //         }
-    //         db.Execute("COMMIT;");
-    //     }
-    // }
-
-    // [Benchmark]
-    // public void Write_CiccioSoftExp()
-    // {
-    //     CiccioSoft.Sqlite.Interop.Exp.Sqlite3 db;
-    //     CiccioSoft.Sqlite.Interop.Exp.Sqlite3.Open(":memory:", out db);  // In-Memory
-    //     using (db)
-    //     {
-    //         // db.Execute("PRAGMA journal_mode = WAL;");
-    //         db.Execute("PRAGMA synchronous = OFF;");
-    //         db.Execute("DROP TABLE IF EXISTS Users;");
-    //         db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-    //         db.Execute("BEGIN;");
-    //         CiccioSoft.Sqlite.Interop.Exp.Sqlite3Stmt stmt;
-    //         db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out stmt);
-    //         using (stmt)
-    //         {
-    //             for (int i = 0; i < RowCount; i++)
-    //             {
-    //                 stmt.Reset();
-    //                 stmt.BindLong(1, i);
-    //                 stmt.BindText(2, TestString);
-    //                 stmt.BindDouble(3, i * 1.1);
-    //                 stmt.Step();
-    //             }
-    //             db.Execute("COMMIT;");
-    //         }
-    //     }
-    // }
+    [Benchmark]
+    public void WriteSqliteInterop()
+    {
+        using (var db = CiccioSoft.Sqlite.Interop.Sqlite3.Open(":memory:")) // In-Memory
+        {
+            // db.Execute("PRAGMA journal_mode = WAL;");
+            db.Execute("PRAGMA synchronous = OFF;");
+            db.Execute("DROP TABLE IF EXISTS Users;");
+            db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+            db.Execute("BEGIN;");
+            using var stmt = db.Prepare("INSERT INTO Users VALUES (?, ?, ?);");
+            for (int i = 0; i < RowCount; i++)
+            {
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
+            }
+            db.Execute("COMMIT;");
+        }
+    }
 
     [Benchmark]
-    public void Write_CiccioSoftFast()
+    public void WriteSqliteInteropLight()
     {
-        CiccioSoft.Sqlite.Interop.Fast.Sqlite3 db;
-        CiccioSoft.Sqlite.Interop.Fast.Sqlite3.Open(":memory:", out db);  // In-Memory
+        CiccioSoft.Sqlite.Interop.Light.Sqlite3 db;
+        CiccioSoft.Sqlite.Interop.Light.Sqlite3.Open(":memory:", out db);  // In-Memory
         using (db)
         {
             // db.Execute("PRAGMA journal_mode = WAL;");
@@ -168,17 +139,46 @@ public class DotNetBenchmarkWriter
             db.Execute("DROP TABLE IF EXISTS Users;");
             db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
             db.Execute("BEGIN;");
-            CiccioSoft.Sqlite.Interop.Fast.Sqlite3Stmt stmt;
+            CiccioSoft.Sqlite.Interop.Light.Sqlite3Stmt? stmt;
             db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out stmt);
             using (stmt)
             {
                 for (int i = 0; i < RowCount; i++)
                 {
-                    stmt.Reset();
-                    stmt.BindLong(1, i);
-                    stmt.BindText(2, TestString);
-                    stmt.BindDouble(3, i * 1.1);
-                    stmt.Step();
+                    stmt?.Reset();
+                    stmt?.BindLong(1, i);
+                    stmt?.BindText(2, TestString);
+                    stmt?.BindDouble(3, i * 1.1);
+                    stmt?.Step();
+                }
+                db.Execute("COMMIT;");
+            }
+        }
+    }
+
+    [Benchmark]
+    public void WriteSqliteInteropCom()
+    {
+        CiccioSoft.Sqlite.Interop.Com.Sqlite3 db;
+        CiccioSoft.Sqlite.Interop.Com.Sqlite3.Open(":memory:", out db);  // In-Memory
+        using (db)
+        {
+            // db.Execute("PRAGMA journal_mode = WAL;");
+            db.Execute("PRAGMA synchronous = OFF;");
+            db.Execute("DROP TABLE IF EXISTS Users;");
+            db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+            db.Execute("BEGIN;");
+            CiccioSoft.Sqlite.Interop.Com.Sqlite3Stmt? stmt;
+            db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out stmt);
+            using (stmt)
+            {
+                for (int i = 0; i < RowCount; i++)
+                {
+                    stmt?.Reset();
+                    stmt?.BindLong(1, i);
+                    stmt?.BindText(2, TestString);
+                    stmt?.BindDouble(3, i * 1.1);
+                    stmt?.Step();
                 }
                 db.Execute("COMMIT;");
             }

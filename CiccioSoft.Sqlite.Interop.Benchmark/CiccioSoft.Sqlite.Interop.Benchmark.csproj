@@ -8,21 +8,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Scrive i file generati nella cartella obj/generated -->
-<!--   <PropertyGroup>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\generated</CompilerGeneratedFilesOutputPath>
-  </PropertyGroup> -->
-
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CiccioSoft.Sqlite.Interop\CiccioSoft.Sqlite.Interop.csproj" />
-    <ProjectReference Include="..\CiccioSoft.Sqlite.Interop.Exp\CiccioSoft.Sqlite.Interop.Exp.csproj" />
-    <ProjectReference Include="..\CiccioSoft.Sqlite.Interop.Fast\CiccioSoft.Sqlite.Interop.Fast.csproj" />
+    <ProjectReference Include="..\CiccioSoft.Sqlite.Interop.Light\CiccioSoft.Sqlite.Interop.Light.csproj" />
+    <ProjectReference Include="..\CiccioSoft.Sqlite.Interop.Com\CiccioSoft.Sqlite.Interop.Com.csproj" />
   </ItemGroup>
 
 </Project>
