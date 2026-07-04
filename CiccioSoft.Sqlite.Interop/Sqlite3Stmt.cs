@@ -43,14 +43,8 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns><c>true</c> if a new row of data is available; <c>false</c> if the execution has completed successfully.</returns>
     /// <remarks>
     /// <b>Control Flow:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>SQLITE_ROW</c>: Data is ready to be read via Column methods.</description>
-    /// </item>
-    /// <item>
-    /// <description><c>SQLITE_DONE</c>: Query finished or an INSERT/UPDATE/DELETE was executed.</description>
-    /// </item>
-    /// </list>
+    /// - <c>SQLITE_ROW</c>: Data is ready to be read via Column methods.
+    /// - <c>SQLITE_DONE</c>: Query finished or an INSERT/UPDATE/DELETE was executed.
     /// </remarks>
     /// <exception cref="Exception">Thrown if an error occurs during execution (e.g., constraint violations).</exception>
     public bool Step()
@@ -95,14 +89,8 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <remarks>
     /// <b>Resource Management:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Zero-Allocation: Resets native parameter slots without allocating new managed objects.</description>
-    /// </item>
-    /// <item>
-    /// <description>Optimization: Useful when reusing the same statement across multiple executions with different parameter sets.</description>
-    /// </item>
-    /// </list>
+    /// - Zero-Allocation: Resets native parameter slots without allocating new managed objects.
+    /// - Optimization: Useful when reusing the same statement across multiple executions with different parameter sets.
     /// </remarks>
     /// <exception cref="Exception">Thrown if the native clearing of bindings fails.</exception>
     public void ClearBindings()
@@ -161,28 +149,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         ThrowIfInvalid();
         ArgumentNullException.ThrowIfNull(parameterName);
 
-        int dataLength = Encoding.UTF8.GetByteCount(parameterName);
-        int totalNeeded = dataLength + 1;
+        using var utf8Buffer = new Utf8SafeStackBuffer(parameterName, stackalloc byte[512]);
 
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = totalNeeded <= 256
-            ? stackalloc byte[totalNeeded]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
-
-        try
+        fixed (byte* pBuf = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(parameterName, buffer);
-            buffer[dataLength] = 0;
-
-            fixed (byte* pBuf = buffer)
-            {
-                return Sqlite3Native.sqlite3_bind_parameter_index(_handle.DangerousGetHandle(), pBuf);
-            }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+            return Sqlite3Native.sqlite3_bind_parameter_index(_handle.DangerousGetHandle(), pBuf);
         }
     }
 
@@ -304,17 +275,9 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </returns>
     /// <remarks>
     /// <b>High-Performance Retrieval:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Uses <c>sqlite3_column_text</c> to access native UTF-8 memory directly without intermediate copies.</description>
-    /// </item>
-    /// <item>
-    /// <description>Bypasses string decoding for empty values (byteCount == 0) to return <see cref="string.Empty"/> instantly.</description>
-    /// </item>
-    /// <item>
-    /// <description>Leverages <see cref="System.Text.Encoding.GetString(byte*, int)"/> for the fastest pointer-to-string conversion available in .NET.</description>
-    /// </item>
-    /// </list>
+    /// - Native Access: Uses <c>sqlite3_column_text</c> to access native UTF-8 memory directly without intermediate copies.
+    /// - Fast Path: Bypasses string decoding for empty values (byteCount == 0) to return <see cref="string.Empty"/> instantly.
+    /// - Pointer Conversion: Leverages <see cref="System.Text.Encoding.GetString(byte*, int)"/> for the fastest pointer-to-string conversion available in .NET.
     /// </remarks>
     /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
     public string? GetString(int index)
@@ -343,17 +306,9 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>A <see cref="ReadOnlySpan{Byte}"/> pointing directly to the native SQLite memory; <see cref="ReadOnlySpan{Byte}.Empty"/> if NULL.</returns>
     /// <remarks>
     /// <b>Critical Performance Warning:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Zero-Copy: This method provides direct access to SQLite's internal buffers for maximum speed and zero GC pressure.</description>
-    /// </item>
-    /// <item>
-    /// <description>Lifetime: The returned <see cref="ReadOnlySpan{Byte}"/> is <b>only valid</b> until the next call to <c>Step()</c>, <c>Reset()</c>, or <c>Dispose()</c> on this statement.</description>
-    /// </item>
-    /// <item>
-    /// <description>Persistence: If you need to keep the data beyond the current row, you must call <c>.ToArray()</c> or copy it to another buffer.</description>
-    /// </item>
-    /// </list>
+    /// - Zero-Copy: This method provides direct access to SQLite's internal buffers for maximum speed and zero GC pressure.
+    /// - Lifetime: The returned <see cref="ReadOnlySpan{Byte}"/> is <b>only valid</b> until the next call to <c>Step()</c>, <c>Reset()</c>, or <c>Dispose()</c> on this statement.
+    /// - Persistence: If you need to keep the data beyond the current row, you must call <c>.ToArray()</c> or copy it to another buffer.
     /// </remarks>
     /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
     public ReadOnlySpan<byte> GetBlob(int index)
@@ -504,17 +459,9 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
     /// <remarks>
     /// <b>High-Performance Implementation:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Uses <c>stackalloc</c> for strings up to 1KB to avoid heap allocations.</description>
-    /// </item>
-    /// <item>
-    /// <description>Uses <see cref="ArrayPool{T}"/> for larger strings to minimize GC pressure.</description>
-    /// </item>
-    /// <item>
-    /// <description>Passes <c>SQLITE_TRANSIENT</c> to SQLite, forcing it to make an internal copy of the data, which is necessary since our buffers are reclaimed immediately after the call.</description>
-    /// </item>
-    /// </list>
+    /// - Hybrid Allocation: Uses <c>stackalloc</c> for strings up to 1KB to avoid heap allocations.
+    /// - Memory Fallback: Uses <see cref="ArrayPool{T}"/> for larger strings to minimize GC pressure.
+    /// - Data Lifecycle: Passes <c>SQLITE_TRANSIENT</c> to SQLite, forcing it to make an internal copy of the data, which is necessary since our buffers are reclaimed immediately after the call.
     /// </remarks>
     /// <exception cref="Exception">Thrown if the binding fails or the statement is invalid.</exception>
     public void BindText(int index, string s)
@@ -526,40 +473,27 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         if (s is null)
         {
             CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
+            // Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index);
             return;
         }
 
-        // Calcoliamo lo spazio necessario per la conversione UTF-8
-        int dataLength = System.Text.Encoding.UTF8.GetByteCount(s);
+        // Alloca la memoria base nello stack
+        // 512 byte bastano per la maggior parte delle stringhe standard
+        using var utf8Buffer = new Utf8SafeStackBuffer(s, stackalloc byte[1024]);
 
-        // Pattern Soglia: Stack per piccoli dati, Pool per grandi dati
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = dataLength <= 1024
-            ? stackalloc byte[dataLength]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(dataLength)).AsSpan(0, dataLength);
+        // var span16 = s.AsSpan();
 
-        try
+        fixed (byte* pBuf = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(s, buffer);
-
-            // Otteniamo il puntatore e chiamiamo SQLite
-            fixed (byte* pBuf = buffer)
-            {
-                // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
-                // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
-                SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_text(
-                    _handle.DangerousGetHandle(),
-                    index,
-                    pBuf,
-                    dataLength,
-                    Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
-                CheckResult(res, index);
-            }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                System.Buffers.ArrayPool<byte>.Shared.Return(arrayFromPool);
+            // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
+            // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
+            SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_text(
+                _handle.DangerousGetHandle(),
+                index,
+                pBuf,
+                utf8Buffer.Length,
+                Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
+            CheckResult(res, index);
         }
     }
 
@@ -570,17 +504,9 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="data">The binary data to bind as a <see cref="ReadOnlySpan{Byte}"/>. If empty, a SQL NULL is bound.</param>
     /// <remarks>
     /// <b>Memory Strategy:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Zero-Copy Entry: Accepts <see cref="ReadOnlySpan{Byte}"/> to allow binding slices of arrays or stack-allocated memory without intermediate allocations.</description>
-    /// </item>
-    /// <item>
-    /// <description>Safe P/Invoke: Uses the <c>fixed</c> statement to obtain a stable pointer to the span's underlying memory.</description>
-    /// </item>
-    /// <item>
-    /// <description>Persistence: Passes <c>SQLITE_TRANSIENT</c> to ensure SQLite creates an internal copy of the data, safeguarding against the caller reclaiming the memory immediately after the call.</description>
-    /// </item>
-    /// </list>
+    /// - Zero-Copy Entry: Accepts <see cref="ReadOnlySpan{Byte}"/> to allow binding slices of arrays or stack-allocated memory without intermediate allocations.
+    /// - Safe P/Invoke: Uses the <c>fixed</c> statement to obtain a stable pointer to the span's underlying memory.
+    /// - Persistence: Passes <c>SQLITE_TRANSIENT</c> to ensure SQLite creates an internal copy of the data, safeguarding against the caller reclaiming the memory immediately after the call.
     /// </remarks>
     /// <exception cref="Exception">Thrown if the binding fails or the statement is in an invalid state.</exception>
     public void BindBlob(int index, ReadOnlySpan<byte> data)

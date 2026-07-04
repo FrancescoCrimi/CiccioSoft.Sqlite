@@ -31,9 +31,11 @@ public static class RawComparisonBenchmark2
         long memStart1 = GC.GetTotalMemory(true);
         Stopwatch swWrite1 = Stopwatch.StartNew();
         
-        using (var db = Sqlite3.Open(DbFile1))
+        using (var db = Sqlite3.Open(":memory:"))
         {
-            db.Execute("PRAGMA journal_mode = WAL; PRAGMA synchronous = OFF;");
+            // db.Execute("PRAGMA journal_mode = WAL; PRAGMA synchronous = OFF;");
+            db.Execute("PRAGMA synchronous = OFF;");
+            db.Execute("DROP TABLE IF EXISTS Users;");
             db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
             db.Execute("BEGIN;");
             using var stmt = db.Prepare("INSERT INTO Users VALUES (?, ?, ?);");
@@ -56,8 +58,9 @@ public static class RawComparisonBenchmark2
         Stopwatch swWrite2 = Stopwatch.StartNew();
         
         sqlite3 dbRaw;
-        raw.sqlite3_open(DbFile2, out dbRaw);
+        raw.sqlite3_open(":memory:", out dbRaw);
         raw.sqlite3_exec(dbRaw, "PRAGMA journal_mode = WAL; PRAGMA synchronous = OFF;");
+        raw.sqlite3_exec(dbRaw, "DROP TABLE IF EXISTS Users;");
         raw.sqlite3_exec(dbRaw, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
         raw.sqlite3_exec(dbRaw, "BEGIN;");
         sqlite3_stmt stmtRaw;

@@ -32,17 +32,9 @@ public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
 /// </summary>
 /// <remarks>
 /// <b>Design Principles:</b>
-/// <list type="bullet">
-/// <item>
-/// <description>Zero-Allocation Marshalling: Extensively uses <c>stackalloc</c> and <see cref="System.Buffers.ArrayPool{T}"/> to minimize Managed Heap churn during string-to-UTF8 conversions.</description>
-/// </item>
-/// <item>
-/// <description>Native Interoperability: Optimized for <c>P/Invoke</c> using <c>unsafe</c> code and <c>Span&lt;T&gt;</c> for direct memory access.</description>
-/// </item>
-/// <item>
-/// <description>Resource Safety: Implements <see cref="IDisposable"/> using a <see cref="SafeHandle"/> pattern to ensure deterministic release of native SQLite resources.</description>
-/// </item>
-/// </list>
+/// - Zero-Allocation Marshalling: Extensively uses <c>stackalloc</c> and <see cref="System.Buffers.ArrayPool{T}"/> to minimize Managed Heap churn during string-to-UTF8 conversions.
+/// - Native Interoperability: Optimized for <c>P/Invoke</c> using <c>unsafe</c> code and <c>Span&lt;T&gt;</c> for direct memory access.
+/// - Resource Safety: Implements <see cref="IDisposable"/> using a <see cref="SafeHandle"/> pattern to ensure deterministic release of native SQLite resources.
 /// </remarks>
 /// <threadsafety>
 /// This class is not inherently thread-safe. Concurrent access to a single SQLite connection 
@@ -66,20 +58,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <returns>A new <see cref="Sqlite3"/> instance representing the database connection.</returns>
     /// <remarks>
     /// <b>Implementation Details:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Hybrid allocation: Uses <c>stackalloc</c> for paths up to 1KB, falling back to <see cref="ArrayPool{T}"/> for longer paths to avoid Managed Heap churn.</description>
-    /// </item>
-    /// <item>
-    /// <description>Zero-copy string marshalling: Encodes the filename directly into a temporary buffer with a manual null terminator, bypassing redundant <see cref="string"/> allocations.</description>
-    /// </item>
-    /// <item>
-    /// <description>Safe Error Handling: Captures the error message via <c>sqlite3_errmsg</c> <b>before</b> closing the pointer, ensuring the error description remains valid for the exception.</description>
-    /// </item>
-    /// <item>
-    /// <description>Resource Leak Prevention: Explicitly calls <c>sqlite3_close_v2</c> even if the open operation fails, as SQLite may allocate resources for the handle during a failed attempt.</description>
-    /// </item>
-    /// </list>
+    /// - Hybrid allocation: Uses <c>stackalloc</c> for paths up to 1KB, falling back to <see cref="ArrayPool{T}"/> for longer paths to avoid Managed Heap churn.
+    /// - Zero-copy string marshalling: Encodes the filename directly into a temporary buffer with a manual null terminator, bypassing redundant <see cref="string"/> allocations.
+    /// - Safe Error Handling: Captures the error message via <c>sqlite3_errmsg</c> <b>before</b> closing the pointer, ensuring the error description remains valid for the exception.
+    /// - Resource Leak Prevention: Explicitly calls <c>sqlite3_close_v2</c> even if the open operation fails, as SQLite may allocate resources for the handle during a failed attempt.
     /// </remarks>
     /// <exception cref="SqliteInteropException">Thrown if the database cannot be opened.</exception>
     public static Sqlite3 Open(string filename)
@@ -102,62 +84,35 @@ public sealed unsafe class Sqlite3 : IDisposable
 
         SqliteOpenFlags openFlags = useUri ? flags | SqliteOpenFlags.Uri : flags;
 
-        int filenameDataLength = Encoding.UTF8.GetByteCount(filename);
-        int filenameTotalNeeded = filenameDataLength + 1;
+        using var filenameBuffer = new Utf8SafeStackBuffer(filename, stackalloc byte[512]);
+        using var vfsBuffer = new Utf8SafeStackBuffer(vfsName, stackalloc byte[512]);
 
-        int vfsDataLength = vfsName is null ? 0 : Encoding.UTF8.GetByteCount(vfsName);
-        int vfsTotalNeeded = vfsDataLength + 1;
-
-        byte[]? arrayFromPool = null;
-
-        int totalNeeded = filenameTotalNeeded + (vfsName is null ? 0 : vfsTotalNeeded);
-        Span<byte> buffer = totalNeeded <= 1024
-            ? stackalloc byte[totalNeeded]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
-
-        try
+        fixed (byte* pFilename = filenameBuffer, pVfsRaw  = vfsBuffer)
         {
-            Span<byte> filenameBuffer = buffer[..filenameTotalNeeded];
-            Encoding.UTF8.GetBytes(filename, filenameBuffer);
-            filenameBuffer[filenameDataLength] = 0;
+            // SOLUZIONE DEL BUG: Se il parametro originale C# era nullo/vuoto, 
+            // passiamo un puntatore 'null' effettivo a SQLite, altrimenti usiamo pVfsRaw.
+            byte* pVfs = string.IsNullOrEmpty(vfsName) ? null : pVfsRaw;
 
-            if (vfsName is not null)
+            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
+
+            // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
+            // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
+            if (result != SqliteResult.OK)
             {
-                Span<byte> vfsBuffer = buffer.Slice(filenameTotalNeeded, vfsTotalNeeded);
-                Encoding.UTF8.GetBytes(vfsName, vfsBuffer);
-                vfsBuffer[vfsDataLength] = 0;
-            }
+                SqliteInteropException exception = SqliteInteropException.CreateException(result, pDb, "SQLite open");
 
-            fixed (byte* pBuffer = buffer)
-            {
-                byte* pFilename = pBuffer;
-                byte* pVfs = vfsName is null ? null : pBuffer + filenameTotalNeeded;
-                SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
-
-                // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
-                // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
-                if (result != SqliteResult.OK)
+                // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
+                // Dobbiamo chiudere pDb manualmente o tramite l'handle.
+                if (pDb != nint.Zero)
                 {
-                    SqliteInteropException exception = SqliteInteropException.CreateException(result, pDb, "SQLite open");
-
-                    // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
-                    // Dobbiamo chiudere pDb manualmente o tramite l'handle.
-                    if (pDb != nint.Zero)
-                    {
-                        Sqlite3Native.sqlite3_close_v2(pDb);
-                    }
-
-                    throw exception;
+                    Sqlite3Native.sqlite3_close_v2(pDb);
                 }
 
-                // Se tutto è andato bene, incapsuliamo l'handle sicuro
-                return new Sqlite3(new Sqlite3Handle(pDb));
+                throw exception;
             }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+
+            // Se tutto è andato bene, incapsuliamo l'handle sicuro
+            return new Sqlite3(new Sqlite3Handle(pDb));
         }
     }
 
@@ -166,18 +121,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// </summary>
     /// <param name="sql">The SQL string to execute (e.g., 'CREATE TABLE', 'INSERT', 'VACUUM').</param>
     /// <remarks>
-    /// Zero-Allocation Optimization Strategy:
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Uses <c>stackalloc</c> for queries smaller than 1KB to avoid Managed Heap allocation.</description>
-    /// </item>
-    /// <item>
-    /// <description>Falls back to <see cref="System.Buffers.ArrayPool{T}"/> for larger queries to minimize Garbage Collector pressure.</description>
-    /// </item>
-    /// <item>
-    /// <description>Manually appends the null terminator required by <c>sqlite3_exec</c> to prevent unnecessary string concatenations.</description>
-    /// </item>
-    /// </list>
+    /// <b>Zero-Allocation Optimization Strategy:</b>
+    /// - Uses <c>stackalloc</c> for queries smaller than 1KB to avoid Managed Heap allocation.
+    /// - Falls back to <see cref="System.Buffers.ArrayPool{T}"/> for larger queries to minimize Garbage Collector pressure.
+    /// - Manually appends the null terminator required by <c>sqlite3_exec</c> to prevent unnecessary string concatenations.
     /// </remarks>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is closed.</exception>
     /// <exception cref="SqliteInteropException">Thrown if SQLite returns an error during execution.</exception>
@@ -185,34 +132,17 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(sql);
-        int totalNeeded = dataLength + 1;
+        using var utf8Buffer = new Utf8SafeStackBuffer(sql, stackalloc byte[1024]);
 
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = totalNeeded <= 1024
-            ? stackalloc byte[totalNeeded]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
-
-        try
+        fixed (byte* pBuf = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(sql, buffer);
-            buffer[dataLength] = 0;
-
-            fixed (byte* pBuf = buffer)
-            {
-                SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_exec(
-                    _handle.DangerousGetHandle(),
-                    pBuf,
-                    null,
-                    null,
-                    null);
-                SqliteInteropException.ThrowOnError(result, _handle.DangerousGetHandle(), "SQLite exec");
-            }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_exec(
+                _handle.DangerousGetHandle(),
+                pBuf,
+                null,
+                null,
+                null);
+            SqliteInteropException.ThrowOnError(result, _handle.DangerousGetHandle(), "SQLite exec");
         }
     }
 
@@ -223,17 +153,9 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <returns>A new <see cref="Sqlite3Stmt"/> instance wrapping the compiled statement.</returns>
     /// <remarks>
     /// <b>Performance Optimizations:</b>
-    /// <list type="bullet">
-    /// <item>
-    /// <description>Hybrid allocation: Uses <c>stackalloc</c> for queries up to 1KB, falling back to <see cref="ArrayPool{T}"/> for larger SQL strings.</description>
-    /// </item>
-    /// <item>
-    /// <description>Explicit Length: Passes the exact UTF-8 byte count to <c>sqlite3_prepare_v2</c>, allowing SQLite to bypass the internal null-terminator scan for better performance.</description>
-    /// </item>
-    /// <item>
-    /// <description>Safe Cleanup: If preparation fails but an internal statement pointer is partially allocated, it is immediately finalized to prevent native memory leaks.</description>
-    /// </item>
-    /// </list>
+    /// - Hybrid allocation: Uses <c>stackalloc</c> for queries up to 1KB, falling back to <see cref="ArrayPool{T}"/> for larger SQL strings.
+    /// - Explicit Length: Passes the exact UTF-8 byte count to <c>sqlite3_prepare_v2</c>, allowing SQLite to bypass the internal null-terminator scan for better performance.
+    /// - Safe Cleanup: If preparation fails but an internal statement pointer is partially allocated, it is immediately finalized to prevent native memory leaks.
     /// </remarks>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
     /// <exception cref="SqliteInteropException">Thrown if the SQL syntax is invalid or the statement cannot be prepared.</exception>
@@ -254,46 +176,32 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(sql) + 1; // +1 per il null terminator
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = dataLength <= 1024
-            ? stackalloc byte[dataLength]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(dataLength)).AsSpan(0, dataLength);
+        using var utf8Buffer = new Utf8SafeStackBuffer(sql, stackalloc byte[1024]);
 
-        try
+        fixed (byte* pBuf = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(sql, buffer);
+            // Chiamata nativa
+            nint pStmt = default;
+            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
+                _handle.DangerousGetHandle(),
+                pBuf,
+                utf8Buffer.Length, // Lunghezza esatta dei dati
+                (uint)prepareFlags,
+                &pStmt,
+                null);
 
-            fixed (byte* pBuf = buffer)
+            if (result != SqliteResult.OK)
             {
-                // Chiamata nativa
-                nint pStmt = default;
-                SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
-                    _handle.DangerousGetHandle(),
-                    pBuf,
-                    dataLength, // Lunghezza esatta dei dati
-                    (uint)prepareFlags,
-                    &pStmt,
-                    null);
+                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
 
-                if (result != SqliteResult.OK)
-                {
-                    SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                // Se pStmt è stato allocato nonostante l'errore, va chiuso.
+                if (pStmt != nint.Zero)
+                    Sqlite3Native.sqlite3_finalize(pStmt);
 
-                    // Se pStmt è stato allocato nonostante l'errore, va chiuso.
-                    if (pStmt != nint.Zero)
-                        Sqlite3Native.sqlite3_finalize(pStmt);
-
-                    throw exception;
-                }
-
-                return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
+                throw exception;
             }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+
+            return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
         }
     }
 
@@ -314,61 +222,65 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(sql) + 1; // +1 per il null terminator
+        using var utf8Buffer = new Utf8SafeStackBuffer(sql, stackalloc byte[1024]);
+
+        // int dataLength = Encoding.UTF8.GetByteCount(sql) + 1; // +1 per il null terminator
+        int dataLength = utf8Buffer.Length + 1; // +1 per il null terminator
+
         if ((uint)sqlByteOffset > (uint)dataLength)
         {
             throw new ArgumentOutOfRangeException(nameof(sqlByteOffset));
         }
 
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = dataLength <= 1024
-            ? stackalloc byte[dataLength]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(dataLength)).AsSpan(0, dataLength);
+        // byte[]? arrayFromPool = null;
+        // Span<byte> buffer = dataLength <= 1024
+        //     ? stackalloc byte[dataLength]
+        //     : (arrayFromPool = ArrayPool<byte>.Shared.Rent(dataLength)).AsSpan(0, dataLength);
 
-        try
+        // try
+        // {
+        // Encoding.UTF8.GetBytes(sql, buffer);
+
+        fixed (byte* pBuf = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(sql, buffer);
+            byte* pStart = pBuf + sqlByteOffset;
+            int remainingLength = dataLength - sqlByteOffset;
 
-            fixed (byte* pBuf = buffer)
+            nint pStmt = default;
+            byte* pTail = null;
+            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
+                _handle.DangerousGetHandle(),
+                pStart,
+                remainingLength,
+                (uint)prepareFlags,
+                &pStmt,
+                &pTail);
+
+            if (result != SqliteResult.OK)
             {
-                byte* pStart = pBuf + sqlByteOffset;
-                int remainingLength = dataLength - sqlByteOffset;
+                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                if (pStmt != nint.Zero)
+                    Sqlite3Native.sqlite3_finalize(pStmt);
 
-                nint pStmt = default;
-                byte* pTail = null;
-                SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
-                    _handle.DangerousGetHandle(),
-                    pStart,
-                    remainingLength,
-                    (uint)prepareFlags,
-                    &pStmt,
-                    &pTail);
-
-                if (result != SqliteResult.OK)
-                {
-                    SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
-                    if (pStmt != nint.Zero)
-                        Sqlite3Native.sqlite3_finalize(pStmt);
-
-                    throw exception;
-                }
-
-                int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
-                nextSqlByteOffset = sqlByteOffset + consumedBytes;
-
-                if (pStmt == nint.Zero)
-                {
-                    return null;
-                }
-
-                return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
+                throw exception;
             }
+
+            int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
+            nextSqlByteOffset = sqlByteOffset + consumedBytes;
+
+            if (pStmt == nint.Zero)
+            {
+                return null;
+            }
+
+            return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
         }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
-        }
+        // }
+        // finally
+        // {
+        //     // if (arrayFromPool != null)
+        //     //     ArrayPool<byte>.Shared.Return(arrayFromPool);
+        // }
     }
 
     /// <summary>
@@ -448,28 +360,11 @@ public sealed unsafe class Sqlite3 : IDisposable
             return Sqlite3Native.sqlite3_txn_state(_handle.DangerousGetHandle(), null);
         }
 
-        int dataLength = Encoding.UTF8.GetByteCount(schemaName);
-        int totalNeeded = dataLength + 1;
+        using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[1024]);
 
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = totalNeeded <= 256
-            ? stackalloc byte[totalNeeded]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
-
-        try
+        fixed (byte* pSchema = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(schemaName, buffer);
-            buffer[dataLength] = 0;
-
-            fixed (byte* pSchema = buffer)
-            {
-                return Sqlite3Native.sqlite3_txn_state(_handle.DangerousGetHandle(), pSchema);
-            }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+            return Sqlite3Native.sqlite3_txn_state(_handle.DangerousGetHandle(), pSchema);
         }
     }
 
@@ -484,34 +379,17 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
 
-        int dataLength = Encoding.UTF8.GetByteCount(schemaName);
-        int totalNeeded = dataLength + 1;
+        using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[512]);
 
-        byte[]? arrayFromPool = null;
-        Span<byte> buffer = totalNeeded <= 256
-            ? stackalloc byte[totalNeeded]
-            : (arrayFromPool = ArrayPool<byte>.Shared.Rent(totalNeeded)).AsSpan(0, totalNeeded);
-
-        try
+        fixed (byte* pSchema = utf8Buffer)
         {
-            Encoding.UTF8.GetBytes(schemaName, buffer);
-            buffer[dataLength] = 0;
-
-            fixed (byte* pSchema = buffer)
+            int result = Sqlite3Native.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
+            if (result < 0)
             {
-                int result = Sqlite3Native.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
-                if (result < 0)
-                {
-                    SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
-                }
-
-                return result != 0;
+                SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
             }
-        }
-        finally
-        {
-            if (arrayFromPool != null)
-                ArrayPool<byte>.Shared.Return(arrayFromPool);
+
+            return result != 0;
         }
     }
 

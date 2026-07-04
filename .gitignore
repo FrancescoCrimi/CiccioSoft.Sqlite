@@ -485,3 +485,9 @@ $RECYCLE.BIN/
 
 # Sublime Text file
 *.sublime-workspace
+
+# build dir cmake
+build/
+
+# cmake preset
+CMakePresets.json
