@@ -30,7 +30,7 @@ if not (String.IsNullOrWhiteSpace(output)) then printfn "%s" output
 if not (String.IsNullOrWhiteSpace(errori)) then printfn "ERRORI:\n%s" errori
 
 // 4. Correzione finale delle virgolette sul file C# generato
-let percorsoFile = "../NativeNew/Sqlite3Native.cs"
+let percorsoFile = "../Native/Sqlite3Native.cs"
 if File.Exists(percorsoFile) then
     let codice = File.ReadAllText(percorsoFile)
     let codicePulito = codice.Replace("\"SOSTITUISCIMI_LIBRERIA\"", "SQLITE_DLL")

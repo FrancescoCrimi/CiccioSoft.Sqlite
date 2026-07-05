@@ -1,4 +1,4 @@
-namespace CiccioSoft.Sqlite.Interop.NativeNew
+namespace CiccioSoft.Sqlite.Interop.Native
 {
     public partial struct sqlite3_backup
     {

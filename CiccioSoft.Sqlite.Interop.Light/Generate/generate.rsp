@@ -2,10 +2,10 @@
 sqlite3.h
 
 --output
-../NativeNew
+../Native
 
 --namespace
-CiccioSoft.Sqlite.Interop.NativeNew
+CiccioSoft.Sqlite.Interop.Native
 
 --libraryPath
 SOSTITUISCIMI_LIBRERIA
