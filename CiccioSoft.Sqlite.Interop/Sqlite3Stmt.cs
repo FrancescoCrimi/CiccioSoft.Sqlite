@@ -277,23 +277,17 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return Sqlite3Native.sqlite3_column_double(_handle.DangerousGetHandle(), index);
     }
 
-
-
-
     public ReadOnlySpan<byte> GetText(int index)
     {
         ThrowIfInvalid();
 
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
         byte* pText = Sqlite3Native.sqlite3_column_text(_handle.DangerousGetHandle(), index);
-        if (pText == null)
-            return ReadOnlySpan<byte>.Empty;
+        if (pText == null) return ReadOnlySpan<byte>.Empty;
 
         // Chiediamo a SQLite la lunghezza esatta in byte
         int byteCount = Sqlite3Native.sqlite3_column_bytes(_handle.DangerousGetHandle(), index);
-
-        if (byteCount == 0)        
-            return ReadOnlySpan<byte>.Empty;        
+        if (byteCount == 0) return ReadOnlySpan<byte>.Empty;        
 
         return new ReadOnlySpan<byte>(pText, byteCount);
     }
@@ -493,15 +487,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         if (s is null)
         {
             CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index), index);
-            // Sqlite3Native.sqlite3_bind_null(_handle.DangerousGetHandle(), index);
             return;
         }
 
         // Alloca la memoria base nello stack
         // 512 byte bastano per la maggior parte delle stringhe standard
         using var utf8Buffer = new Utf8SafeStackBuffer(s, stackalloc byte[1024]);
-
-        // var span16 = s.AsSpan();
 
         fixed (byte* pBuf = utf8Buffer)
         {

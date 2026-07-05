@@ -10,5 +10,7 @@ class Program
         // RawComparisonBenchmark2.Run();
         // RawComparisonBenchmark.Run();
         BenchmarkRunner.Run<DotNetBenchmarkWriter>();
+        BenchmarkRunner.Run<ReadZeroAllocation>();
+        BenchmarkRunner.Run<ReadWithStrings>();
     }
 }

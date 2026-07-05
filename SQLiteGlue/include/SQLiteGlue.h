@@ -77,8 +77,8 @@ typedef struct sqlite_stmt_vtable {
 	int32_t (*column_int)(void *pStmt, int32_t iCol);											// 5469
 	int64_t (*column_int64)(void *pStmt, int32_t iCol);											// 5470
 	const unsigned char* (*column_text)(void *pStmt, int32_t iCol);								// 5471
-	void *(*column_value)(void *pStmt, int iCol);												// 5473
-	int32_t (*column_bytes)(void *pStmt, int iCol);												// 5474
+	void *(*column_value)(void *pStmt, int32_t iCol);												// 5473
+	int32_t (*column_bytes)(void *pStmt, int32_t iCol);												// 5474
 	int32_t (*column_type)(void *pStmt, int32_t iCol);											// 5476
 	int32_t (*finalize)(void *pStmt);															// 5504
 	int32_t (*reset)(void *pStmt);																// 5543

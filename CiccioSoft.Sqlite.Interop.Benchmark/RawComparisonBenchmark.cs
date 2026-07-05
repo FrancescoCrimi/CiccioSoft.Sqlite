@@ -27,7 +27,7 @@ public static class RawComparisonBenchmark
             while (query.Step())
             {
                 long id = query.GetLong(0);
-                string? name = query.GetString(1); // Ottimizzato con byte*
+                string? name = query.GetTextString(1); // Ottimizzato con byte*
                 double score = query.GetDouble(2);
             }
         }

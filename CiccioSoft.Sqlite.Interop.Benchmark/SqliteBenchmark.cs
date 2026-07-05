@@ -68,7 +68,7 @@ public static class SqliteBenchmark
                     double score = query.GetDouble(2);
 
                     // Lettura stringa con il tuo metodo ottimizzato
-                    string? name = query.GetString(1);
+                    string? name = query.GetTextString(1);
 
                     // Facciamo qualcosa con i dati per simulare un carico reale
                     checksum += id;

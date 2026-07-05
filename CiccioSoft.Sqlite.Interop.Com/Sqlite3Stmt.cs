@@ -246,6 +246,19 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return _vtable.Stmt.column_double(_handle.DangerousGetHandle(), index);
     }
 
+    public ReadOnlySpan<byte> GetText(int index)
+    {
+        // Otteniamo il puntatore alla memoria nativa gestita da SQLite
+        byte* pText = _vtable.Stmt.column_text(_handle.DangerousGetHandle(), index);
+        if (pText == null) return ReadOnlySpan<byte>.Empty;
+
+        // Chiediamo a SQLite la lunghezza esatta in byte
+        int byteCount = _vtable.Stmt.column_bytes(_handle.DangerousGetHandle(), index);
+        if (byteCount == 0) return ReadOnlySpan<byte>.Empty;
+
+        return new ReadOnlySpan<byte>(pText, byteCount);
+    }
+
     /// <summary>
     /// Retrieves the value of a result column as a managed string, distinguishing between NULL and empty values.
     /// </summary>
@@ -255,27 +268,13 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <c>null</c> if the database value is SQL NULL; 
     /// <see cref="string.Empty"/> if the database value is an empty string.
     /// </returns>
-    /// <remarks>
-    /// <b>High-Performance Retrieval:</b>
-    /// - Native Access: Uses <c>sqlite3_column_text</c> to access native UTF-8 memory directly without intermediate copies.
-    /// - Fast Path: Bypasses string decoding for empty values (byteCount == 0) to return <see cref="string.Empty"/> instantly.
-    /// - Pointer Conversion: Leverages <see cref="System.Text.Encoding.GetString(byte*, int)"/> for the fastest pointer-to-string conversion available in .NET.
-    /// </remarks>
-    public string? GetString(int index)
+    public string? GetTextString(int index)
     {
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
         byte* pText = _vtable.Stmt.column_text(_handle.DangerousGetHandle(), index);
-        if (pText == null) return null;
 
-        // Chiediamo a SQLite la lunghezza esatta in byte
-        int byteCount = _vtable.Stmt.column_bytes(_handle.DangerousGetHandle(), index);
-
-        if (byteCount == 0)
-        {
-            return string.Empty;
-        }
-
-        return Encoding.UTF8.GetString(pText, byteCount);
+        // Marshal.PtrToStringUTF8 gestisce internamente il controllo null e la terminazione \0
+        return pText == null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
     /// <summary>

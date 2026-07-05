@@ -93,7 +93,7 @@ public static class RawComparisonBenchmark2
             while (query.Step())
             {
                 long id = query.GetLong(0);
-                string? name = query.GetString(1);
+                string? name = query.GetTextString(1);
                 double score = query.GetDouble(2);
             }
         }

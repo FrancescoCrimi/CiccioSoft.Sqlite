@@ -71,6 +71,7 @@ static int32_t my_prepare(void *pSqlite,			/* Database handle */
 
 
 
+
 static int32_t my_bind_blob (void *pStmt, int32_t i, const uint8_t *d, int32_t n) { 
 	return sqlite3_bind_blob(pStmt, i, d, n, SQLITE_TRANSIENT); 
 }
@@ -96,8 +97,43 @@ static int32_t my_bind_text (void *pStmt, int32_t i, const char *utf8, int32_t b
 }
 
 static int32_t my_step(void *pStmt)	{ 
-	return sqlite3_step((sqlite3_stmt*)pStmt); 
+	return sqlite3_step((sqlite3_stmt*)pStmt);
 }
+
+
+
+
+static const void *my_column_blob(void *pStmt, int32_t iCol) {
+	return sqlite3_column_blob(pStmt, iCol);
+}
+
+static double my_column_double(void *pStmt, int32_t iCol) {
+	return sqlite3_column_double(pStmt, iCol);
+}
+
+static int32_t my_column_int(void *pStmt, int32_t iCol) {
+	return sqlite3_column_int(pStmt, iCol);
+}
+
+static int64_t my_column_int64(void *pStmt, int32_t iCol) {
+	return sqlite3_column_int64(pStmt, iCol);
+}
+static const unsigned char *my_column_text(void *pStmt, int32_t iCol) {
+	return sqlite3_column_text(pStmt, iCol);
+}
+
+// static sqlite3_value *sqlite3_column_value(sqlite3_stmt *pStmt, int32_t iCol) {}
+
+static int32_t my_column_bytes(void *pStmt, int32_t iCol) {
+	return sqlite3_column_bytes(pStmt, iCol);
+}
+
+static int32_t my_column_type(void *pStmt, int32_t iCol) {
+	return sqlite3_column_type(pStmt, iCol);
+}
+
+
+
 
 static int32_t my_finalize(void *pStmt)	{ 
 	return sqlite3_finalize((sqlite3_stmt*)pStmt); 
@@ -131,6 +167,13 @@ void get_vtable(vtable* table) {
 		.stmt.bind_null = my_bind_null,
 		.stmt.bind_text = my_bind_text,
 		.stmt.step = my_step,
+		.stmt.column_blob = my_column_blob,
+		.stmt.column_double = my_column_double,
+		.stmt.column_int = my_column_int,
+		.stmt.column_int64 = my_column_int64,
+		.stmt.column_text = my_column_text,
+		.stmt.column_bytes = my_column_bytes,
+		.stmt.column_type = my_column_type,
 		.stmt.finalize = my_finalize,
 		.stmt.reset = my_reset
 	};
