@@ -28,15 +28,11 @@ Fts5Context
 Fts5ExtensionApi
 Fts5PhraseIter
 Fts5Tokenizer
-sqlite3_api_routines
-sqlite3_blob
-sqlite3_context
 sqlite3_file
 sqlite3_index_info
 sqlite3_io_methods
 sqlite3_mem_methods
 sqlite3_module
-sqlite3_mutex
 sqlite3_mutex_methods
 sqlite3_pcache
 sqlite3_pcache_methods
@@ -45,7 +41,6 @@ sqlite3_pcache_page
 sqlite3_rtree_geometry
 sqlite3_rtree_query_info
 sqlite3_snapshot
-sqlite3_str
 sqlite3_vfs
 sqlite3_vtab
 sqlite3_vtab_cursor
@@ -53,16 +48,12 @@ SQLITE_STATIC
 SQLITE_TRANSIENT
 
 --remap
-sqlite3_blob*=nint
-sqlite3_context*=nint
 sqlite3_file*=nint
 sqlite3_index_info*=nint
 sqlite3_module*=nint
-sqlite3_mutex*=nint
 sqlite3_rtree_geometry*=nint
 sqlite3_rtree_query_info*=nint
 sqlite3_snapshot*=nint
-sqlite3_str*=nint
 sqlite3_vfs*=nint
 char=byte
 void (*)(void *)=nint

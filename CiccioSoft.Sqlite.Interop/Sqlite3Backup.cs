@@ -5,29 +5,33 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using Microsoft.Win32.SafeHandles;
+using System.Runtime.InteropServices;
 using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop;
 
-public sealed class Sqlite3BackupHandle : SafeHandleZeroOrMinusOneIsInvalid
+public sealed unsafe class Sqlite3BackupSafeHandle : SafeHandle
 {
-    internal Sqlite3BackupHandle(nint handle) : base(true)
+    internal Sqlite3BackupSafeHandle(sqlite3_backup* sqlite3_backup)
+        : base((nint)sqlite3_backup, true)
     {
-        SetHandle(handle);
     }
+
+    public override bool IsInvalid => handle == nint.Zero;
+
+    public sqlite3_backup* AsStructPointer() => (sqlite3_backup*)handle;
+
     protected override bool ReleaseHandle()
     {
-        Sqlite3Native.sqlite3_backup_finish(handle);
-        return true;
+        return Sqlite3Native.sqlite3_backup_finish((sqlite3_backup*)handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 
 public sealed unsafe class Sqlite3Backup : IDisposable
 {
-    private readonly Sqlite3BackupHandle _handle;
+    private readonly Sqlite3BackupSafeHandle _handle;
 
-    internal Sqlite3Backup(Sqlite3BackupHandle handle)
+    internal Sqlite3Backup(Sqlite3BackupSafeHandle handle)
     {
         _handle = handle;
     }
@@ -48,16 +52,16 @@ public sealed unsafe class Sqlite3Backup : IDisposable
 
         fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
         {
-            nint destinationHandle = destination.Handle.DangerousGetHandle();
-            nint sourceHandle = source.Handle.DangerousGetHandle();
+            sqlite3* destinationHandle = destination.Handle.AsStructPointer();
+            sqlite3* sourceHandle = source.Handle.AsStructPointer();
 
-            nint backupHandle = Sqlite3Native.sqlite3_backup_init(
+            sqlite3_backup* backupHandle = Sqlite3Native.sqlite3_backup_init(
                 destinationHandle,
                 pDest,
                 sourceHandle,
                 pSource);
 
-            if (backupHandle == nint.Zero)
+            if ((nint)backupHandle == nint.Zero)
             {
                 throw SqliteInteropException.CreateException(
                     (SqliteResult)Sqlite3Native.sqlite3_errcode(destinationHandle),
@@ -65,26 +69,26 @@ public sealed unsafe class Sqlite3Backup : IDisposable
                     "SQLite backup init");
             }
 
-            return new Sqlite3Backup(new Sqlite3BackupHandle(backupHandle));
+            return new Sqlite3Backup(new Sqlite3BackupSafeHandle(backupHandle));
         }
     }
 
     public SqliteResult Step(int pages = -1)
     {
         ThrowIfInvalid();
-        return (SqliteResult)Sqlite3Native.sqlite3_backup_step(_handle.DangerousGetHandle(), pages);
+        return (SqliteResult)Sqlite3Native.sqlite3_backup_step(_handle.AsStructPointer(), pages);
     }
 
     public int Remaining()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_backup_remaining(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_backup_remaining(_handle.AsStructPointer());
     }
 
     public int PageCount()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_backup_pagecount(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_backup_pagecount(_handle.AsStructPointer());
     }
 
     public SqliteResult Finish()
@@ -94,7 +98,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             return SqliteResult.OK;
         }
 
-        SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.DangerousGetHandle());
+        SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.AsStructPointer());
         _handle.SetHandleAsInvalid();
         _handle.Dispose();
         return result;

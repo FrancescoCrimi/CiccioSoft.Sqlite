@@ -23,7 +23,7 @@ public sealed unsafe class Sqlite3BackupHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-       return Sqlite3Native.sqlite3_backup_finish((sqlite3_backup*)handle) == Sqlite3Native.SQLITE_OK;
+        return Sqlite3Native.sqlite3_backup_finish((sqlite3_backup*)handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 

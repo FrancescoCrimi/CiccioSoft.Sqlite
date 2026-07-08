@@ -6,6 +6,7 @@
 
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CiccioSoft.Sqlite.Interop.Native;
 
@@ -14,7 +15,7 @@ namespace CiccioSoft.Sqlite.Interop.Light;
 public sealed unsafe class Sqlite3StmtSafeHandle : SafeHandle
 {
     internal Sqlite3StmtSafeHandle(sqlite3_stmt* pStmt)
-        : base((nint)pStmt,true)
+        : base((nint)pStmt, true)
     {
     }
 
@@ -49,7 +50,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// - <c>SQLITE_ROW</c>: Data is ready to be read via Column methods.
     /// - <c>SQLITE_DONE</c>: Query finished or an INSERT/UPDATE/DELETE was executed.
     /// </remarks>
-    /// <exception cref="Exception">Thrown if an error occurs during execution (e.g., constraint violations).</exception>
     public SqliteResult Step()
     {
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_step(_handle.AsStructPointer());
@@ -69,7 +69,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// Resetting a statement is significantly faster than finalizing and re-preparing it. 
     /// It retains bound parameters unless <c>sqlite3_clear_bindings</c> is explicitly called.
     /// </remarks>
-    /// <exception cref="Exception">Thrown if the reset operation fails.</exception>
     public SqliteResult Reset()
     {
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_reset(_handle.AsStructPointer());
@@ -89,7 +88,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// - Zero-Allocation: Resets native parameter slots without allocating new managed objects.
     /// - Optimization: Useful when reusing the same statement across multiple executions with different parameter sets.
     /// </remarks>
-    /// <exception cref="Exception">Thrown if the native clearing of bindings fails.</exception>
     public SqliteResult ClearBindings()
     {
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_clear_bindings(_handle.AsStructPointer());
@@ -416,43 +414,15 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return (SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
     }
 
-    /// <summary>
-    /// Binds a string value to a prepared statement parameter at the specified index.
-    /// </summary>
-    /// <param name="index">The 1-based index of the parameter to bind.</param>
-    /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
-    /// <remarks>
-    /// <b>High-Performance Implementation:</b>
-    /// - Hybrid Allocation: Uses <c>stackalloc</c> for strings up to 1KB to avoid heap allocations.
-    /// - Memory Fallback: Uses <see cref="ArrayPool{T}"/> for larger strings to minimize GC pressure.
-    /// - Data Lifecycle: Passes <c>SQLITE_TRANSIENT</c> to SQLite, forcing it to make an internal copy of the data, which is necessary since our buffers are reclaimed immediately after the call.
-    /// </remarks>
-    public SqliteResult BindText(int index, string text)
-    {
-        // Se la stringa è nulla, bindiamo NULL.
-        // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
-        if (text is null)
-        {
-            return (SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.AsStructPointer(), index);
-        }
-
-        // Alloca la memoria base nello stack
-        // 512 byte bastano per la maggior parte delle stringhe standard
-        using var utf8Buffer = new Utf8SafeStackBuffer(text, stackalloc byte[1024]);
-
-        return BindText(index, utf8Buffer.AsSpan());
-    }
-
     public SqliteResult BindText(int index, ReadOnlySpan<byte> text)
     {
-        // Se lo span è vuoto, possiamo decidere se bindare NULL o un blob vuoto (zero length)
-        if (text.IsEmpty)
+        // Verifico che lo span non sia nato da null (implicit conversion da null)
+        if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(text)))
             return BindNull(index);
 
+        // span reale, anche se Length == 0 -> bind normale con lunghezza 0
         fixed (byte* pBuf = text)
         {
-            // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
-            // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
             SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_text(
                 _handle.AsStructPointer(),
                 index,
@@ -461,6 +431,25 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
                 Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
             return res;
         }
+    }
+
+    /// <summary>
+    /// Binds a string value to a prepared statement parameter at the specified index.
+    /// </summary>
+    /// <param name="index">The 1-based index of the parameter to bind.</param>
+    /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
+    /// <remarks>
+    public SqliteResult BindText(int index, string text)
+    {
+        // Se la stringa è nulla, bindiamo NULL.
+        // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
+        if (text is null)
+            return BindNull(index);
+
+        // Alloca la memoria base nello stack
+        // 512 byte bastano per la maggior parte delle stringhe standard
+        using var utf8Buffer = new Utf8SafeStackBuffer(text, stackalloc byte[1024]);
+        return BindText(index, utf8Buffer.AsSpan());
     }
 
     /// <summary>

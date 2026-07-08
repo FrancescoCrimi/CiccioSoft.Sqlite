@@ -5,25 +5,27 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Text;
 using System.Buffers;
-using CiccioSoft.Sqlite.Interop.Native;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
+using System.Text;
+using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop;
 
-public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
+public sealed unsafe class Sqlite3SafeHandle : SafeHandle
 {
-    internal Sqlite3Handle(nint handle) : base(true)
+    internal Sqlite3SafeHandle(sqlite3* sqlite3)
+        : base((nint)sqlite3, true)
     {
-        SetHandle(handle);
     }
+
+    public override bool IsInvalid => handle == nint.Zero;
+
+    public sqlite3* AsStructPointer() => (sqlite3*)handle;
+
     protected override bool ReleaseHandle()
     {
-        // return SqliteNative.sqlite3_close_v2(handle) == SqliteNative.SQLITE_OK;
-        Sqlite3Native.sqlite3_close_v2(handle);
-        return true;
+        return Sqlite3Native.sqlite3_close_v2((sqlite3*)handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 
@@ -42,14 +44,14 @@ public sealed class Sqlite3Handle : SafeHandleZeroOrMinusOneIsInvalid
 /// </threadsafety>
 public sealed unsafe class Sqlite3 : IDisposable
 {
-    private readonly Sqlite3Handle _handle;
+    private readonly Sqlite3SafeHandle _handle;
 
-    private Sqlite3(Sqlite3Handle handle)
+    private Sqlite3(Sqlite3SafeHandle handle)
     {
         _handle = handle;
     }
 
-    internal SafeHandle Handle => _handle;
+    internal Sqlite3SafeHandle Handle => _handle;
 
     /// <summary>
     /// Opening A New Database Connection.
@@ -80,14 +82,14 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <exception cref="SqliteInteropException">Thrown if the database cannot be opened.</exception>
     public static Sqlite3 Open(string filename, SqliteOpenFlags flags, bool useUri = false, string? vfsName = null)
     {
-        nint pDb = default;
+        sqlite3* pDb = default;
 
         SqliteOpenFlags openFlags = useUri ? flags | SqliteOpenFlags.Uri : flags;
 
         using var filenameBuffer = new Utf8SafeStackBuffer(filename, stackalloc byte[512]);
         using var vfsBuffer = new Utf8SafeStackBuffer(vfsName, stackalloc byte[512]);
 
-        fixed (byte* pFilename = filenameBuffer, pVfsRaw  = vfsBuffer)
+        fixed (byte* pFilename = filenameBuffer, pVfsRaw = vfsBuffer)
         {
             // SOLUZIONE DEL BUG: Se il parametro originale C# era nullo/vuoto, 
             // passiamo un puntatore 'null' effettivo a SQLite, altrimenti usiamo pVfsRaw.
@@ -103,7 +105,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
                 // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
                 // Dobbiamo chiudere pDb manualmente o tramite l'handle.
-                if (pDb != nint.Zero)
+                if ((nint)pDb != nint.Zero)
                 {
                     Sqlite3Native.sqlite3_close_v2(pDb);
                 }
@@ -112,7 +114,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             }
 
             // Se tutto è andato bene, incapsuliamo l'handle sicuro
-            return new Sqlite3(new Sqlite3Handle(pDb));
+            return new Sqlite3(new Sqlite3SafeHandle(pDb));
         }
     }
 
@@ -137,12 +139,12 @@ public sealed unsafe class Sqlite3 : IDisposable
         fixed (byte* pBuf = utf8Buffer)
         {
             SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_exec(
-                _handle.DangerousGetHandle(),
+                _handle.AsStructPointer(),
                 pBuf,
                 null,
                 null,
                 null);
-            SqliteInteropException.ThrowOnError(result, _handle.DangerousGetHandle(), "SQLite exec");
+            SqliteInteropException.ThrowOnError(result, _handle.AsStructPointer(), "SQLite exec");
         }
     }
 
@@ -181,9 +183,9 @@ public sealed unsafe class Sqlite3 : IDisposable
         fixed (byte* pBuf = utf8Buffer)
         {
             // Chiamata nativa
-            nint pStmt = default;
+            sqlite3_stmt* pStmt = default;
             SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
-                _handle.DangerousGetHandle(),
+                _handle.AsStructPointer(),
                 pBuf,
                 utf8Buffer.Length, // Lunghezza esatta dei dati
                 (uint)prepareFlags,
@@ -192,16 +194,16 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             if (result != SqliteResult.OK)
             {
-                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
+                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.AsStructPointer(), "SQLite prepare");
 
                 // Se pStmt è stato allocato nonostante l'errore, va chiuso.
-                if (pStmt != nint.Zero)
+                if ((nint)pStmt != nint.Zero)
                     Sqlite3Native.sqlite3_finalize(pStmt);
 
                 throw exception;
             }
 
-            return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
+            return new Sqlite3Stmt(new Sqlite3StmtSafeHandle(pStmt), this);
         }
     }
 
@@ -246,10 +248,10 @@ public sealed unsafe class Sqlite3 : IDisposable
             byte* pStart = pBuf + sqlByteOffset;
             int remainingLength = dataLength - sqlByteOffset;
 
-            nint pStmt = default;
+            sqlite3_stmt* pStmt = default;
             byte* pTail = null;
             SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
-                _handle.DangerousGetHandle(),
+                _handle.AsStructPointer(),
                 pStart,
                 remainingLength,
                 (uint)prepareFlags,
@@ -258,8 +260,8 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             if (result != SqliteResult.OK)
             {
-                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.DangerousGetHandle(), "SQLite prepare");
-                if (pStmt != nint.Zero)
+                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle.AsStructPointer(), "SQLite prepare");
+                if ((nint)pStmt != nint.Zero)
                     Sqlite3Native.sqlite3_finalize(pStmt);
 
                 throw exception;
@@ -268,12 +270,12 @@ public sealed unsafe class Sqlite3 : IDisposable
             int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
             nextSqlByteOffset = sqlByteOffset + consumedBytes;
 
-            if (pStmt == nint.Zero)
+            if ((nint)pStmt == nint.Zero)
             {
                 return null;
             }
 
-            return new Sqlite3Stmt(new Sqlite3StmtHandle(pStmt));
+            return new Sqlite3Stmt(new Sqlite3StmtSafeHandle(pStmt), this);
         }
         // }
         // finally
@@ -290,7 +292,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public long LastInsertRowId()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_last_insert_rowid(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_last_insert_rowid(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -300,7 +302,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public int Changes()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_changes(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_changes(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -309,7 +311,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public long TotalChanges()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_total_changes64(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_total_changes64(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -318,7 +320,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public bool IsAutoCommit()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_get_autocommit(_handle.DangerousGetHandle()) != 0;
+        return Sqlite3Native.sqlite3_get_autocommit(_handle.AsStructPointer()) != 0;
     }
 
     /// <summary>
@@ -336,7 +338,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public int Limit(int id, int newVal)
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_limit(_handle.DangerousGetHandle(), id, newVal);
+        return Sqlite3Native.sqlite3_limit(_handle.AsStructPointer(), id, newVal);
     }
 
     /// <summary>
@@ -357,14 +359,14 @@ public sealed unsafe class Sqlite3 : IDisposable
 
         if (schemaName is null)
         {
-            return Sqlite3Native.sqlite3_txn_state(_handle.DangerousGetHandle(), null);
+            return Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), null);
         }
 
         using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[1024]);
 
         fixed (byte* pSchema = utf8Buffer)
         {
-            return Sqlite3Native.sqlite3_txn_state(_handle.DangerousGetHandle(), pSchema);
+            return Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), pSchema);
         }
     }
 
@@ -383,10 +385,10 @@ public sealed unsafe class Sqlite3 : IDisposable
 
         fixed (byte* pSchema = utf8Buffer)
         {
-            int result = Sqlite3Native.sqlite3_db_readonly(_handle.DangerousGetHandle(), pSchema);
+            int result = Sqlite3Native.sqlite3_db_readonly(_handle.AsStructPointer(), pSchema);
             if (result < 0)
             {
-                SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle.DangerousGetHandle(), "SQLite db readonly");
+                SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle.AsStructPointer(), "SQLite db readonly");
             }
 
             return result != 0;
@@ -399,7 +401,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public SqliteExtendedErrorCode GetLastExtendedErrorCode()
     {
         ThrowIfInvalid();
-        return (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(_handle.DangerousGetHandle());
+        return (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -409,7 +411,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public int GetLastErrorOffset()
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_error_offset(_handle.DangerousGetHandle());
+        return Sqlite3Native.sqlite3_error_offset(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -420,8 +422,8 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteInteropException.ThrowOnError(
-            (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.DangerousGetHandle(), milliseconds),
-            _handle.DangerousGetHandle(),
+            (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds),
+            _handle.AsStructPointer(),
             "SQLite busy timeout");
     }
 
@@ -433,8 +435,8 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         ThrowIfInvalid();
         SqliteInteropException.ThrowOnError(
-            (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.DangerousGetHandle(), enabled ? 1 : 0),
-            _handle.DangerousGetHandle(),
+            (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0),
+            _handle.AsStructPointer(),
             "SQLite extended result codes");
     }
 
@@ -444,7 +446,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void Interrupt()
     {
         ThrowIfInvalid();
-        Sqlite3Native.sqlite3_interrupt(_handle.DangerousGetHandle());
+        Sqlite3Native.sqlite3_interrupt(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -539,7 +541,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
             columnNameBuffer[^1] = 0;
 
-            nint dbHandle = _handle.DangerousGetHandle();
+            sqlite3* dbHandle = _handle.AsStructPointer();
 
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)

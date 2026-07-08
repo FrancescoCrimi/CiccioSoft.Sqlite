@@ -6,6 +6,7 @@
 
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
@@ -416,39 +417,13 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         return (SqliteResult)_vtable.Stmt.bind_double(_handle.DangerousGetHandle(), index, value);
     }
 
-    /// <summary>
-    /// Binds a string value to a prepared statement parameter at the specified index.
-    /// </summary>
-    /// <param name="index">The 1-based index of the parameter to bind.</param>
-    /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
-    /// <remarks>
-    /// <b>High-Performance Implementation:</b>
-    /// - Hybrid Allocation: Uses <c>stackalloc</c> for strings up to 1KB to avoid heap allocations.
-    /// - Memory Fallback: Uses <see cref="ArrayPool{T}"/> for larger strings to minimize GC pressure.
-    /// - Data Lifecycle: Passes <c>SQLITE_TRANSIENT</c> to SQLite, forcing it to make an internal copy of the data, which is necessary since our buffers are reclaimed immediately after the call.
-    /// </remarks>
-    public SqliteResult BindText(int index, string text)
-    {
-        // Se la stringa è nulla, bindiamo NULL.
-        // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
-        if (text is null)
-        {
-            return (SqliteResult)_vtable.Stmt.bind_null(_handle.DangerousGetHandle(), index);
-        }
-
-        // Alloca la memoria base nello stack
-        // 512 byte bastano per la maggior parte delle stringhe standard
-        using var utf8Buffer = new Utf8SafeStackBuffer(text, stackalloc byte[512]);
-
-        return BindText(index, utf8Buffer.AsSpan());
-    }
-
     public SqliteResult BindText(int index, ReadOnlySpan<byte> text)
     {
-        // Se lo span è vuoto, possiamo decidere se bindare NULL o un blob vuoto (zero length)
-        if (text.IsEmpty)
+        // Verifico che lo span non sia nato da null (implicit conversion da null)
+        if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(text)))
             return BindNull(index);
 
+        // span reale, anche se Length == 0 -> bind normale con lunghezza 0
         fixed (byte* pBuf = text)
         {
             SqliteResult res = (SqliteResult)_vtable.Stmt.bind_text(
@@ -458,6 +433,24 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
                 text.Length);
             return res;
         }
+    }
+
+    /// <summary>
+    /// Binds a string value to a prepared statement parameter at the specified index.
+    /// </summary>
+    /// <param name="index">The 1-based index of the parameter to bind.</param>
+    /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
+    public SqliteResult BindText(int index, string text)
+    {
+        // Se la stringa è nulla, bindiamo NULL.
+        // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
+        if (text is null)
+            return BindNull(index);
+
+        // Alloca la memoria base nello stack
+        // 512 byte bastano per la maggior parte delle stringhe standard
+        using var utf8Buffer = new Utf8SafeStackBuffer(text, stackalloc byte[512]);
+        return BindText(index, utf8Buffer.AsSpan());
     }
 
     /// <summary>

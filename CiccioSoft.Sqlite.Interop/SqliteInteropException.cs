@@ -52,7 +52,7 @@ public sealed class SqliteInteropException : Exception
         $"Extended code: {ExtendedErrorCode} ({(int)ExtendedErrorCode}). " +
         $"Native message: {NativeMessage}";
 
-    public static void ThrowOnError(SqliteResult result, nint db, [CallerMemberName] string operation = "")
+    public unsafe static void ThrowOnError(SqliteResult result, sqlite3* db, [CallerMemberName] string operation = "")
     {
         if (result == SqliteResult.OK)
         {
@@ -62,12 +62,12 @@ public sealed class SqliteInteropException : Exception
         throw CreateException(result, db, operation);
     }
 
-    public unsafe static SqliteInteropException CreateException(SqliteResult result, nint db, string operation)
+    public unsafe static SqliteInteropException CreateException(SqliteResult result, sqlite3* db, string operation)
     {
         int extendedCodeValue;
         string nativeMessage;
 
-        if (db != nint.Zero)
+        if ((nint)db != nint.Zero)
         {
             // Read extended code exactly once from the native connection.
             extendedCodeValue = Sqlite3Native.sqlite3_extended_errcode(db);
