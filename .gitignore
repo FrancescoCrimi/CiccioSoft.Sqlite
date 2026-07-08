@@ -491,3 +491,10 @@ build/
 
 # cmake preset
 CMakePresets.json
+
+read.db
+read.db-shm
+read.db-wal
+write.db
+write.db-shm
+write.db-wal

@@ -437,7 +437,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindNull(int index)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.AsStructPointer(), index), index);
+        CheckBindResult((SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.AsStructPointer(), index), index);
     }
 
     /// <summary>
@@ -448,7 +448,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindInt(int index, int value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_int(_handle.AsStructPointer(), index, value), index);
+        CheckBindResult((SqliteResult)Sqlite3Native.sqlite3_bind_int(_handle.AsStructPointer(), index, value), index);
     }
 
     /// <summary>
@@ -459,7 +459,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindLong(int index, long value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_int64(_handle.AsStructPointer(), index, value), index);
+        CheckBindResult((SqliteResult)Sqlite3Native.sqlite3_bind_int64(_handle.AsStructPointer(), index, value), index);
     }
 
     /// <summary>
@@ -470,7 +470,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public void BindDouble(int index, double value)
     {
         ThrowIfInvalid();
-        CheckResult((SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.AsStructPointer(), index, value), index);
+        CheckBindResult((SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.AsStructPointer(), index, value), index);
     }
 
 
@@ -498,7 +498,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
                 pBuf,
                 text.Length,
                 Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
-            CheckResult(res, index);
+            CheckBindResult(res, index);
         }
     }
 
@@ -557,7 +557,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
                 pData,
                 data.Length,
                 Sqlite3Native.SQLITE_TRANSIENT);
-            CheckResult(res, index);
+            CheckBindResult(res, index);
         }
     }
 
@@ -567,8 +567,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     #region Private Methods
 
     // Piccolo helper per centralizzare il controllo degli errori
-    private void CheckResult(SqliteResult res, int index)
+    private void CheckBindResult(SqliteResult res, int index)
     {
+        if (res == SqliteResult.OK)
+        {
+            return;
+        }
         SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), $"SQLite bind parameter {index}");
     }
 
