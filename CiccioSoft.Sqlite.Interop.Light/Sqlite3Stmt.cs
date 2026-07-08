@@ -416,7 +416,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
     public SqliteResult BindText(int index, ReadOnlySpan<byte> text)
     {
-        // Verifico che lo span non sia nato da null (implicit conversion da null)
+        // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
         if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(text)))
             return BindNull(index);
 
@@ -438,7 +438,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
-    /// <remarks>
     public SqliteResult BindText(int index, string text)
     {
         // Se la stringa è nulla, bindiamo NULL.
@@ -457,17 +456,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="data">The binary data to bind as a <see cref="ReadOnlySpan{Byte}"/>. If empty, a SQL NULL is bound.</param>
-    /// <remarks>
-    /// <b>Memory Strategy:</b>
-    /// - Zero-Copy Entry: Accepts <see cref="ReadOnlySpan{Byte}"/> to allow binding slices of arrays or stack-allocated memory without intermediate allocations.
-    /// - Safe P/Invoke: Uses the <c>fixed</c> statement to obtain a stable pointer to the span's underlying memory.
-    /// - Persistence: Passes <c>SQLITE_TRANSIENT</c> to ensure SQLite creates an internal copy of the data, safeguarding against the caller reclaiming the memory immediately after the call.
-    /// </remarks>
-    /// <exception cref="Exception">Thrown if the binding fails or the statement is in an invalid state.</exception>
     public SqliteResult BindBlob(int index, ReadOnlySpan<byte> data)
     {
-        // Se lo span è vuoto, possiamo decidere se bindare NULL o un blob vuoto (zero length)
-        if (data.IsEmpty)
+        // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
+        if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(data)))
             return BindNull(index);
 
         fixed (byte* pData = data)

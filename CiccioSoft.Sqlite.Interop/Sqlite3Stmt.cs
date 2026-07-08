@@ -73,11 +73,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <summary>
     /// Resets the prepared statement back to its initial state, ready to be re-executed.
     /// </summary>
-    /// <remarks>
-    /// <b>Performance Note:</b> 
-    /// Resetting a statement is significantly faster than finalizing and re-preparing it. 
-    /// It retains bound parameters unless <c>sqlite3_clear_bindings</c> is explicitly called.
-    /// </remarks>
     /// <exception cref="Exception">Thrown if the reset operation fails.</exception>
     public void Reset()
     {
@@ -94,11 +89,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <summary>
     /// Resets all bound parameters in the prepared statement back to a NULL state.
     /// </summary>
-    /// <remarks>
-    /// <b>Resource Management:</b>
-    /// - Zero-Allocation: Resets native parameter slots without allocating new managed objects.
-    /// - Optimization: Useful when reusing the same statement across multiple executions with different parameter sets.
-    /// </remarks>
     /// <exception cref="Exception">Thrown if the native clearing of bindings fails.</exception>
     public void ClearBindings()
     {
@@ -325,12 +315,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>A <see cref="ReadOnlySpan{Byte}"/> pointing directly to the native SQLite memory; <see cref="ReadOnlySpan{Byte}.Empty"/> if NULL.</returns>
-    /// <remarks>
-    /// <b>Critical Performance Warning:</b>
-    /// - Zero-Copy: This method provides direct access to SQLite's internal buffers for maximum speed and zero GC pressure.
-    /// - Lifetime: The returned <see cref="ReadOnlySpan{Byte}"/> is <b>only valid</b> until the next call to <c>Step()</c>, <c>Reset()</c>, or <c>Dispose()</c> on this statement.
-    /// - Persistence: If you need to keep the data beyond the current row, you must call <c>.ToArray()</c> or copy it to another buffer.
-    /// </remarks>
     /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
     public ReadOnlySpan<byte> GetBlob(int index)
     {
@@ -362,10 +346,6 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <item><description>5: SQLITE_NULL</description></item>
     /// </list>
     /// </returns>
-    /// <remarks>
-    /// SQLite uses dynamic typing; the type of a column may change from row to row. 
-    /// Call this after <see cref="Step"/> to determine which <c>Get</c> method to use.
-    /// </remarks>
     public SqliteType GetColumnType(int index)
     {
         ThrowIfInvalid();
@@ -473,16 +453,13 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         CheckBindResult((SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.AsStructPointer(), index, value), index);
     }
 
-
-
-
     public void BindText(int index, ReadOnlySpan<byte> text)
     {
-        // Verifico che lo span non sia nato da null (implicit conversion da null)
+        // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
         if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(text)))
         {
-             BindNull(index);
-             return;
+            BindNull(index);
+            return;
         }
 
         ThrowIfInvalid();
@@ -531,23 +508,17 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="data">The binary data to bind as a <see cref="ReadOnlySpan{Byte}"/>. If empty, a SQL NULL is bound.</param>
-    /// <remarks>
-    /// <b>Memory Strategy:</b>
-    /// - Zero-Copy Entry: Accepts <see cref="ReadOnlySpan{Byte}"/> to allow binding slices of arrays or stack-allocated memory without intermediate allocations.
-    /// - Safe P/Invoke: Uses the <c>fixed</c> statement to obtain a stable pointer to the span's underlying memory.
-    /// - Persistence: Passes <c>SQLITE_TRANSIENT</c> to ensure SQLite creates an internal copy of the data, safeguarding against the caller reclaiming the memory immediately after the call.
-    /// </remarks>
     /// <exception cref="Exception">Thrown if the binding fails or the statement is in an invalid state.</exception>
     public void BindBlob(int index, ReadOnlySpan<byte> data)
     {
-        ThrowIfInvalid();
-
-        if (data.IsEmpty)
+        // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
+        if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(data)))
         {
-            // Se lo span è vuoto, possiamo decidere se bindare NULL o un blob vuoto (zero length)
             BindNull(index);
             return;
         }
+
+        ThrowIfInvalid();
 
         fixed (byte* pData = data)
         {
@@ -570,9 +541,8 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     private void CheckBindResult(SqliteResult res, int index)
     {
         if (res == SqliteResult.OK)
-        {
             return;
-        }
+
         SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), $"SQLite bind parameter {index}");
     }
 
