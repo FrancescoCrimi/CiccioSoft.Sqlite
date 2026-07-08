@@ -1,4 +1,0 @@
-Setup_SQLitePCL_Ugly
-Setup_Interop
-Setup_InteropLight
-Setup_InteropCom
