@@ -152,16 +152,16 @@ public static class ReadDbStuff
 
     // public  static void Cleanup_Interop()
     // {
-    //     _db3?.Dispose();
+    //     _db3.Dispose();
     // }
 
     // public static void Cleanup_InteropLight()
     // {
-    //     _db4?.Dispose();
+    //     _db4.Dispose();
     // }
 
     // public static void Cleanup_InteropCom()
     // {
-    //     _db5?.Dispose();
+    //     _db5.Dispose();
     // }
 }

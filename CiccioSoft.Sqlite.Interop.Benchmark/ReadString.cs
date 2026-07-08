@@ -35,13 +35,13 @@ public class ReadString
     public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
 
     [GlobalCleanup(Target = nameof(ReadString_Interop))]
-    public void Cleanup_Interop() => _db3?.Dispose();
+    public void Cleanup_Interop() => _db3.Dispose();
 
     [GlobalCleanup(Target = nameof(ReadString_InteropLight))]
-    public void Cleanup_InteropLight() => _db4?.Dispose();
+    public void Cleanup_InteropLight() => _db4.Dispose();
 
     [GlobalCleanup(Target = nameof(ReadString_InteropCom))]
-    public void Cleanup_InteropCom() => _db5?.Dispose();
+    public void Cleanup_InteropCom() => _db5.Dispose();
 
     // ==========================================
     // BENCHMARK DI LETTURA (SELECT)
@@ -87,7 +87,7 @@ public class ReadString
         _db4.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
         using (stmt)
         {
-            while (stmt?.Step() == Light.SqliteResult.Row)
+            while (stmt.Step() == Light.SqliteResult.Row)
             {
                 long id = stmt.GetLong(0);
                 string name = stmt.GetTextString(1);
@@ -106,7 +106,7 @@ public class ReadString
         using (stmt)
         {
             // Fintanto che ci sono righe (SQLITE_ROW)
-            while (stmt?.Step() == Com.SqliteResult.Row)
+            while (stmt.Step() == Com.SqliteResult.Row)
             {
                 long id = stmt.GetLong(0);
                 string name = stmt.GetTextString(1);

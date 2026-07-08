@@ -55,7 +55,6 @@ public class WriteString
 
 
 
-
     [GlobalSetup(Target = nameof(WriteString_Interop))]
     public void GlobalSetup_Interop()
     {
@@ -94,9 +93,6 @@ public class WriteString
 
 
 
-
-
-
     [GlobalSetup(Target = nameof(WriteString_InteropLight))]
     public void GlobalSetup_InteropLight()
     {
@@ -124,18 +120,15 @@ public class WriteString
         {
             for (int i = 0; i < RowCount; i++)
             {
-                stmt?.Reset();
-                stmt?.BindLong(1, i);
-                stmt?.BindText(2, TestString);
-                stmt?.BindDouble(3, i * 1.1);
-                stmt?.Step();
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
             }
             _db4.Execute("COMMIT;");
         }
     }
-
-
-
 
 
 
@@ -166,11 +159,11 @@ public class WriteString
         {
             for (int i = 0; i < RowCount; i++)
             {
-                stmt?.Reset();
-                stmt?.BindLong(1, i);
-                stmt?.BindText(2, TestString);
-                stmt?.BindDouble(3, i * 1.1);
-                stmt?.Step();
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
             }
             _db5.Execute("COMMIT;");
         }

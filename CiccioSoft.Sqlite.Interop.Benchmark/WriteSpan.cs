@@ -16,7 +16,7 @@ public class WriteSpan
     private Light.Sqlite3 _db4;
     private Com.Sqlite3 _db5;
 
-    [GlobalSetup(Target = nameof(Write_SQLitePCL))]
+    [GlobalSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()
     {
         Batteries_V2.Init();
@@ -25,10 +25,10 @@ public class WriteSpan
         raw.sqlite3_exec(_db1, "PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(Write_SQLitePCL))]
+    [GlobalCleanup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalCleanup_SQLitePCL() => raw.sqlite3_close(_db1);
 
-    [IterationSetup(Target = nameof(Write_SQLitePCL))]
+    [IterationSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void IterationSetup_SQLitePCL()
     {
         raw.sqlite3_exec(_db1, "DROP TABLE IF EXISTS Users;");
@@ -36,7 +36,7 @@ public class WriteSpan
     }
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public void Write_SQLitePCL()
+    public void WriteSpan_SQLitePCL()
     {
         raw.sqlite3_exec(_db1, "BEGIN;");
         raw.sqlite3_prepare_v2(_db1, "INSERT INTO Users VALUES (?, ?, ?);", out sqlite3_stmt stmtRaw);
@@ -56,8 +56,7 @@ public class WriteSpan
 
 
 
-
-    [GlobalSetup(Target = nameof(Write_Interop))]
+    [GlobalSetup(Target = nameof(WriteSpan_Interop))]
     public void GlobalSetup_Interop()
     {
         _db3 = Sqlite3.Open(DbFile);
@@ -65,10 +64,10 @@ public class WriteSpan
         _db3.Execute("PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(Write_Interop))]
+    [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
     public void GlobalCleanup_Interop() => _db3.Dispose();
 
-    [IterationSetup(Target = nameof(Write_Interop))]
+    [IterationSetup(Target = nameof(WriteSpan_Interop))]
     public void IterationSetup_Interop()
     {
         _db3.Execute("DROP TABLE IF EXISTS Users;");
@@ -76,7 +75,7 @@ public class WriteSpan
     }
 
     [Benchmark]
-    public void Write_Interop()
+    public void WriteSpan_Interop()
     {
         _db3.Execute("BEGIN;");
         using (var stmt = _db3.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
@@ -95,10 +94,7 @@ public class WriteSpan
 
 
 
-
-
-
-    [GlobalSetup(Target = nameof(Write_InteropLight))]
+    [GlobalSetup(Target = nameof(WriteSpan_InteropLight))]
     public void GlobalSetup_InteropLight()
     {
         Light.Sqlite3.Open(DbFile, out _db4);
@@ -106,10 +102,10 @@ public class WriteSpan
         _db4.Execute("PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(Write_InteropLight))]
+    [GlobalCleanup(Target = nameof(WriteSpan_InteropLight))]
     public void GlobalCleanup_InteropLight() => _db4.Dispose();
 
-    [IterationSetup(Target = nameof(Write_InteropLight))]
+    [IterationSetup(Target = nameof(WriteSpan_InteropLight))]
     public void IterationSetup_InteropLight()
     {
         _db4.Execute("DROP TABLE IF EXISTS Users;");
@@ -117,7 +113,7 @@ public class WriteSpan
     }
 
     [Benchmark]
-    public void Write_InteropLight()
+    public void WriteSpan_InteropLight()
     {
         _db4.Execute("BEGIN;");
         _db4.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out Light.Sqlite3Stmt stmt);
@@ -125,11 +121,11 @@ public class WriteSpan
         {
             for (int i = 0; i < RowCount; i++)
             {
-                stmt?.Reset();
-                stmt?.BindLong(1, i);
-                stmt?.BindText(2, TestString);
-                stmt?.BindDouble(3, i * 1.1);
-                stmt?.Step();
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
             }
             _db4.Execute("COMMIT;");
         }
@@ -137,10 +133,7 @@ public class WriteSpan
 
 
 
-
-
-
-    [GlobalSetup(Target = nameof(Write_InteropCom))]
+    [GlobalSetup(Target = nameof(WriteSpan_InteropCom))]
     public void GlobalSetup_InteropCom()
     {
         Com.Sqlite3.Open(DbFile, out _db5);
@@ -148,10 +141,10 @@ public class WriteSpan
         _db5.Execute("PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(Write_InteropCom))]
+    [GlobalCleanup(Target = nameof(WriteSpan_InteropCom))]
     public void GlobalCleanup_InteropCom() => _db5.Dispose();
 
-    [IterationSetup(Target = nameof(Write_InteropCom))]
+    [IterationSetup(Target = nameof(WriteSpan_InteropCom))]
     public void IterationSetup_InteropCom()
     {
         _db5.Execute("DROP TABLE IF EXISTS Users;");
@@ -159,7 +152,7 @@ public class WriteSpan
     }
 
     [Benchmark]
-    public void Write_InteropCom()
+    public void WriteSpan_InteropCom()
     {
         _db5.Execute("BEGIN;");
         _db5.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out Com.Sqlite3Stmt stmt);
@@ -167,11 +160,11 @@ public class WriteSpan
         {
             for (int i = 0; i < RowCount; i++)
             {
-                stmt?.Reset();
-                stmt?.BindLong(1, i);
-                stmt?.BindText(2, TestString);
-                stmt?.BindDouble(3, i * 1.1);
-                stmt?.Step();
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
             }
             _db5.Execute("COMMIT;");
         }

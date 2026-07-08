@@ -43,13 +43,13 @@ public class ReadSpan
     public void Cleanup_SQLitePCL_Ugly() =>  ugly.close_v2(_db2);
 
     [GlobalCleanup(Target = nameof(ReadSpan_Interop))]
-    public void Cleanup_Interop() => _db3?.Dispose();
+    public void Cleanup_Interop() => _db3.Dispose();
 
     [GlobalCleanup(Target = nameof(ReadSpan_InteropLight))]
-    public void Cleanup_InteropLight() =>  _db4?.Dispose();
+    public void Cleanup_InteropLight() =>  _db4.Dispose();
 
     [GlobalCleanup(Target = nameof(ReadSpan_InteropCom))]
-    public void Cleanup_InteropCom() =>  _db5?.Dispose();
+    public void Cleanup_InteropCom() =>  _db5.Dispose();
 
     // ==========================================
     // BENCHMARK DI LETTURA (SELECT)
@@ -113,7 +113,7 @@ public class ReadSpan
         _db4.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
         using (stmt)
         {
-            while (stmt?.Step() == Light.SqliteResult.Row)
+            while (stmt.Step() == Light.SqliteResult.Row)
             {
                 long id = stmt.GetLong(0);
                 ReadOnlySpan<byte> nameSpan = stmt.GetText(1);
@@ -131,7 +131,7 @@ public class ReadSpan
         _db5.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
         using (stmt)
         {
-            while (stmt?.Step() == Com.SqliteResult.Row)
+            while (stmt.Step() == Com.SqliteResult.Row)
             {
                 long id = stmt.GetLong(0);
                 ReadOnlySpan<byte> nameSpan = stmt.GetText(1);
