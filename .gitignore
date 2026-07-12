@@ -498,3 +498,5 @@ read.db-wal
 write.db
 write.db-shm
 write.db-wal
+
+sqlite3glue.dll

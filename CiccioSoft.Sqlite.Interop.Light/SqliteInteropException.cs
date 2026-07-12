@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CiccioSoft.Sqlite.Interop.Native;
 
-namespace CiccioSoft.Sqlite.Interop;
+namespace CiccioSoft.Sqlite.Interop.Light;
 
 /// <summary>
 /// Represents an error returned by the native SQLite interop layer.
@@ -68,8 +68,8 @@ public sealed class SqliteInteropException : Exception
         if (db.IsInvalid)
         {
             // Read extended code exactly once from the native connection.
-            extendedCodeValue = Sqlite3Native.sqlite3_extended_errcode(db.AsStructPointer());
-            byte* pErr = Sqlite3Native.sqlite3_errmsg(db.AsStructPointer());
+            extendedCodeValue = VTableCache.Instance.Db.extended_errcode(db.AsStructPointer());
+            byte* pErr = VTableCache.Instance.Db.errmsg(db.AsStructPointer());
             nativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
         else

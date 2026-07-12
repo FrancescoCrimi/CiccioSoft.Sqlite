@@ -84,10 +84,9 @@ public class ReadString
     [Benchmark]
     public void ReadString_InteropLight()
     {
-        _db4.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
-        using (stmt)
+        using (var stmt = _db4.Prepare("SELECT Id, Name, Score FROM Users;"))
         {
-            while (stmt.Step() == Light.SqliteResult.Row)
+            while (stmt.Step())
             {
                 long id = stmt.GetLong(0);
                 string name = stmt.GetTextString(1);

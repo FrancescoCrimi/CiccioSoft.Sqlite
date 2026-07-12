@@ -21,7 +21,6 @@ Sqlite3Native=internal
 
 --exclude
 fts5_api
-Fts5Tokenizer
 fts5_tokenizer
 fts5_tokenizer_v2
 Fts5Context

@@ -82,12 +82,12 @@ public static class ReadDbStuff
 
     public static Light.Sqlite3 Setup_InteropLight()
     {
-        Light.Sqlite3.Open(DbFile, out Light.Sqlite3 db);
+        Light.Sqlite3 db =Light.Sqlite3.Open(DbFile);
         db.Execute("PRAGMA synchronous = OFF;");
         db.Execute("DROP TABLE IF EXISTS Users;");
         db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
         db.Execute("BEGIN;");
-        db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
+        Light.Sqlite3Stmt stmt = db.Prepare("INSERT INTO Users VALUES (?, ?, ?);");
         using (stmt)
         {
             for (int i = 0; i < RowCount; i++)

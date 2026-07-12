@@ -25,17 +25,19 @@ public sealed unsafe class Sqlite3StmtSafeHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-        return Sqlite3Native.sqlite3_finalize((sqlite3_stmt*)handle) == Sqlite3Native.SQLITE_OK;
+        return VTableCache.Instance.Stmt.finalize((sqlite3_stmt*)handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 
 public sealed unsafe class Sqlite3Stmt : IDisposable
 {
     private readonly Sqlite3StmtSafeHandle _handle;
+    private readonly Sqlite3SafeHandle _sqlite3SafeHandle;
 
-    internal Sqlite3Stmt(Sqlite3StmtSafeHandle handle)
+    internal Sqlite3Stmt(Sqlite3StmtSafeHandle handle, Sqlite3SafeHandle sqlite3SafeHandle)
     {
         _handle = handle;
+        _sqlite3SafeHandle = sqlite3SafeHandle;
     }
 
 
@@ -50,10 +52,16 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// - <c>SQLITE_ROW</c>: Data is ready to be read via Column methods.
     /// - <c>SQLITE_DONE</c>: Query finished or an INSERT/UPDATE/DELETE was executed.
     /// </remarks>
-    public SqliteResult Step()
+    /// <exception cref="Exception">Thrown if an error occurs during execution (e.g., constraint violations).</exception>
+    public bool Step()
     {
-        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_step(_handle.AsStructPointer());
-        return res;
+        ThrowIfInvalid();
+        SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.step(_handle.AsStructPointer());
+        if (res == SqliteResult.Row) return true;
+        if (res == SqliteResult.Done) return false;
+
+        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, "SQLite step");
+        return false;
     }
 
     #endregion
@@ -64,14 +72,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <summary>
     /// Resets the prepared statement back to its initial state, ready to be re-executed.
     /// </summary>
-    /// <remarks>
-    /// <b>Performance Note:</b> 
-    /// Resetting a statement is significantly faster than finalizing and re-preparing it. 
-    /// It retains bound parameters unless <c>sqlite3_clear_bindings</c> is explicitly called.
-    /// </remarks>
+    /// <exception cref="Exception">Thrown if the reset operation fails.</exception>
     public SqliteResult Reset()
     {
-        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_reset(_handle.AsStructPointer());
+        SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.reset(_handle.AsStructPointer());
         return res;
     }
 
@@ -83,14 +87,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <summary>
     /// Resets all bound parameters in the prepared statement back to a NULL state.
     /// </summary>
-    /// <remarks>
-    /// <b>Resource Management:</b>
-    /// - Zero-Allocation: Resets native parameter slots without allocating new managed objects.
-    /// - Optimization: Useful when reusing the same statement across multiple executions with different parameter sets.
-    /// </remarks>
+    /// <exception cref="Exception">Thrown if the native clearing of bindings fails.</exception>
     public SqliteResult ClearBindings()
     {
-        SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_clear_bindings(_handle.AsStructPointer());
+        SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.clear_bindings(_handle.AsStructPointer());
         return res;
     }
 
@@ -109,9 +109,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// or <see cref="GetColumnType"/> to dynamically process query results without 
     /// knowing the table schema in advance.
     /// </remarks>
+    /// <exception cref="ObjectDisposedException">Thrown if the statement handle is invalid.</exception>
     public int ColumnCount()
     {
-        return Sqlite3Native.sqlite3_column_count(_handle.AsStructPointer());
+        return VTableCache.Instance.Stmt.column_count(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -119,7 +120,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public int ParameterCount()
     {
-        return Sqlite3Native.sqlite3_bind_parameter_count(_handle.AsStructPointer());
+        return VTableCache.Instance.Stmt.bind_parameter_count(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -127,7 +128,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetParameterName(int index)
     {
-        byte* pName = Sqlite3Native.sqlite3_bind_parameter_name(_handle.AsStructPointer(), index);
+        byte* pName = VTableCache.Instance.Stmt.bind_parameter_name(_handle.AsStructPointer(), index);
         return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
     }
 
@@ -142,7 +143,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
         fixed (byte* pBuf = utf8Buffer)
         {
-            return Sqlite3Native.sqlite3_bind_parameter_index(_handle.AsStructPointer(), pBuf);
+            return VTableCache.Instance.Stmt.bind_parameter_index(_handle.AsStructPointer(), pBuf);
         }
     }
 
@@ -164,7 +165,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetColumnName(int index)
     {
         // sqlite3_column_name restituisce un byte* UTF-8 (null-terminated)
-        byte* pName = Sqlite3Native.sqlite3_column_name(_handle.AsStructPointer(), index);
+        byte* pName = VTableCache.Instance.Stmt.column_name(_handle.AsStructPointer(), index);
 
         // Se l'indice è fuori intervallo o il nome non è disponibile, SQLite restituisce NULL
         if (pName == null) return null;
@@ -178,7 +179,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnDeclType(int index)
     {
-        byte* pText = Sqlite3Native.sqlite3_column_decltype(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_decltype(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -187,7 +188,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnDatabaseName(int index)
     {
-        byte* pText = Sqlite3Native.sqlite3_column_database_name(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_database_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -196,7 +197,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnTableName(int index)
     {
-        byte* pText = Sqlite3Native.sqlite3_column_table_name(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_table_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -205,7 +206,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnOriginName(int index)
     {
-        byte* pText = Sqlite3Native.sqlite3_column_origin_name(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_origin_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -221,7 +222,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The 32-bit integer value of the column.</returns>
     public int GetInt(int index)
     {
-        return Sqlite3Native.sqlite3_column_int(_handle.AsStructPointer(), index);
+        return VTableCache.Instance.Stmt.column_int(_handle.AsStructPointer(), index);
     }
 
     /// <summary>
@@ -231,7 +232,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The 64-bit long value of the column.</returns>
     public long GetLong(int index)
     {
-        return Sqlite3Native.sqlite3_column_int64(_handle.AsStructPointer(), index);
+        return VTableCache.Instance.Stmt.column_int64(_handle.AsStructPointer(), index);
     }
 
     /// <summary>
@@ -241,17 +242,17 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The double-precision value of the column.</returns>
     public double GetDouble(int index)
     {
-        return Sqlite3Native.sqlite3_column_double(_handle.AsStructPointer(), index);
+        return VTableCache.Instance.Stmt.column_double(_handle.AsStructPointer(), index);
     }
 
     public ReadOnlySpan<byte> GetText(int index)
     {
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
-        byte* pText = Sqlite3Native.sqlite3_column_text(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_text(_handle.AsStructPointer(), index);
         if (pText == null) return ReadOnlySpan<byte>.Empty;
 
         // Chiediamo a SQLite la lunghezza esatta in byte
-        int byteCount = Sqlite3Native.sqlite3_column_bytes(_handle.AsStructPointer(), index);
+        int byteCount = VTableCache.Instance.Stmt.column_bytes(_handle.AsStructPointer(), index);
         if (byteCount == 0) return ReadOnlySpan<byte>.Empty;
 
         return new ReadOnlySpan<byte>(pText, byteCount);
@@ -269,7 +270,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public string? GetTextString(int index)
     {
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
-        byte* pText = Sqlite3Native.sqlite3_column_text(_handle.AsStructPointer(), index);
+        byte* pText = VTableCache.Instance.Stmt.column_text(_handle.AsStructPointer(), index);
 
         // Marshal.PtrToStringUTF8 gestisce internamente il controllo null e la terminazione \0
         return pText == null ? null : Marshal.PtrToStringUTF8((nint)pText);
@@ -289,11 +290,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     public ReadOnlySpan<byte> GetBlob(int index)
     {
         // Otteniamo il puntatore alla memoria del BLOB gestita da SQLite
-        void* pBlob = Sqlite3Native.sqlite3_column_blob(_handle.AsStructPointer(), index);
+        void* pBlob = VTableCache.Instance.Stmt.column_blob(_handle.AsStructPointer(), index);
         if (pBlob == null) return ReadOnlySpan<byte>.Empty;
 
         // Otteniamo la dimensione in byte
-        int length = Sqlite3Native.sqlite3_column_bytes(_handle.AsStructPointer(), index);
+        int length = VTableCache.Instance.Stmt.column_bytes(_handle.AsStructPointer(), index);
 
         // Restituiamo uno Span che punta direttamente alla memoria interna di SQLite.
         // NOTA: Questo Span è valido solo finché non chiami Step() o Reset() sullo statement.
@@ -320,7 +321,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </remarks>
     public SqliteType GetColumnType(int index)
     {
-        int rc = Sqlite3Native.sqlite3_column_type(_handle.AsStructPointer(), index);
+        int rc = VTableCache.Instance.Stmt.column_type(_handle.AsStructPointer(), index);
         return (SqliteType)rc;
     }
 
@@ -329,7 +330,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public bool IsReadOnly()
     {
-        return Sqlite3Native.sqlite3_stmt_readonly(_handle.AsStructPointer()) != 0;
+        return VTableCache.Instance.Stmt.stmt_readonly(_handle.AsStructPointer()) != 0;
     }
 
     /// <summary>
@@ -337,7 +338,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public bool IsBusy()
     {
-        return Sqlite3Native.sqlite3_stmt_busy(_handle.AsStructPointer()) != 0;
+        return VTableCache.Instance.Stmt.stmt_busy(_handle.AsStructPointer()) != 0;
     }
 
     /// <summary>
@@ -345,7 +346,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetExpandedSql()
     {
-        byte* pExpanded = Sqlite3Native.sqlite3_expanded_sql(_handle.AsStructPointer());
+        byte* pExpanded = VTableCache.Instance.Stmt.expanded_sql(_handle.AsStructPointer());
         if (pExpanded == null)
         {
             return null;
@@ -357,7 +358,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         }
         finally
         {
-            Sqlite3Native.sqlite3_free(pExpanded);
+            VTableCache.Instance.Db.free(pExpanded);
         }
     }
 
@@ -366,7 +367,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetSql()
     {
-        byte* pSql = Sqlite3Native.sqlite3_sql(_handle.AsStructPointer());
+        byte* pSql = VTableCache.Instance.Stmt.sql(_handle.AsStructPointer());
         return pSql is null ? null : Marshal.PtrToStringUTF8((nint)pSql);
     }
 
@@ -381,7 +382,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     public SqliteResult BindNull(int index)
     {
-        return (SqliteResult)Sqlite3Native.sqlite3_bind_null(_handle.AsStructPointer(), index);
+        return (SqliteResult)VTableCache.Instance.Stmt.bind_null(_handle.AsStructPointer(), index);
     }
 
     /// <summary>
@@ -391,7 +392,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="value">The integer value to bind.</param>
     public SqliteResult BindInt(int index, int value)
     {
-        return (SqliteResult)Sqlite3Native.sqlite3_bind_int(_handle.AsStructPointer(), index, value);
+        return (SqliteResult)VTableCache.Instance.Stmt.bind_int(_handle.AsStructPointer(), index, value);
     }
 
     /// <summary>
@@ -401,7 +402,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="value">The long value to bind.</param>
     public SqliteResult BindLong(int index, long value)
     {
-        return (SqliteResult)Sqlite3Native.sqlite3_bind_int64(_handle.AsStructPointer(), index, value);
+        return (SqliteResult)VTableCache.Instance.Stmt.bind_int64(_handle.AsStructPointer(), index, value);
     }
 
     /// <summary>
@@ -411,7 +412,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <param name="value">The double value to bind.</param>
     public SqliteResult BindDouble(int index, double value)
     {
-        return (SqliteResult)Sqlite3Native.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
+        return (SqliteResult)VTableCache.Instance.Stmt.bind_double(_handle.AsStructPointer(), index, value);
     }
 
     public SqliteResult BindText(int index, ReadOnlySpan<byte> text)
@@ -423,7 +424,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         // span reale, anche se Length == 0 -> bind normale con lunghezza 0
         fixed (byte* pBuf = text)
         {
-            SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_text(
+            SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.bind_text(
                 _handle.AsStructPointer(),
                 index,
                 pBuf,
@@ -464,7 +465,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
         fixed (byte* pData = data)
         {
-            SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_bind_blob(
+            SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.bind_blob(
                 _handle.AsStructPointer(),
                 index,
                 pData,
@@ -479,10 +480,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
     #region Private Methods
 
-    // private nint GetDbHandle()
-    // {
-    //     return Sqlite3Native.sqlite3_db_handle(_handle.AsStructPointer());
-    // }
+    private void ThrowIfInvalid()
+    {
+        if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
+    }
+
 
     #endregion
 

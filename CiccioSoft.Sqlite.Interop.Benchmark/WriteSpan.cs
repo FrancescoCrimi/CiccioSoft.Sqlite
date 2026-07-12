@@ -116,8 +116,7 @@ public class WriteSpan
     public void WriteSpan_InteropLight()
     {
         _db4.Execute("BEGIN;");
-        _db4.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out Light.Sqlite3Stmt stmt);
-        using (stmt)
+        using (Light.Sqlite3Stmt stmt = _db4.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
         {
             for (int i = 0; i < RowCount; i++)
             {

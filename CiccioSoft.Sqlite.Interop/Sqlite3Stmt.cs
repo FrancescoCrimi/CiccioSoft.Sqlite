@@ -33,12 +33,12 @@ public sealed unsafe class Sqlite3StmtSafeHandle : SafeHandle
 public sealed unsafe class Sqlite3Stmt : IDisposable
 {
     private readonly Sqlite3StmtSafeHandle _handle;
-    private readonly Sqlite3 _sqlite3;
+    private readonly Sqlite3SafeHandle _sqlite3SafeHandle;
 
-    internal Sqlite3Stmt(Sqlite3StmtSafeHandle handle, Sqlite3 sqlite3)
+    internal Sqlite3Stmt(Sqlite3StmtSafeHandle handle, Sqlite3SafeHandle sqlite3SafeHandle)
     {
         _handle = handle;
-        _sqlite3 = sqlite3;
+        _sqlite3SafeHandle = sqlite3SafeHandle;
     }
 
 
@@ -61,7 +61,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
         if (res == SqliteResult.Row) return true;
         if (res == SqliteResult.Done) return false;
 
-        SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), "SQLite step");
+        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, "SQLite step");
         return false;
     }
 
@@ -78,7 +78,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     {
         ThrowIfInvalid();
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_reset(_handle.AsStructPointer());
-        SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), "SQLite reset");
+        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, "SQLite reset");
     }
 
     #endregion
@@ -94,7 +94,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     {
         ThrowIfInvalid();
         SqliteResult res = (SqliteResult)Sqlite3Native.sqlite3_clear_bindings(_handle.AsStructPointer());
-        SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), "SQLite clear bindings");
+        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, "SQLite clear bindings");
     }
 
     #endregion
@@ -537,23 +537,18 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
     #region Private Methods
 
+    private void ThrowIfInvalid()
+    {
+        if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3Stmt));
+    }
+
     // Piccolo helper per centralizzare il controllo degli errori
     private void CheckBindResult(SqliteResult res, int index)
     {
         if (res == SqliteResult.OK)
             return;
 
-        SqliteInteropException.ThrowOnError(res, _sqlite3.Handle.AsStructPointer(), $"SQLite bind parameter {index}");
-    }
-
-    // private nint GetDbHandle()
-    // {
-    //     return Sqlite3Native.sqlite3_db_handle(_handle.AsStructPointer());
-    // }
-
-    private void ThrowIfInvalid()
-    {
-        if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3Stmt));
+        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, $"SQLite bind parameter {index}");
     }
 
     #endregion

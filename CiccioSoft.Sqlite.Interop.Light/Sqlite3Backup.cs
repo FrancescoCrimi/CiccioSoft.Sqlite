@@ -23,7 +23,7 @@ public sealed unsafe class Sqlite3BackupHandle : SafeHandle
 
     protected override bool ReleaseHandle()
     {
-        return Sqlite3Native.sqlite3_backup_finish((sqlite3_backup*)handle) == Sqlite3Native.SQLITE_OK;
+        return VTableCache.Instance.Backup.backup_finish((sqlite3_backup*)handle) == Sqlite3Native.SQLITE_OK;
     }
 }
 
@@ -55,7 +55,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             sqlite3* destinationHandle = destination.Handle.AsStructPointer();
             sqlite3* sourceHandle = source.Handle.AsStructPointer();
 
-            sqlite3_backup* sqlite3_backup = Sqlite3Native.sqlite3_backup_init(
+            sqlite3_backup* sqlite3_backup = VTableCache.Instance.Backup.backup_init(
                 destinationHandle,
                 pDest,
                 sourceHandle,
@@ -76,19 +76,19 @@ public sealed unsafe class Sqlite3Backup : IDisposable
     public SqliteResult Step(int pages = -1)
     {
         // ThrowIfInvalid();
-        return (SqliteResult)Sqlite3Native.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        return (SqliteResult)VTableCache.Instance.Backup.backup_step(_handle.AsStructPointer(), pages);
     }
 
     public int Remaining()
     {
         // ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_backup_remaining(_handle.AsStructPointer());
+        return VTableCache.Instance.Backup.backup_remaining(_handle.AsStructPointer());
     }
 
     public int PageCount()
     {
         // ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_backup_pagecount(_handle.AsStructPointer());
+        return VTableCache.Instance.Backup.backup_pagecount(_handle.AsStructPointer());
     }
 
     public SqliteResult Finish()
@@ -98,7 +98,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             return SqliteResult.OK;
         }
 
-        SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.AsStructPointer());
+        SqliteResult result = (SqliteResult)VTableCache.Instance.Backup.backup_finish(_handle.AsStructPointer());
         _handle.SetHandleAsInvalid();
         _handle.Dispose();
         return result;

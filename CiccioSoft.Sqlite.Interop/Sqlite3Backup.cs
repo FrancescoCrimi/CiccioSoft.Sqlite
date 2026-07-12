@@ -65,7 +65,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             {
                 throw SqliteInteropException.CreateException(
                     (SqliteResult)Sqlite3Native.sqlite3_errcode(destinationHandle),
-                    destinationHandle,
+                    destination.Handle,
                     "SQLite backup init");
             }
 
