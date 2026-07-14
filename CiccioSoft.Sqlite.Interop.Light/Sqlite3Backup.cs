@@ -10,9 +10,9 @@ using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop.Light;
 
-public sealed unsafe class Sqlite3BackupHandle : SafeHandle
+public sealed unsafe class Sqlite3BackupSafeHandle : SafeHandle
 {
-    internal Sqlite3BackupHandle(sqlite3_backup* sqlite3_backup)
+    internal Sqlite3BackupSafeHandle(sqlite3_backup* sqlite3_backup)
         : base((nint)sqlite3_backup, true)
     {
     }
@@ -29,9 +29,9 @@ public sealed unsafe class Sqlite3BackupHandle : SafeHandle
 
 public sealed unsafe class Sqlite3Backup : IDisposable
 {
-    private readonly Sqlite3BackupHandle _handle;
+    private readonly Sqlite3BackupSafeHandle _handle;
 
-    internal Sqlite3Backup(Sqlite3BackupHandle handle)
+    internal Sqlite3Backup(Sqlite3BackupSafeHandle handle)
     {
         _handle = handle;
     }
@@ -52,42 +52,39 @@ public sealed unsafe class Sqlite3Backup : IDisposable
 
         fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
         {
-            sqlite3* destinationHandle = destination.Handle.AsStructPointer();
-            sqlite3* sourceHandle = source.Handle.AsStructPointer();
-
-            sqlite3_backup* sqlite3_backup = VTableCache.Instance.Backup.backup_init(
-                destinationHandle,
+            sqlite3_backup* backupHandle = VTableCache.Instance.Backup.backup_init(
+                destination.Handle.AsStructPointer(),
                 pDest,
-                sourceHandle,
+                source.Handle.AsStructPointer(),
                 pSource);
 
-            // if (backupHandle == nint.Zero)
-            // {
-            //     throw SqliteInteropException.CreateException(
-            //         (SqliteResult)Sqlite3Native.sqlite3_errcode(destinationHandle),
-            //         destinationHandle,
-            //         "SQLite backup init");
-            // }
+            if ((nint)backupHandle == nint.Zero)
+            {
+                throw new SqliteInteropException(
+                    (SqliteResult)VTableCache.Instance.Db.errcode(destination.Handle.AsStructPointer()),
+                    destination.Handle,
+                    "SQLite backup init");
+            }
 
-            return new Sqlite3Backup(new Sqlite3BackupHandle(sqlite3_backup));
+            return new Sqlite3Backup(new Sqlite3BackupSafeHandle(backupHandle));
         }
     }
 
     public SqliteResult Step(int pages = -1)
     {
-        // ThrowIfInvalid();
+        ThrowIfInvalid();
         return (SqliteResult)VTableCache.Instance.Backup.backup_step(_handle.AsStructPointer(), pages);
     }
 
     public int Remaining()
     {
-        // ThrowIfInvalid();
+        ThrowIfInvalid();
         return VTableCache.Instance.Backup.backup_remaining(_handle.AsStructPointer());
     }
 
     public int PageCount()
     {
-        // ThrowIfInvalid();
+        ThrowIfInvalid();
         return VTableCache.Instance.Backup.backup_pagecount(_handle.AsStructPointer());
     }
 
@@ -104,11 +101,11 @@ public sealed unsafe class Sqlite3Backup : IDisposable
         return result;
     }
 
-    // private void ThrowIfInvalid()
-    // {
-    //     if (_handle.IsClosed || _handle.IsInvalid)
-    //         throw new ObjectDisposedException(nameof(Sqlite3Backup));
-    // }
+    private void ThrowIfInvalid()
+    {
+        if (_handle.IsClosed || _handle.IsInvalid)
+            throw new ObjectDisposedException(nameof(Sqlite3Backup));
+    }
 
     public void Dispose() => _handle.Dispose();
 }

@@ -90,7 +90,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
             if (result != SqliteResult.OK)
             {
-                SqliteInteropException exception = SqliteInteropException.CreateException(result, sqlite3Handle, "SQLite open");
+                var exception = new SqliteInteropException(result, sqlite3Handle, "SQLite open");
 
                 // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
                 // Dobbiamo chiudere pDb manualmente o tramite l'handle.
@@ -175,7 +175,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             if (result != SqliteResult.OK)
             {
-                var exception = SqliteInteropException.CreateException(result, _handle, "SQLite prepare");
+                var exception = new SqliteInteropException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
                 throw exception;
             }
@@ -225,7 +225,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             if (result != SqliteResult.OK)
             {
-                SqliteInteropException exception = SqliteInteropException.CreateException(result, _handle, "SQLite prepare");
+                var exception = new SqliteInteropException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
                 throw exception;
             }
@@ -276,87 +276,89 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <summary>
     /// Returns <c>true</c> if the connection is currently in auto-commit mode.
     /// </summary>
-    public bool IsAutoCommit()
+    public bool GetAutoCommit()
     {
         ThrowIfInvalid();
         return Sqlite3Native.sqlite3_get_autocommit(_handle.AsStructPointer()) != 0;
     }
 
     /// <summary>
-    /// Gets or sets a runtime limit for this connection using <c>sqlite3_limit</c>.
+    /// Queries or changes a runtime limit for the connection. 
+    /// Pass -1 to read the current limit, or a positive value to lower it.
     /// </summary>
-    /// <param name="id">
-    /// The SQLite limit category identifier (for example, SQL length, expression depth, or attached database count).
-    /// </param>
-    /// <param name="newVal">
-    /// The new value to apply. Pass a negative value to query the current limit without modifying it.
-    /// </param>
-    /// <returns>
-    /// The previous limit value for the specified category.
-    /// </returns>
-    public int Limit(int id, int newVal)
+    /// <param name="id">The category of the limit to check or modify.</param>
+    /// <param name="newVal">The new limit value, or -1 to only query the current limit.</param>
+    /// <returns>The limit value that was in effect before this call.</returns>
+    public int Limit(SqliteLimitCategory id, int newVal)
     {
         ThrowIfInvalid();
-        return Sqlite3Native.sqlite3_limit(_handle.AsStructPointer(), id, newVal);
+        return Sqlite3Native.sqlite3_limit(_handle.AsStructPointer(), (int)id, newVal);
     }
 
     /// <summary>
-    /// Returns the SQLite transaction state for the requested schema.
+    /// Gets the current transaction state for a specific schema, or the highest state across all schemas if null.
     /// </summary>
-    /// <param name="schemaName">Schema name (for example "main"); pass <c>null</c> to let SQLite use the default schema.</param>
-    /// <returns>
-    /// One of SQLite transaction state constants:
-    /// <list type="bullet">
-    /// <item><description><c>SQLITE_TXN_NONE</c></description></item>
-    /// <item><description><c>SQLITE_TXN_READ</c></description></item>
-    /// <item><description><c>SQLITE_TXN_WRITE</c></description></item>
-    /// </list>
-    /// </returns>
-    public int GetTransactionState(string? schemaName = null)
+    /// <param name="schemaName">The name of the schema (e.g., "main"). Pass null for the global connection state.</param>
+    /// <returns>The specific transaction state.</returns>
+    /// <exception cref="SqliteInteropException">Thrown if the schema name is invalid.</exception>
+    public SqliteTransactionState TransactionState(string? schemaName = null)
     {
         ThrowIfInvalid();
+
+        int result;
 
         if (schemaName is null)
         {
-            return Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), null);
+            result = Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), null);
         }
+		else
+		{
+			using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[512]);
+			fixed (byte* pSchema = utf8Buffer)
+			{
+				result = Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), pSchema);
+			}
+		}
 
-        using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[1024]);
-
-        fixed (byte* pSchema = utf8Buffer)
+        // Se il risultato è -1, lo schema specificato non esiste
+        if (result == -1)
         {
-            return Sqlite3Native.sqlite3_txn_state(_handle.AsStructPointer(), pSchema);
+            throw new SqliteInteropException(
+                $"[SQLite Error in {GetType().Name}.TransactionState] The schema '{schemaName}' is not a valid attached database.");
         }
+
+        return (SqliteTransactionState)result;
     }
 
     /// <summary>
-    /// Returns whether the specified schema is opened in read-only mode.
+    /// Determines whether a attached database is read-only.
     /// </summary>
-    /// <param name="schemaName">Schema name, usually "main" or "temp".</param>
-    /// <returns>
-    /// <c>true</c> if the schema is read-only; <c>false</c> if it is read-write.
-    /// </returns>
-    public bool IsReadOnly(string schemaName = "main")
+    /// <param name="databaseName">The name of the database (e.g., "main", "temp").</param>
+    /// <returns>True if the database is read-only; false if it is read/write.</returns>
+    /// <exception cref="SqliteInteropException">Thrown if the database name is not found on this connection.</exception>
+    public bool DbReadOnly(string databaseName = "main")
     {
         ThrowIfInvalid();
 
-        using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[512]);
+        using var utf8Buffer = new Utf8SafeStackBuffer(databaseName, stackalloc byte[512]);
 
         fixed (byte* pSchema = utf8Buffer)
         {
             int result = Sqlite3Native.sqlite3_db_readonly(_handle.AsStructPointer(), pSchema);
-            if (result < 0)
+            return result switch
             {
-                SqliteInteropException.ThrowOnError(SqliteResult.Error, _handle, "SQLite db readonly");
-            }
-            return result != 0;
+                1 => true,  // Read-Only
+                0 => false, // Read-Write
+                _ => throw new SqliteInteropException(
+                    $"The database '{databaseName}' is not attached to this connection.")
+            };
         }
     }
 
     /// <summary>
     /// Returns the latest extended SQLite error code for this connection.
     /// </summary>
-    public SqliteExtendedErrorCode GetLastExtendedErrorCode()
+    public SqliteExtendedErrorCode ExtendedErrCode()
     {
         ThrowIfInvalid();
         return (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(_handle.AsStructPointer());
@@ -376,26 +378,26 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// Sets a busy timeout on this connection.
     /// </summary>
     /// <param name="milliseconds">The timeout in milliseconds.</param>
-    public void SetBusyTimeout(int milliseconds)
+    public void BusyTimeout(int milliseconds)
     {
         ThrowIfInvalid();
-        SqliteInteropException.ThrowOnError(
-            (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds),
-            _handle,
-            "SQLite busy timeout");
+        var result = (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
+        if (result == SqliteResult.OK)
+            return;
+        CheckResult(result);
     }
 
     /// <summary>
     /// Enables or disables extended result codes for this connection.
     /// </summary>
     /// <param name="enabled">True to enable extended result codes.</param>
-    public void SetExtendedResultCodes(bool enabled)
+    public void ExtendedResultCodes(bool enabled)
     {
         ThrowIfInvalid();
-        SqliteInteropException.ThrowOnError(
-            (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0),
-            _handle,
-            "SQLite extended result codes");
+        var result = (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
+        if (result == SqliteResult.OK)
+            return;
+        CheckResult(result);
     }
 
     /// <summary>
@@ -429,9 +431,6 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         return Sqlite3Native.sqlite3_libversion_number();
     }
-
-
-
 
     /// <summary>
     /// Retrieves metadata information about a specific column in a table.
@@ -518,7 +517,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 if (rc != SqliteResult.OK)
                 {
                     string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
-                    throw SqliteInteropException.CreateException(rc, _handle, operation);
+                    throw new SqliteInteropException(rc, _handle, operation);
                 }
             }
 
@@ -547,8 +546,7 @@ public sealed unsafe class Sqlite3 : IDisposable
     {
         if (res == SqliteResult.OK)
             return;
-        string className = GetType().Name;
-        SqliteInteropException.ThrowOnError(res, _handle, $"SQLite error in: {className}.{caller}");
+        throw new SqliteInteropException(res, _handle, $"SQLite error in: {GetType().Name}.{caller}");
     }
 
     #endregion

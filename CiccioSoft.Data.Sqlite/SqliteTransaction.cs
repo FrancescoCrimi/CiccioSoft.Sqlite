@@ -48,7 +48,7 @@ public class SqliteTransaction : DbTransaction
     {
         get
         {
-            if (!_completed && _connection.State == ConnectionState.Open && _connection.GetSession().Native.IsAutoCommit())
+            if (!_completed && _connection.State == ConnectionState.Open && _connection.GetSession().Native.GetAutoCommit())
             {
                 _completed = true;
                 _connection.ClearActiveTransaction();
@@ -128,7 +128,7 @@ public class SqliteTransaction : DbTransaction
             throw new InvalidOperationException(Resources.TransactionCompleted);
         }
 
-        if (_connection.GetSession().Native.IsAutoCommit())
+        if (_connection.GetSession().Native.GetAutoCommit())
         {
             _completed = true;
             _connection.ClearActiveTransaction();

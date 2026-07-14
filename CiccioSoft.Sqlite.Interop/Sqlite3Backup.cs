@@ -52,19 +52,16 @@ public sealed unsafe class Sqlite3Backup : IDisposable
 
         fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
         {
-            sqlite3* destinationHandle = destination.Handle.AsStructPointer();
-            sqlite3* sourceHandle = source.Handle.AsStructPointer();
-
             sqlite3_backup* backupHandle = Sqlite3Native.sqlite3_backup_init(
-                destinationHandle,
+                destination.Handle.AsStructPointer(),
                 pDest,
-                sourceHandle,
+                source.Handle.AsStructPointer(),
                 pSource);
 
             if ((nint)backupHandle == nint.Zero)
             {
-                throw SqliteInteropException.CreateException(
-                    (SqliteResult)Sqlite3Native.sqlite3_errcode(destinationHandle),
+                throw new SqliteInteropException(
+                    (SqliteResult)Sqlite3Native.sqlite3_errcode(destination.Handle.AsStructPointer()),
                     destination.Handle,
                     "SQLite backup init");
             }

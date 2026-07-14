@@ -406,6 +406,42 @@ namespace CiccioSoft.Sqlite.Interop.Native
         [NativeTypeName("#define SQLITE_OPEN_MASTER_JOURNAL 0x00004000")]
         public const int SQLITE_OPEN_MASTER_JOURNAL = 0x00004000;
 
+        [NativeTypeName("#define SQLITE_LIMIT_LENGTH 0")]
+        public const int SQLITE_LIMIT_LENGTH = 0;
+
+        [NativeTypeName("#define SQLITE_LIMIT_SQL_LENGTH 1")]
+        public const int SQLITE_LIMIT_SQL_LENGTH = 1;
+
+        [NativeTypeName("#define SQLITE_LIMIT_COLUMN 2")]
+        public const int SQLITE_LIMIT_COLUMN = 2;
+
+        [NativeTypeName("#define SQLITE_LIMIT_EXPR_DEPTH 3")]
+        public const int SQLITE_LIMIT_EXPR_DEPTH = 3;
+
+        [NativeTypeName("#define SQLITE_LIMIT_COMPOUND_SELECT 4")]
+        public const int SQLITE_LIMIT_COMPOUND_SELECT = 4;
+
+        [NativeTypeName("#define SQLITE_LIMIT_VDBE_OP 5")]
+        public const int SQLITE_LIMIT_VDBE_OP = 5;
+
+        [NativeTypeName("#define SQLITE_LIMIT_FUNCTION_ARG 6")]
+        public const int SQLITE_LIMIT_FUNCTION_ARG = 6;
+
+        [NativeTypeName("#define SQLITE_LIMIT_ATTACHED 7")]
+        public const int SQLITE_LIMIT_ATTACHED = 7;
+
+        [NativeTypeName("#define SQLITE_LIMIT_LIKE_PATTERN_LENGTH 8")]
+        public const int SQLITE_LIMIT_LIKE_PATTERN_LENGTH = 8;
+
+        [NativeTypeName("#define SQLITE_LIMIT_VARIABLE_NUMBER 9")]
+        public const int SQLITE_LIMIT_VARIABLE_NUMBER = 9;
+
+        [NativeTypeName("#define SQLITE_LIMIT_TRIGGER_DEPTH 10")]
+        public const int SQLITE_LIMIT_TRIGGER_DEPTH = 10;
+
+        [NativeTypeName("#define SQLITE_LIMIT_WORKER_THREADS 11")]
+        public const int SQLITE_LIMIT_WORKER_THREADS = 11;
+
         [NativeTypeName("#define SQLITE_PREPARE_PERSISTENT 0x01")]
         public const int SQLITE_PREPARE_PERSISTENT = 0x01;
 
@@ -432,5 +468,14 @@ namespace CiccioSoft.Sqlite.Interop.Native
 
         [NativeTypeName("#define SQLITE_TEXT 3")]
         public const int SQLITE_TEXT = 3;
+
+        [NativeTypeName("#define SQLITE_TXN_NONE 0")]
+        public const int SQLITE_TXN_NONE = 0;
+
+        [NativeTypeName("#define SQLITE_TXN_READ 1")]
+        public const int SQLITE_TXN_READ = 1;
+
+        [NativeTypeName("#define SQLITE_TXN_WRITE 2")]
+        public const int SQLITE_TXN_WRITE = 2;
     }
 }

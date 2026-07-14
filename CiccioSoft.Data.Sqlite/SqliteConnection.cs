@@ -559,8 +559,8 @@ public sealed class SqliteConnection : DbConnection
 
     private void ApplyConnectionSettings(Sqlite3 native)
     {
-        native.SetExtendedResultCodes(true);
-        native.SetBusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
+        native.ExtendedResultCodes(true);
+        native.BusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
 
         native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys ? "ON" : "OFF")};");
 
@@ -669,7 +669,7 @@ public sealed class SqliteConnection : DbConnection
     {
         get
         {
-            if (_activeTransaction != null && GetSession().Native.IsAutoCommit())
+            if (_activeTransaction != null && GetSession().Native.GetAutoCommit())
             {
                 ClearActiveTransaction();
             }

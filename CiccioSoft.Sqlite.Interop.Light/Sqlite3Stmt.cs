@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CiccioSoft.Sqlite.Interop.Native;
@@ -52,16 +51,14 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// - <c>SQLITE_ROW</c>: Data is ready to be read via Column methods.
     /// - <c>SQLITE_DONE</c>: Query finished or an INSERT/UPDATE/DELETE was executed.
     /// </remarks>
-    /// <exception cref="Exception">Thrown if an error occurs during execution (e.g., constraint violations).</exception>
+    /// <exception cref="SqliteInteropException">Thrown if an error occurs during execution (e.g., constraint violations).</exception>
     public bool Step()
     {
         ThrowIfInvalid();
         SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.step(_handle.AsStructPointer());
         if (res == SqliteResult.Row) return true;
         if (res == SqliteResult.Done) return false;
-
-        SqliteInteropException.ThrowOnError(res, _sqlite3SafeHandle, "SQLite step");
-        return false;
+        throw new SqliteInteropException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.Step");
     }
 
     #endregion
@@ -72,11 +69,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <summary>
     /// Resets the prepared statement back to its initial state, ready to be re-executed.
     /// </summary>
-    /// <exception cref="Exception">Thrown if the reset operation fails.</exception>
-    public SqliteResult Reset()
+    /// <exception cref="SqliteInteropException">Thrown if the reset operation fails.</exception>
+    public void Reset()
     {
+        ThrowIfInvalid();
         SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.reset(_handle.AsStructPointer());
-        return res;
+        CheckResult(res);
     }
 
     #endregion
@@ -88,10 +86,11 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// Resets all bound parameters in the prepared statement back to a NULL state.
     /// </summary>
     /// <exception cref="Exception">Thrown if the native clearing of bindings fails.</exception>
-    public SqliteResult ClearBindings()
+    public void ClearBindings()
     {
+        ThrowIfInvalid();
         SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.clear_bindings(_handle.AsStructPointer());
-        return res;
+        CheckResult(res);
     }
 
     #endregion
@@ -112,6 +111,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <exception cref="ObjectDisposedException">Thrown if the statement handle is invalid.</exception>
     public int ColumnCount()
     {
+        ThrowIfInvalid();
         return VTableCache.Instance.Stmt.column_count(_handle.AsStructPointer());
     }
 
@@ -120,24 +120,53 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public int ParameterCount()
     {
+        ThrowIfInvalid();
         return VTableCache.Instance.Stmt.bind_parameter_count(_handle.AsStructPointer());
     }
 
-    /// <summary>
-    /// Returns the name of the SQL parameter at the specified 1-based index.
-    /// </summary>
-    public string? GetParameterName(int index)
+    public ReadOnlySpan<byte> GetParameterName(int index)
     {
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite parameter index must be 1 or greater.");
+
         byte* pName = VTableCache.Instance.Stmt.bind_parameter_name(_handle.AsStructPointer(), index);
-        return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
+
+        if (pName == null)
+            return ReadOnlySpan<byte>.Empty;
+
+        int length = 0;
+        while (pName[length] != 0) length++;
+        return new ReadOnlySpan<byte>(pName, length);
     }
 
     /// <summary>
-    /// Returns the 1-based index for a named SQL parameter (for example <c>@name</c> or <c>:name</c>).
+    /// Returns the name of the N-th SQL parameter in the prepared statement.
+    /// Parameters of the form ":AAA" or "@AAA" include the prefix. Anonymous parameters ("?") return null.
     /// </summary>
+    /// <param name="index">The one-based index of the SQL parameter (first parameter is 1).</param>
+    /// <returns>The name of the parameter, or null if the parameter is nameless or out of range.</returns>
+    public string? GetParameterNameString(int index)
+    {
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite parameter index must be 1 or greater.");
+
+        byte* pName = VTableCache.Instance.Stmt.bind_parameter_name(_handle.AsStructPointer(), index);
+
+		return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
+    }
+
+    /// <summary>
+    /// Returns the one-based index of an SQL parameter given its name.
+    /// </summary>
+    /// <param name="name">The name of the parameter including its prefix (e.g., ":userName", "@id").</param>
+    /// <returns>The one-based index of the parameter, or 0 if no matching parameter is found.</returns>
     public int GetParameterIndex(string parameterName)
     {
-        ArgumentNullException.ThrowIfNull(parameterName);
+        ThrowIfInvalid();
+        if (string.IsNullOrEmpty(parameterName))
+            throw new ArgumentException("Parameter name cannot be null or empty.", nameof(parameterName));
 
         using var utf8Buffer = new Utf8SafeStackBuffer(parameterName, stackalloc byte[512]);
 
@@ -157,13 +186,12 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 0-based index of the column.</param>
     /// <returns>The column name; <c>null</c> if the index is out of range or the name is unavailable.</returns>
-    /// <remarks>
-    /// <b>Implementation Note:</b>
-    /// Uses <see cref="System.Runtime.InteropServices.Marshal.PtrToStringUTF8(IntPtr)"/> to efficiently scan 
-    /// for the null terminator and decode the native UTF-8 string into a managed UTF-16 string.
-    /// </remarks>
     public string? GetColumnName(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         // sqlite3_column_name restituisce un byte* UTF-8 (null-terminated)
         byte* pName = VTableCache.Instance.Stmt.column_name(_handle.AsStructPointer(), index);
 
@@ -179,6 +207,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnDeclType(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         byte* pText = VTableCache.Instance.Stmt.column_decltype(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
@@ -188,6 +220,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnDatabaseName(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         byte* pText = VTableCache.Instance.Stmt.column_database_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
@@ -197,6 +233,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnTableName(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         byte* pText = VTableCache.Instance.Stmt.column_table_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
@@ -206,6 +246,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetColumnOriginName(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         byte* pText = VTableCache.Instance.Stmt.column_origin_name(_handle.AsStructPointer(), index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
@@ -222,6 +266,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The 32-bit integer value of the column.</returns>
     public int GetInt(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         return VTableCache.Instance.Stmt.column_int(_handle.AsStructPointer(), index);
     }
 
@@ -232,6 +280,10 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The 64-bit long value of the column.</returns>
     public long GetLong(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         return VTableCache.Instance.Stmt.column_int64(_handle.AsStructPointer(), index);
     }
 
@@ -242,11 +294,19 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <returns>The double-precision value of the column.</returns>
     public double GetDouble(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         return VTableCache.Instance.Stmt.column_double(_handle.AsStructPointer(), index);
     }
 
     public ReadOnlySpan<byte> GetText(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
         byte* pText = VTableCache.Instance.Stmt.column_text(_handle.AsStructPointer(), index);
         if (pText == null) return ReadOnlySpan<byte>.Empty;
@@ -267,8 +327,13 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// <c>null</c> if the database value is SQL NULL; 
     /// <see cref="string.Empty"/> if the database value is an empty string.
     /// </returns>
+    /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
     public string? GetTextString(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
         byte* pText = VTableCache.Instance.Stmt.column_text(_handle.AsStructPointer(), index);
 
@@ -281,14 +346,13 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>A <see cref="ReadOnlySpan{Byte}"/> pointing directly to the native SQLite memory; <see cref="ReadOnlySpan{Byte}.Empty"/> if NULL.</returns>
-    /// <remarks>
-    /// <b>Critical Performance Warning:</b>
-    /// - Zero-Copy: This method provides direct access to SQLite's internal buffers for maximum speed and zero GC pressure.
-    /// - Lifetime: The returned <see cref="ReadOnlySpan{Byte}"/> is <b>only valid</b> until the next call to <c>Step()</c>, <c>Reset()</c>, or <c>Dispose()</c> on this statement.
-    /// - Persistence: If you need to keep the data beyond the current row, you must call <c>.ToArray()</c> or copy it to another buffer.
-    /// </remarks>
+    /// <exception cref="Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
     public ReadOnlySpan<byte> GetBlob(int index)
     {
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
         // Otteniamo il puntatore alla memoria del BLOB gestita da SQLite
         void* pBlob = VTableCache.Instance.Stmt.column_blob(_handle.AsStructPointer(), index);
         if (pBlob == null) return ReadOnlySpan<byte>.Empty;
@@ -302,27 +366,19 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     }
 
     /// <summary>
-    /// Retrieves the fundamental data type of the result column at the specified index.
+    /// Returns the data type of the value in the specified column for the current row.
+    /// Call this only after a successful step that returned a row.
     /// </summary>
-    /// <param name="index">The 0-based index of the column to query.</param>
-    /// <returns>
-    /// An integer representing the SQLite data type:
-    /// <list type="bullet">
-    /// <item><description>1: SQLITE_INTEGER</description></item>
-    /// <item><description>2: SQLITE_FLOAT</description></item>
-    /// <item><description>3: SQLITE_TEXT</description></item>
-    /// <item><description>4: SQLITE_BLOB</description></item>
-    /// <item><description>5: SQLITE_NULL</description></item>
-    /// </list>
-    /// </returns>
-    /// <remarks>
-    /// SQLite uses dynamic typing; the type of a column may change from row to row. 
-    /// Call this after <see cref="Step"/> to determine which <c>Get</c> method to use.
-    /// </remarks>
+    /// <param name="index">The zero-based index of the column.</param>
+    /// <returns>The <see cref="SqliteType"/> representing the type of the value.</returns>  
     public SqliteType GetColumnType(int index)
     {
-        int rc = VTableCache.Instance.Stmt.column_type(_handle.AsStructPointer(), index);
-        return (SqliteType)rc;
+        ThrowIfInvalid();
+        if (index < 0)
+            throw new ArgumentOutOfRangeException(nameof(index), "Column index cannot be negative.");
+
+        int typeCode = VTableCache.Instance.Stmt.column_type(_handle.AsStructPointer(), index);
+        return (SqliteType)typeCode;
     }
 
     /// <summary>
@@ -330,6 +386,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public bool IsReadOnly()
     {
+        ThrowIfInvalid();
         return VTableCache.Instance.Stmt.stmt_readonly(_handle.AsStructPointer()) != 0;
     }
 
@@ -338,14 +395,18 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public bool IsBusy()
     {
+        ThrowIfInvalid();
         return VTableCache.Instance.Stmt.stmt_busy(_handle.AsStructPointer()) != 0;
     }
 
     /// <summary>
-    /// Returns the expanded SQL text with currently bound parameters.
+    /// Returns the SQL text of this prepared statement with all bound parameters expanded to their actual values.
     /// </summary>
+    /// <returns>The fully expanded SQL string, or null if out of memory or trace is omitted.</returns>
     public string? GetExpandedSql()
     {
+        ThrowIfInvalid();
+
         byte* pExpanded = VTableCache.Instance.Stmt.expanded_sql(_handle.AsStructPointer());
         if (pExpanded == null)
         {
@@ -367,6 +428,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     public string? GetSql()
     {
+        ThrowIfInvalid();
         byte* pSql = VTableCache.Instance.Stmt.sql(_handle.AsStructPointer());
         return pSql is null ? null : Marshal.PtrToStringUTF8((nint)pSql);
     }
@@ -380,9 +442,14 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// Binds a NULL value to a prepared statement parameter at the specified index.
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
-    public SqliteResult BindNull(int index)
+    public void BindNull(int index)
     {
-        return (SqliteResult)VTableCache.Instance.Stmt.bind_null(_handle.AsStructPointer(), index);
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
+        var result = (SqliteResult)VTableCache.Instance.Stmt.bind_null(_handle.AsStructPointer(), index);
+        CheckBindResult(result, index);
     }
 
     /// <summary>
@@ -390,9 +457,15 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="value">The integer value to bind.</param>
-    public SqliteResult BindInt(int index, int value)
+    /// <exception cref="SqliteInteropException">Thrown if the binding operation fails.</exception>
+    public void BindInt(int index, int value)
     {
-        return (SqliteResult)VTableCache.Instance.Stmt.bind_int(_handle.AsStructPointer(), index, value);
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
+        var result = (SqliteResult)VTableCache.Instance.Stmt.bind_int(_handle.AsStructPointer(), index, value);
+        CheckBindResult(result, index);
     }
 
     /// <summary>
@@ -400,9 +473,14 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="value">The long value to bind.</param>
-    public SqliteResult BindLong(int index, long value)
+    public void BindLong(int index, long value)
     {
-        return (SqliteResult)VTableCache.Instance.Stmt.bind_int64(_handle.AsStructPointer(), index, value);
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
+        var result = (SqliteResult)VTableCache.Instance.Stmt.bind_int64(_handle.AsStructPointer(), index, value);
+        CheckBindResult(result, index);
     }
 
     /// <summary>
@@ -410,27 +488,42 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="value">The double value to bind.</param>
-    public SqliteResult BindDouble(int index, double value)
+    public void BindDouble(int index, double value)
     {
-        return (SqliteResult)VTableCache.Instance.Stmt.bind_double(_handle.AsStructPointer(), index, value);
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
+        var result = (SqliteResult)VTableCache.Instance.Stmt.bind_double(_handle.AsStructPointer(), index, value);
+        CheckBindResult(result, index);
     }
 
-    public SqliteResult BindText(int index, ReadOnlySpan<byte> text)
+    public void BindText(int index, ReadOnlySpan<byte> text)
     {
         // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
         if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(text)))
-            return BindNull(index);
+        {
+            BindNull(index);
+            return;
+        }
+
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
 
         // span reale, anche se Length == 0 -> bind normale con lunghezza 0
         fixed (byte* pBuf = text)
         {
+            // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
+            // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
             SqliteResult res = (SqliteResult)VTableCache.Instance.Stmt.bind_text(
                 _handle.AsStructPointer(),
                 index,
                 pBuf,
                 text.Length,
                 Sqlite3Native.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
-            return res;
+            CheckBindResult(res, index);
         }
     }
 
@@ -438,18 +531,27 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// Binds a string value to a prepared statement parameter at the specified index.
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
-    /// <param name="s">The string value to bind. If null, a SQL NULL is bound instead.</param>
-    public SqliteResult BindText(int index, string text)
+    /// <param name="text">The string value to bind. If null, a SQL NULL is bound instead.</param>
+    /// <exception cref="Exception">Thrown if the binding fails or the statement is invalid.</exception>
+    public void BindText(int index, string text)
     {
         // Se la stringa è nulla, bindiamo NULL.
         // Una stringa vuota deve restare una stringa vuota, non SQL NULL.
         if (text is null)
-            return BindNull(index);
+        {
+            BindNull(index);
+            return;
+        }
+
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
 
         // Alloca la memoria base nello stack
         // 512 byte bastano per la maggior parte delle stringhe standard
         using var utf8Buffer = new Utf8SafeStackBuffer(text, stackalloc byte[1024]);
-        return BindText(index, utf8Buffer.AsSpan());
+        BindText(index, utf8Buffer.AsSpan());
     }
 
     /// <summary>
@@ -457,11 +559,20 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="data">The binary data to bind as a <see cref="ReadOnlySpan{Byte}"/>. If empty, a SQL NULL is bound.</param>
-    public SqliteResult BindBlob(int index, ReadOnlySpan<byte> data)
+    /// <exception cref="Exception">Thrown if the binding fails or the statement is in an invalid state.</exception>
+    public void BindBlob(int index, ReadOnlySpan<byte> data)
     {
         // Distingue lo span default/null dallo span vuoto reale. (implicit conversion da null)
         if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(data)))
-            return BindNull(index);
+        {
+            BindNull(index);
+            return;
+        }
+
+        ThrowIfInvalid();
+        if (index < 1)
+            throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
+
 
         fixed (byte* pData = data)
         {
@@ -471,7 +582,7 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
                 pData,
                 data.Length,
                 Sqlite3Native.SQLITE_TRANSIENT);
-            return res;
+            CheckBindResult(res, index);
         }
     }
 
@@ -482,9 +593,25 @@ public sealed unsafe class Sqlite3Stmt : IDisposable
 
     private void ThrowIfInvalid()
     {
-        if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
+        if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3Stmt));
     }
 
+    private void CheckResult(SqliteResult res, [CallerMemberName] string caller = "")
+    {
+        if (res == SqliteResult.OK)
+            return;
+        throw new SqliteInteropException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
+    }
+
+    // Piccolo helper per centralizzare il controllo degli errori
+    private void CheckBindResult(SqliteResult res, int index, [CallerMemberName] string caller = "")
+    {
+        if (res == SqliteResult.OK)
+            return;
+
+        throw new SqliteInteropException(res, _sqlite3SafeHandle,
+            $"SQLite {GetType().Name}.{caller} to parameter index {index}");
+    }
 
     #endregion
 
