@@ -14,7 +14,7 @@ public class ReadString
     private sqlite3 _db1;
     private Sqlite3 _db3;
     private Light.Sqlite3 _db4;
-    private Com.Sqlite3 _db5;
+    // private Com.Sqlite3 _db5;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
@@ -28,8 +28,8 @@ public class ReadString
     [GlobalSetup(Target = nameof(ReadString_InteropLight))]
     public void Setup_InteropLight() => _db4 = ReadDbStuff.Setup_InteropLight();
 
-    [GlobalSetup(Target = nameof(ReadString_InteropCom))]
-    public void Setup_InteropCom() => _db5 = ReadDbStuff.Setup_InteropCom();
+    // [GlobalSetup(Target = nameof(ReadString_InteropCom))]
+    // public void Setup_InteropCom() => _db5 = ReadDbStuff.Setup_InteropCom();
 
     [GlobalCleanup(Target = nameof(ReadString_SQLitePCL))]
     public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
@@ -40,8 +40,8 @@ public class ReadString
     [GlobalCleanup(Target = nameof(ReadString_InteropLight))]
     public void Cleanup_InteropLight() => _db4.Dispose();
 
-    [GlobalCleanup(Target = nameof(ReadString_InteropCom))]
-    public void Cleanup_InteropCom() => _db5.Dispose();
+    // [GlobalCleanup(Target = nameof(ReadString_InteropCom))]
+    // public void Cleanup_InteropCom() => _db5.Dispose();
 
     // ==========================================
     // BENCHMARK DI LETTURA (SELECT)
@@ -98,22 +98,22 @@ public class ReadString
         }
     }
 
-    [Benchmark]
-    public void ReadString_InteropCom()
-    {
-        _db5.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
-        using (stmt)
-        {
-            // Fintanto che ci sono righe (SQLITE_ROW)
-            while (stmt.Step() == Com.SqliteResult.Row)
-            {
-                long id = stmt.GetLong(0);
-                string name = stmt.GetTextString(1);
-                double score = stmt.GetDouble(2);
-                _consumer.Consume(id);
-                _consumer.Consume(name);
-                _consumer.Consume(score);
-            }
-        }
-    }
+    // [Benchmark]
+    // public void ReadString_InteropCom()
+    // {
+    //     _db5.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
+    //     using (stmt)
+    //     {
+    //         // Fintanto che ci sono righe (SQLITE_ROW)
+    //         while (stmt.Step() == Com.SqliteResult.Row)
+    //         {
+    //             long id = stmt.GetLong(0);
+    //             string name = stmt.GetTextString(1);
+    //             double score = stmt.GetDouble(2);
+    //             _consumer.Consume(id);
+    //             _consumer.Consume(name);
+    //             _consumer.Consume(score);
+    //         }
+    //     }
+    // }
 }

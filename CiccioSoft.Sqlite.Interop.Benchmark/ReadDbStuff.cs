@@ -5,7 +5,7 @@ namespace CiccioSoft.Sqlite.Interop.Benchmark;
 
 public static class ReadDbStuff
 {
-    public const int RowCount = 1_000_000;
+    public const int RowCount = 100_000;
     public const string TestString = "User_Performance_Test_String_12345";
     public const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\CiccioSoft.Sqlite.Interop.Benchmark\read.db";
     // public const string DbFile = ":memory:";
@@ -103,28 +103,28 @@ public static class ReadDbStuff
         return db;
     }
 
-    public static Com.Sqlite3 Setup_InteropCom()
-    {
-        Com.Sqlite3.Open(DbFile, out Com.Sqlite3 db);
-        db.Execute("PRAGMA synchronous = OFF;");
-        db.Execute("DROP TABLE IF EXISTS Users;");
-        db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-        db.Execute("BEGIN;");
-        db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
-        using (stmt)
-        {
-            for (int i = 0; i < RowCount; i++)
-            {
-                stmt.Reset();
-                stmt.BindLong(1, i);
-                stmt.BindText(2, TestString);
-                stmt.BindDouble(3, i * 1.1);
-                stmt.Step();
-            }
-        }
-        db.Execute("COMMIT;");
-        return db;
-    }
+    // public static Com.Sqlite3 Setup_InteropCom()
+    // {
+    //     Com.Sqlite3.Open(DbFile, out Com.Sqlite3 db);
+    //     db.Execute("PRAGMA synchronous = OFF;");
+    //     db.Execute("DROP TABLE IF EXISTS Users;");
+    //     db.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+    //     db.Execute("BEGIN;");
+    //     db.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
+    //     using (stmt)
+    //     {
+    //         for (int i = 0; i < RowCount; i++)
+    //         {
+    //             stmt.Reset();
+    //             stmt.BindLong(1, i);
+    //             stmt.BindText(2, TestString);
+    //             stmt.BindDouble(3, i * 1.1);
+    //             stmt.Step();
+    //         }
+    //     }
+    //     db.Execute("COMMIT;");
+    //     return db;
+    // }
 
     // Pulizia file precedenti
     // if (File.Exists(DbFile1)) File.Delete(DbFile1);

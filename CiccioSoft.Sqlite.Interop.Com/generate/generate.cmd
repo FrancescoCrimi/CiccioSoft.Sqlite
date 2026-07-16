@@ -1,1 +1,0 @@
-ClangSharpPInvokeGenerator "@generate.rsp"

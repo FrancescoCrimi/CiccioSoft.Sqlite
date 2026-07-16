@@ -30,9 +30,6 @@ Questo documento riassume le decisioni di design prese per garantire le massime 
 
 ### Schema logico del codice:
 
-[Applicazione Utente]│├──► Passa ReadOnlySpan (UTF-8) ──► [ Overload Core ] ──► [ Layer C (Passacarte) ] ──► SQLite (UTF-8)│                                               ▲└──► Passa String (UTF-16) ──────────────┐      │▼      │[ Conv. C# ] ─┘(Stackalloc)
-
-
 1. **Il metodo CORE (`ReadOnlySpan<byte>`):**
    * Accetta testo in formato UTF-8 nativo.
    * Rappresenta la via ad alte prestazioni (zero allocazioni nella Heap, zero copie).
