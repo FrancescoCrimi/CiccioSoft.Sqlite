@@ -8,13 +8,10 @@ public class WriteSpan
 {
     private const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\CiccioSoft.Sqlite.Interop.Benchmark\write.db";
     private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
-    // private const string TestString = "User_Performance_Test_String_12345";
     private static ReadOnlySpan<byte> TestString => "User_Performance_Test_String_12345"u8;
 
     private sqlite3 _db1;
-    private Sqlite3 _db3;
-    private Light.Sqlite3 _db4;
-    // private Com.Sqlite3 _db5;
+    private Sqlite3 _db2;
 
     [GlobalSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()
@@ -59,26 +56,26 @@ public class WriteSpan
     [GlobalSetup(Target = nameof(WriteSpan_Interop))]
     public void GlobalSetup_Interop()
     {
-        _db3 = Sqlite3.Open(DbFile);
-        _db3.Execute("PRAGMA journal_mode = WAL;");
-        _db3.Execute("PRAGMA synchronous = OFF;");
+        _db2 = Sqlite3.Open(DbFile);
+        _db2.Execute("PRAGMA journal_mode = WAL;");
+        _db2.Execute("PRAGMA synchronous = OFF;");
     }
 
     [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
-    public void GlobalCleanup_Interop() => _db3.Dispose();
+    public void GlobalCleanup_Interop() => _db2.Dispose();
 
     [IterationSetup(Target = nameof(WriteSpan_Interop))]
     public void IterationSetup_Interop()
     {
-        _db3.Execute("DROP TABLE IF EXISTS Users;");
-        _db3.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        _db2.Execute("DROP TABLE IF EXISTS Users;");
+        _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
     }
 
     [Benchmark]
     public void WriteSpan_Interop()
     {
-        _db3.Execute("BEGIN;");
-        using (var stmt = _db3.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+        _db2.Execute("BEGIN;");
+        using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
         {
             for (int i = 0; i < RowCount; i++)
             {
@@ -88,84 +85,7 @@ public class WriteSpan
                 stmt.BindDouble(3, i * 1.1);
                 stmt.Step();
             }
-            _db3.Execute("COMMIT;");
+            _db2.Execute("COMMIT;");
         }
     }
-
-
-
-    [GlobalSetup(Target = nameof(WriteSpan_InteropLight))]
-    public void GlobalSetup_InteropLight()
-    {
-        _db4 = Light.Sqlite3.Open(DbFile);
-        _db4.Execute("PRAGMA journal_mode = WAL;");
-        _db4.Execute("PRAGMA synchronous = OFF;");
-    }
-
-    [GlobalCleanup(Target = nameof(WriteSpan_InteropLight))]
-    public void GlobalCleanup_InteropLight() => _db4.Dispose();
-
-    [IterationSetup(Target = nameof(WriteSpan_InteropLight))]
-    public void IterationSetup_InteropLight()
-    {
-        _db4.Execute("DROP TABLE IF EXISTS Users;");
-        _db4.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-    }
-
-    [Benchmark]
-    public void WriteSpan_InteropLight()
-    {
-        _db4.Execute("BEGIN;");
-        using (Light.Sqlite3Stmt stmt = _db4.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
-        {
-            for (int i = 0; i < RowCount; i++)
-            {
-                stmt.Reset();
-                stmt.BindLong(1, i);
-                stmt.BindText(2, TestString);
-                stmt.BindDouble(3, i * 1.1);
-                stmt.Step();
-            }
-            _db4.Execute("COMMIT;");
-        }
-    }
-
-
-
-    // [GlobalSetup(Target = nameof(WriteSpan_InteropCom))]
-    // public void GlobalSetup_InteropCom()
-    // {
-    //     Com.Sqlite3.Open(DbFile, out _db5);
-    //     _db5.Execute("PRAGMA journal_mode = WAL;");
-    //     _db5.Execute("PRAGMA synchronous = OFF;");
-    // }
-
-    // [GlobalCleanup(Target = nameof(WriteSpan_InteropCom))]
-    // public void GlobalCleanup_InteropCom() => _db5.Dispose();
-
-    // [IterationSetup(Target = nameof(WriteSpan_InteropCom))]
-    // public void IterationSetup_InteropCom()
-    // {
-    //     _db5.Execute("DROP TABLE IF EXISTS Users;");
-    //     _db5.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-    // }
-
-    // [Benchmark]
-    // public void WriteSpan_InteropCom()
-    // {
-    //     _db5.Execute("BEGIN;");
-    //     _db5.Prepare("INSERT INTO Users VALUES (?, ?, ?);", out Com.Sqlite3Stmt stmt);
-    //     using (stmt)
-    //     {
-    //         for (int i = 0; i < RowCount; i++)
-    //         {
-    //             stmt.Reset();
-    //             stmt.BindLong(1, i);
-    //             stmt.BindText(2, TestString);
-    //             stmt.BindDouble(3, i * 1.1);
-    //             stmt.Step();
-    //         }
-    //         _db5.Execute("COMMIT;");
-    //     }
-    // }
 }

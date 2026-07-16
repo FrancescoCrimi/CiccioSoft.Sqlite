@@ -1,51 +1,53 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using SQLitePCL; // Serve per il Consumer
+using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Interop.Benchmark;
 
 public class ReadString
 {
-    private const int RowCount = ReadDbStuff.RowCount;
-    private const string TestString = ReadDbStuff.TestString;
-    private const string DbFile = ReadDbStuff.DbFile;
+    public const int RowCount = 100_000;
+    public const string TestString = "User_Performance_Test_String_12345";
+    public const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\CiccioSoft.Sqlite.Interop.Benchmark\read.db";
+    // public const string DbFile = ":memory:";
 
     private sqlite3 _db1;
-    private Sqlite3 _db3;
-    private Light.Sqlite3 _db4;
-    // private Com.Sqlite3 _db5;
+    private Sqlite3 _db2;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
 
-    [GlobalSetup(Target = nameof(ReadString_SQLitePCL))]
-    public void Setup_SQLitePCL() => _db1 = ReadDbStuff.Setup_SQLitePCL();
-
-    [GlobalSetup(Target = nameof(ReadString_Interop))]
-    public void Setup_Interop() => _db3 = ReadDbStuff.Setup_Interop();
-
-    [GlobalSetup(Target = nameof(ReadString_InteropLight))]
-    public void Setup_InteropLight() => _db4 = ReadDbStuff.Setup_InteropLight();
-
-    // [GlobalSetup(Target = nameof(ReadString_InteropCom))]
-    // public void Setup_InteropCom() => _db5 = ReadDbStuff.Setup_InteropCom();
-
-    [GlobalCleanup(Target = nameof(ReadString_SQLitePCL))]
-    public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
-
-    [GlobalCleanup(Target = nameof(ReadString_Interop))]
-    public void Cleanup_Interop() => _db3.Dispose();
-
-    [GlobalCleanup(Target = nameof(ReadString_InteropLight))]
-    public void Cleanup_InteropLight() => _db4.Dispose();
-
-    // [GlobalCleanup(Target = nameof(ReadString_InteropCom))]
-    // public void Cleanup_InteropCom() => _db5.Dispose();
-
     // ==========================================
     // BENCHMARK DI LETTURA (SELECT)
     // ==========================================
+
+    [GlobalSetup(Target = nameof(ReadString_SQLitePCL))]
+    public void Setup_SQLitePCL()
+    {
+        Batteries_V2.Init();
+        raw.sqlite3_open(DbFile, out _db1);
+        raw.sqlite3_exec(_db1, "PRAGMA synchronous = OFF;");
+        raw.sqlite3_exec(_db1, "DROP TABLE IF EXISTS Users;");
+        raw.sqlite3_exec(_db1, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        raw.sqlite3_exec(_db1, "BEGIN;");
+        raw.sqlite3_prepare_v2(_db1, "INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
+        using (stmt)
+        {
+            for (int i = 0; i < RowCount; i++)
+            {
+                raw.sqlite3_reset(stmt);
+                raw.sqlite3_bind_int64(stmt, 1, i);
+                raw.sqlite3_bind_text(stmt, 2, TestString);
+                raw.sqlite3_bind_double(stmt, 3, i * 1.1);
+                raw.sqlite3_step(stmt);
+            }
+        }
+        raw.sqlite3_exec(_db1, "COMMIT;");
+    }
+
+    [GlobalCleanup(Target = nameof(ReadString_SQLitePCL))]
+    public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
     public unsafe void ReadString_SQLitePCL()
@@ -64,10 +66,37 @@ public class ReadString
         raw.sqlite3_finalize(stmtRaw);
     }
 
+
+
+    [GlobalSetup(Target = nameof(ReadString_Interop))]
+    public void Setup_Interop()
+    {
+        _db2 = Sqlite3.Open(DbFile);
+        _db2.Execute("PRAGMA synchronous = OFF;");
+        _db2.Execute("DROP TABLE IF EXISTS Users;");
+        _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        _db2.Execute("BEGIN;");
+        using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+        {
+            for (int i = 0; i < RowCount; i++)
+            {
+                stmt.Reset();
+                stmt.BindLong(1, i);
+                stmt.BindText(2, TestString);
+                stmt.BindDouble(3, i * 1.1);
+                stmt.Step();
+            }
+        }
+        _db2.Execute("COMMIT;");
+    }
+
+    [GlobalCleanup(Target = nameof(ReadString_Interop))]
+    public void Cleanup_Interop() => _db2.Dispose();
+
     [Benchmark]
     public void ReadString_Interop()
     {
-        using (var stmt = _db3.Prepare("SELECT Id, Name, Score FROM Users;"))
+        using (var stmt = _db2.Prepare("SELECT Id, Name, Score FROM Users;"))
         {
             while (stmt.Step())
             {
@@ -80,40 +109,4 @@ public class ReadString
             }
         }
     }
-
-    [Benchmark]
-    public void ReadString_InteropLight()
-    {
-        using (var stmt = _db4.Prepare("SELECT Id, Name, Score FROM Users;"))
-        {
-            while (stmt.Step())
-            {
-                long id = stmt.GetLong(0);
-                string name = stmt.GetTextString(1);
-                double score = stmt.GetDouble(2);
-                _consumer.Consume(id);
-                _consumer.Consume(name);
-                _consumer.Consume(score);
-            }
-        }
-    }
-
-    // [Benchmark]
-    // public void ReadString_InteropCom()
-    // {
-    //     _db5.Prepare("SELECT Id, Name, Score FROM Users;", out var stmt);
-    //     using (stmt)
-    //     {
-    //         // Fintanto che ci sono righe (SQLITE_ROW)
-    //         while (stmt.Step() == Com.SqliteResult.Row)
-    //         {
-    //             long id = stmt.GetLong(0);
-    //             string name = stmt.GetTextString(1);
-    //             double score = stmt.GetDouble(2);
-    //             _consumer.Consume(id);
-    //             _consumer.Consume(name);
-    //             _consumer.Consume(score);
-    //         }
-    //     }
-    // }
 }

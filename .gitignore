@@ -499,4 +499,4 @@ write.db
 write.db-shm
 write.db-wal
 
-sqlite3glue.dll
+sqlite3.dll
