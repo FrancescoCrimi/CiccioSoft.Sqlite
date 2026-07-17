@@ -500,3 +500,4 @@ write.db-shm
 write.db-wal
 
 sqlite3.dll
+test.db

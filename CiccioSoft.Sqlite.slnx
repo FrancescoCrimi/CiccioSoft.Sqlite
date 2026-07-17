@@ -8,6 +8,7 @@
   <Project Path="CiccioSoft.Sqlite.Interop/CiccioSoft.Sqlite.Interop.csproj" />
   <Project Path="CiccioSoft.Sqlite.Interop.Example/CiccioSoft.Sqlite.Interop.Example.csproj" />
   <Project Path="CiccioSoft.Sqlite.Interop.Benchmark/CiccioSoft.Sqlite.Interop.Benchmark.csproj" />
+  <Project Path="PiccolaAppImmagini/PiccolaAppImmagini.csproj" />
 
   <Project Path="CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj" />
   <Project Path="CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj" />

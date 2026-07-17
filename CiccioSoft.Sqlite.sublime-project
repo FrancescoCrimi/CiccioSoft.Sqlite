@@ -8,10 +8,10 @@
     "debugger_configurations":
     [
         {
-            "name": "CiccioSoft.Sqlite.Tests",
+            "name": "PiccolaAppImmagini",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "program": "${folder}/PiccolaAppImmagini/bin/Debug/net10.0/PiccolaAppImmagini.exe",
             "args": [
                 "-parallel",
                 "none"
