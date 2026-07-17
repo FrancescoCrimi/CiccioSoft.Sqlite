@@ -1,18 +1,14 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-// using System.Windows.Shapes;
-using CiccioSoft.Sqlite.Interop;
+﻿// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
 
-namespace PiccolaAppImmagini;
+using System.IO;
+using System.Windows;
+using System.Windows.Media.Imaging;
+
+namespace CiccioSoft.Sqlite.Interop.Example;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
