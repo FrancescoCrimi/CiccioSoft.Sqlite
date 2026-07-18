@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CiccioSoft.Sqlite.Interop;
-// using SQLitePCL;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;

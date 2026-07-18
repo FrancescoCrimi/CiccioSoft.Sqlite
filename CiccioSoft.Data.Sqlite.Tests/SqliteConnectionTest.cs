@@ -10,7 +10,6 @@ using System.Linq;
 using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
-// using static SQLitePCL.raw;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -441,18 +440,18 @@ public class SqliteConnectionTest
                  "already disposes of the required page privileges. This is the correct native SQLite behavior.")]
     public void BackupDatabase_throws_with_correct_message()
     {
-        // using var source = new SqliteConnection("Data Source=:memory:");
-        // using var destination = new SqliteConnection("Data Source=:memory:");
-        // source.Open();
-        // source.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (0);");
+        using var source = new SqliteConnection("Data Source=:memory:");
+        using var destination = new SqliteConnection("Data Source=:memory:");
+        source.Open();
+        source.ExecuteNonQuery("CREATE TABLE Data (Value); INSERT INTO Data VALUES (0);");
 
-        // using (source.BeginTransaction())
-        // {
-        //     source.ExecuteNonQuery("UPDATE Data SET Value = 1;");
+        using (source.BeginTransaction())
+        {
+            source.ExecuteNonQuery("UPDATE Data SET Value = 1;");
 
-        //     var ex = Assert.Throws<SqliteException>(() => source.BackupDatabase(destination));
-        //     Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
-        // }
+            var ex = Assert.Throws<SqliteException>(() => source.BackupDatabase(destination));
+            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+        }
     }
 
     [Fact]

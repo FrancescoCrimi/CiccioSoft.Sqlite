@@ -8,10 +8,10 @@
     "debugger_configurations":
     [
         {
-            "name": "PiccolaAppImmagini",
+            "name": "Sqlite1",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/PiccolaAppImmagini/bin/Debug/net10.0/PiccolaAppImmagini.exe",
+            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-parallel",
                 "none"
@@ -26,7 +26,7 @@
             "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite/SqliteDataReaderTest/RecordsAffected_works_during_enumeration",
+                "//CiccioSoft.Data.Sqlite/SqliteCommandTest/Prepare_throws_when_command_text_contains_dependent_commands",
                 "-parallel",
                 "none"
             ],

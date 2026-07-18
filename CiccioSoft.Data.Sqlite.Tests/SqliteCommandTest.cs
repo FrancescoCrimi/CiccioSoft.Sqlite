@@ -395,7 +395,7 @@ CREATE TABLE "Products" (
     }
 
     [Fact]
-    public void ExecuteScalar_works_when_no_command_text()
+    public void ExecuteScalar_throws_when_no_command_text()
     {
         using (var connection = new SqliteConnection("Data Source=:memory:"))
         {
