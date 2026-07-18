@@ -26,7 +26,7 @@
             "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite/SqliteConnectionTest/Open_throws_when_error",
+                "//CiccioSoft.Data.Sqlite/SqliteDataReaderTest/GetSchemaTable_works",
                 "-parallel",
                 "none"
             ],
