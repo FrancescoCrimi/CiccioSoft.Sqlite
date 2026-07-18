@@ -61,7 +61,7 @@ public sealed unsafe class Sqlite3Backup : IDisposable
             if ((nint)backupHandle == nint.Zero)
             {
                 throw new SqliteInteropException(
-                    (SqliteResult)Sqlite3Native.sqlite3_errcode(destination.Handle.AsStructPointer()),
+                    (SqliteExtendedResult)Sqlite3Native.sqlite3_errcode(destination.Handle.AsStructPointer()),
                     destination.Handle,
                     "SQLite backup init");
             }
@@ -70,10 +70,10 @@ public sealed unsafe class Sqlite3Backup : IDisposable
         }
     }
 
-    public SqliteResult Step(int pages = -1)
+    public SqliteExtendedResult Step(int pages = -1)
     {
         ThrowIfInvalid();
-        return (SqliteResult)Sqlite3Native.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        return (SqliteExtendedResult)Sqlite3Native.sqlite3_backup_step(_handle.AsStructPointer(), pages);
     }
 
     public int Remaining()
@@ -88,17 +88,18 @@ public sealed unsafe class Sqlite3Backup : IDisposable
         return Sqlite3Native.sqlite3_backup_pagecount(_handle.AsStructPointer());
     }
 
-    public SqliteResult Finish()
+    public void Finish()
     {
-        if (_handle.IsClosed || _handle.IsInvalid)
-        {
-            return SqliteResult.OK;
-        }
+        // if (_handle.IsClosed || _handle.IsInvalid)
+        // {
+        //     return SqliteExtendedResult.OK;
+        // }
 
-        SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.AsStructPointer());
-        _handle.SetHandleAsInvalid();
-        _handle.Dispose();
-        return result;
+        // SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_backup_finish(_handle.AsStructPointer());
+        // _handle.SetHandleAsInvalid();
+        // _handle.Dispose();
+        // return result;
+        Dispose();
     }
 
     private void ThrowIfInvalid()

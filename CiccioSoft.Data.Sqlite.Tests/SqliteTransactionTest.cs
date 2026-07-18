@@ -16,6 +16,7 @@ public class SqliteTransactionTest
     [Theory(Skip = "This test has been re-implemented in CiccioSoft.Data.Sqlite.Tests.Extra"), InlineData(false), InlineData(true)]
     public async Task SqliteTransaction_Dispose_does_not_leave_orphaned_transaction(bool async) // Issue #25119
     {
+         _ = async;
     }
 
     [Fact]
@@ -93,7 +94,7 @@ public class SqliteTransactionTest
             // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
             // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
             Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
-            Assert.Equal(SqliteExtendedErrorCode.LockedSharedCache, ex.SqliteExtendedErrorCode);
+            Assert.Equal(SqliteExtendedResult.LockedSharedCache, ex.SqliteExtendedErrorCode);
         }
     }
 

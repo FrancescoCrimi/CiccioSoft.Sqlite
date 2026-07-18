@@ -65,42 +65,50 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <param name="filename">The path (or URI) to the database file.</param>
     /// <param name="flags">The SQLite open flags (for example <c>SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE</c>).</param>
     /// <param name="useUri">If true, <c>SQLITE_OPEN_URI</c> is enforced to allow URI filenames.</param>
-    /// <param name="vfsName">Optional VFS module name. Use <c>null</c> to use SQLite default VFS.</param>
+    /// <param name="vfs">Optional VFS module name. Use <c>null</c> to use SQLite default VFS.</param>
     /// <returns>A new <see cref="Sqlite3"/> connection.</returns>
     /// <exception cref="SqliteInteropException">Thrown if the database cannot be opened.</exception>
-    public static Sqlite3 Open(string filename, SqliteOpenFlags flags, bool useUri = false, string? vfsName = null)
+    public static Sqlite3 Open(string filename, SqliteOpenFlags flags, bool useUri = false, string? vfs = null)
     {
         sqlite3* pDb = default;
 
         SqliteOpenFlags openFlags = useUri ? flags | SqliteOpenFlags.Uri : flags;
 
         using var filenameBuffer = new Utf8SafeStackBuffer(filename, stackalloc byte[512]);
-        using var vfsBuffer = new Utf8SafeStackBuffer(vfsName, stackalloc byte[512]);
+        using var vfsBuffer = new Utf8SafeStackBuffer(vfs, stackalloc byte[512]);
 
         fixed (byte* pFilename = filenameBuffer, pVfsRaw = vfsBuffer)
         {
             // SOLUZIONE DEL BUG: Se il parametro originale C# era nullo/vuoto, 
             // passiamo un puntatore 'null' effettivo a SQLite, altrimenti usiamo pVfsRaw.
-            byte* pVfs = string.IsNullOrEmpty(vfsName) ? null : pVfsRaw;
+            byte* pVfs = string.IsNullOrEmpty(vfs) ? null : pVfsRaw;
 
-            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
-            Sqlite3SafeHandle sqlite3Handle = new Sqlite3SafeHandle(pDb);
+            // 1. Chiamata nativa
+            var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
+            var sqlite3SafeHandle = new Sqlite3SafeHandle(pDb);
 
             // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
             // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
-            if (result != SqliteResult.OK)
+            if (result != SqliteExtendedResult.OK)
             {
-                var exception = new SqliteInteropException(result, sqlite3Handle, "SQLite open");
+                string errorMessage = "Unknown SQLite error";
 
-                // IMPORTANTE: SQLite alloca memoria anche se open fallisce.
-                // Dobbiamo chiudere pDb manualmente o tramite l'handle.
-                sqlite3Handle.Dispose();
+                if (sqlite3SafeHandle != null && !sqlite3SafeHandle.IsInvalid)
+                {
+                    // 2. Estraiamo il messaggio nativo MENTRE l'handle è ancora vivo
+                    var msgPtr = Sqlite3Native.sqlite3_errmsg(sqlite3SafeHandle.AsStructPointer());
+                    errorMessage = Marshal.PtrToStringUTF8((nint)msgPtr) ?? "Unreadable SQLite error";
 
-                throw exception;
+                    // 3. Ora che abbiamo i dati, liberiamo IMMEDIATAMENTE l'handle per evitare leak
+                    sqlite3SafeHandle.Dispose();   
+                }
+
+               // 4. Creiamo e lanciamo l'eccezione (dbHandle è già chiuso in sicurezza)
+                throw  new SqliteInteropException(result, errorMessage, "SQLite open");
             }
 
             // Se tutto è andato bene, incapsuliamo l'handle sicuro
-            return new Sqlite3(sqlite3Handle);
+            return new Sqlite3(sqlite3SafeHandle);
         }
     }
 
@@ -110,7 +118,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
         fixed (byte* pBuf = sql)
         {
-            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_exec(
+            var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_exec(
                 _handle.AsStructPointer(),
                 pBuf,
                 null,
@@ -164,7 +172,7 @@ public sealed unsafe class Sqlite3 : IDisposable
         {
             // Chiamata nativa
             sqlite3_stmt* pStmt = default;
-            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
+            var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_prepare_v3(
                 _handle.AsStructPointer(),
                 pBuf,
                 utf8Buffer.Length, // Lunghezza esatta dei dati
@@ -173,7 +181,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 null);
             var stmtSafeHandle = new Sqlite3StmtSafeHandle(pStmt);
 
-            if (result != SqliteResult.OK)
+            if (result != SqliteExtendedResult.OK)
             {
                 var exception = new SqliteInteropException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
@@ -214,7 +222,7 @@ public sealed unsafe class Sqlite3 : IDisposable
 
             sqlite3_stmt* pStmt = default;
             byte* pTail = null;
-            SqliteResult result = (SqliteResult)Sqlite3Native.sqlite3_prepare_v3(
+            var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_prepare_v3(
                 _handle.AsStructPointer(),
                 pStart,
                 remainingLength,
@@ -223,7 +231,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                 &pTail);
             var stmtSafeHandle = new Sqlite3StmtSafeHandle(pStmt);
 
-            if (result != SqliteResult.OK)
+            if (result != SqliteExtendedResult.OK)
             {
                 var exception = new SqliteInteropException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
@@ -358,10 +366,10 @@ public sealed unsafe class Sqlite3 : IDisposable
     /// <summary>
     /// Returns the latest extended SQLite error code for this connection.
     /// </summary>
-    public SqliteExtendedErrorCode ExtendedErrCode()
+    public SqliteExtendedResult ExtendedErrCode()
     {
         ThrowIfInvalid();
-        return (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(_handle.AsStructPointer());
+        return (SqliteExtendedResult)Sqlite3Native.sqlite3_extended_errcode(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -381,8 +389,8 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void BusyTimeout(int milliseconds)
     {
         ThrowIfInvalid();
-        var result = (SqliteResult)Sqlite3Native.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
-        if (result == SqliteResult.OK)
+        var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
+        if (result == SqliteExtendedResult.OK)
             return;
         CheckResult(result);
     }
@@ -394,8 +402,8 @@ public sealed unsafe class Sqlite3 : IDisposable
     public void ExtendedResultCodes(bool enabled)
     {
         ThrowIfInvalid();
-        var result = (SqliteResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
-        if (result == SqliteResult.OK)
+        var result = (SqliteExtendedResult)Sqlite3Native.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
+        if (result == SqliteExtendedResult.OK)
             return;
         CheckResult(result);
     }
@@ -503,7 +511,7 @@ public sealed unsafe class Sqlite3 : IDisposable
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)
             {
-                SqliteResult rc = (SqliteResult)Sqlite3Native.sqlite3_table_column_metadata(
+                var rc = (SqliteExtendedResult)Sqlite3Native.sqlite3_table_column_metadata(
                     dbHandle,
                     null,
                     pTableName,
@@ -514,7 +522,7 @@ public sealed unsafe class Sqlite3 : IDisposable
                     &primaryKey,
                     &autoInc);
 
-                if (rc != SqliteResult.OK)
+                if (rc != SqliteExtendedResult.OK)
                 {
                     string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
                     throw new SqliteInteropException(rc, _handle, operation);
@@ -542,12 +550,22 @@ public sealed unsafe class Sqlite3 : IDisposable
         if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Sqlite3));
     }
 
-    private void CheckResult(SqliteResult res, [CallerMemberName] string caller = "")
+
+
+    private void CheckResult(SqliteExtendedResult res, [CallerMemberName] string caller = "")
     {
-        if (res == SqliteResult.OK)
+        if (res == SqliteExtendedResult.OK)
             return;
         throw new SqliteInteropException(res, _handle, $"SQLite error in: {GetType().Name}.{caller}");
     }
+
+    // private void CheckResult2(int res, [CallerMemberName] string caller = "")
+    // {
+    //     var result = (SqliteExtendedErrorCode)res;
+    //     if (result == SqliteExtendedErrorCode.OK)
+    //         return;
+    //     throw new SqliteInteropException(result, _handle, $"SQLite error in: {GetType().Name}.{caller}");
+    // }
 
     #endregion
 

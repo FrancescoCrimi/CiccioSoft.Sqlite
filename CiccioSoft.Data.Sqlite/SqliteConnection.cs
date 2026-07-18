@@ -642,7 +642,7 @@ public sealed class SqliteConnection : DbConnection
             using var backup = Sqlite3Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
 
             var result = backup.Step(-1);
-            if (result != SqliteResult.Done)
+            if (result != SqliteExtendedResult.Done)
                 throw new SqliteException($"SQLite backup failed with result {result}.");
         }
 

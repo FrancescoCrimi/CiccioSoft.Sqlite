@@ -19,22 +19,30 @@ public sealed unsafe class SqliteInteropException : Exception
 
     public SqliteInteropException(string message) : base(message) { }
 
-    public SqliteInteropException(SqliteResult result, Sqlite3SafeHandle sqlite3SafeHandle, string operation)
+    public SqliteInteropException(SqliteExtendedResult result, string nativeMessage, string operation)
     {
+        ExtendedErrorCode = result;
+        BaseErrorCode = (SqliteResult)(((int)result) & 0xFF);
+        NativeMessage = nativeMessage;
+        _operation = operation;
+    }
 
-        BaseErrorCode = result;
+    public SqliteInteropException(SqliteExtendedResult result, Sqlite3SafeHandle sqlite3SafeHandle, string operation)
+    {
+        ExtendedErrorCode = result;
+        BaseErrorCode = (SqliteResult)(((int)result) & 0xFF);
         _operation = operation;
 
         if (!sqlite3SafeHandle.IsInvalid)
         {
             // Read extended code exactly once from the native connection.
-            ExtendedErrorCode = (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(sqlite3SafeHandle.AsStructPointer());
+            // ExtendedErrorCode = (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(sqlite3SafeHandle.AsStructPointer());
             byte* pErr = Sqlite3Native.sqlite3_errmsg(sqlite3SafeHandle.AsStructPointer());
             NativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
         else
         {
-            ExtendedErrorCode = (SqliteExtendedErrorCode)result;
+            // ExtendedErrorCode = (SqliteExtendedErrorCode)result;
             NativeMessage = "Unknown SQLite error";
         }
     }
@@ -52,7 +60,7 @@ public sealed unsafe class SqliteInteropException : Exception
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public SqliteExtendedErrorCode ExtendedErrorCode { get; }
+    public SqliteExtendedResult ExtendedErrorCode { get; }
 
     /// <summary>
     /// Gets the native message returned by SQLite.

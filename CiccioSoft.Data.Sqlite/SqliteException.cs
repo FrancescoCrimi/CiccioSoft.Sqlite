@@ -32,5 +32,5 @@ public class SqliteException : DbException
     ///     Gets the extended SQLite error code.
     /// </summary>
     /// <value>The SQLite error code.</value>
-    public virtual SqliteExtendedErrorCode? SqliteExtendedErrorCode { get; }
+    public virtual SqliteExtendedResult? SqliteExtendedErrorCode { get; }
 }
