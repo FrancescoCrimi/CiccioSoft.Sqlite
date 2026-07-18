@@ -103,7 +103,7 @@ public sealed class SqliteConnection : DbConnection
     {
         get
         {
-            return Sqlite3.LibVersion();
+            return Sqlite3.LibVersion()!;
         }
     }
 
@@ -166,7 +166,7 @@ public sealed class SqliteConnection : DbConnection
             }
         }
 
-        if(_writerGate != null) DisposeWriterGate();
+        if (_writerGate != null) DisposeWriterGate();
     }
 
     public override void Open()
@@ -417,7 +417,7 @@ public sealed class SqliteConnection : DbConnection
         _writerGate = null;
     }
 
-    internal bool HasWriteLock => _writerGate != null;  
+    internal bool HasWriteLock => _writerGate != null;
 
     private static string ResolveWriterKey(string connectionString, string dataSource)
     {
@@ -639,19 +639,25 @@ public sealed class SqliteConnection : DbConnection
 
         try
         {
-            // using var backup = sqlite3_backup_init(destination.Handle, destinationName, Handle, sourceName);
-            var backup  = Sqlite3Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);    
-            // int rc;
-            // if (backup.IsInvalid)
-            // {
-            //     rc = sqlite3_errcode(destination.Handle);
-            //     SqliteException.ThrowExceptionForRC(rc, destination.Handle);
-            // }
+            using var backup = Sqlite3Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
 
-            // rc = sqlite3_backup_step(backup, -1);
             var result = backup.Step(-1);
-            // SqliteException.ThrowExceptionForRC(rc, destination.Handle);
+            if (result != SqliteResult.Done)
+                throw new SqliteException($"SQLite backup failed with result {result}.");
         }
+
+        // Intercetta ArgumentNullException
+        catch (ArgumentNullException anex)
+        {
+            throw new SqliteException(anex.Message);
+        }
+
+        // Intercetta eventuali SqliteInteropException
+        catch (SqliteInteropException siex)
+        {
+            throw new SqliteException(siex.Message, siex);
+        }
+
         finally
         {
             if (close)

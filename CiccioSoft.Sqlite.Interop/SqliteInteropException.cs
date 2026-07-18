@@ -25,7 +25,7 @@ public sealed unsafe class SqliteInteropException : Exception
         BaseErrorCode = result;
         _operation = operation;
 
-        if (sqlite3SafeHandle.IsInvalid)
+        if (!sqlite3SafeHandle.IsInvalid)
         {
             // Read extended code exactly once from the native connection.
             ExtendedErrorCode = (SqliteExtendedErrorCode)Sqlite3Native.sqlite3_extended_errcode(sqlite3SafeHandle.AsStructPointer());
