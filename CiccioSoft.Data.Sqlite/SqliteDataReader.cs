@@ -754,13 +754,32 @@ public sealed class SqliteDataReader : DbDataReader
             row[SchemaIsKeyColumn] = false;
             row[SchemaIsUniqueColumn] = false;
             row[SchemaTableOptionalColumn.IsAutoIncrement] = false;
-            row[SchemaTableOptionalColumn.BaseCatalogName] = baseCatalogName ?? string.Empty;
+            row[SchemaTableOptionalColumn.BaseCatalogName] = hasOrigin ? baseCatalogName ?? string.Empty : DBNull.Value;
             row[SchemaTableColumn.BaseSchemaName] = DBNull.Value;
-            row[SchemaTableColumn.BaseTableName] = baseTableName ?? string.Empty;
-            row[SchemaTableColumn.BaseColumnName] = baseColumnName ?? string.Empty;
-            row[SchemaTableOptionalColumn.BaseServerName] = _connection.DataSource;
+            row[SchemaTableColumn.BaseTableName] = hasOrigin ? baseTableName! : DBNull.Value;
+            row[SchemaTableColumn.BaseColumnName] = hasOrigin ? baseColumnName! : DBNull.Value;
+            row[SchemaTableOptionalColumn.BaseServerName] = string.Empty;
             row[SchemaTableColumn.IsAliased] = isAliased;
             row[SchemaTableColumn.IsExpression] = !hasOrigin;
+
+            if (hasOrigin)
+            {
+                row[SchemaIsUniqueColumn] = !isAliased && IsSingleColumnUnique(baseTableName!, baseColumnName!);
+
+                if (TryGetTableColumnMetadata(baseTableName!, baseColumnName!, out bool isNotNull, out bool isPrimaryKey, out bool isAutoIncrement))
+                {
+                    row[SchemaIsKeyColumn] = isPrimaryKey;
+                    row[SchemaTableColumn.AllowDBNull] = isAliased || !isNotNull;
+                    row[SchemaTableOptionalColumn.IsAutoIncrement] = isAutoIncrement;
+                }
+            }
+            else
+            {
+                row[SchemaTableColumn.AllowDBNull] = DBNull.Value;
+                row[SchemaIsKeyColumn] = DBNull.Value;
+                row[SchemaIsUniqueColumn] = DBNull.Value;
+                row[SchemaTableOptionalColumn.IsAutoIncrement] = DBNull.Value;
+            }
 
             schemaTable.Rows.Add(row);
         }
@@ -1182,6 +1201,56 @@ public sealed class SqliteDataReader : DbDataReader
             SqliteType.Blob => "BLOB",
             _ => "BLOB",
         };
+
+    private bool IsSingleColumnUnique(string tableName, string columnName)
+    {
+        string tableLiteral = ToSqlLiteral(tableName);
+        string columnLiteral = ToSqlLiteral(columnName);
+        string sql = $"""
+            SELECT COUNT(*)
+            FROM pragma_index_list({tableLiteral}) i, pragma_index_info(i.name) c
+            WHERE i."unique" = 1
+              AND c.name = {columnLiteral}
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM pragma_index_info(i.name) c2
+                  WHERE c2.name <> c.name);
+            """;
+
+        using Sqlite3Stmt stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
+        return _executionScope.Execute(stmt.Step) && stmt.GetLong(0) != 0L;
+    }
+
+    private bool TryGetTableColumnMetadata(
+        string tableName,
+        string columnName,
+        out bool isNotNull,
+        out bool isPrimaryKey,
+        out bool isAutoIncrement)
+    {
+        try
+        {
+            _session.Native.GetTableColumnMetadata(
+                tableName,
+                columnName,
+                out _,
+                out _,
+                out isNotNull,
+                out isPrimaryKey,
+                out isAutoIncrement);
+            return true;
+        }
+        catch (SqliteInteropException)
+        {
+            isNotNull = false;
+            isPrimaryKey = false;
+            isAutoIncrement = false;
+            return false;
+        }
+    }
+
+    private static string ToSqlLiteral(string value)
+        => "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
 
     private bool TryInferOriginStorageClass(string tableName, string columnName, out SqliteType inferredType)
     {
