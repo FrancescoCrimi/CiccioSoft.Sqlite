@@ -6,7 +6,7 @@
 
 namespace CiccioSoft.Interop.Sqlite;
 
-public enum SqliteResult
+public enum Result
 {
     OK          = NativeMethods.SQLITE_OK,
     Error       = NativeMethods.SQLITE_ERROR,

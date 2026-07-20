@@ -26,7 +26,7 @@ internal static class SqliteConnectionPool
     /// <summary>
     /// Rents a connection from the pool. Creates a new one if available and under max pool size.
     /// </summary>
-    public static SqliteSession Rent(string connectionString, string dataSource, int maxPoolSize, SqliteOpenFlags openFlags)
+    public static SqliteSession Rent(string connectionString, string dataSource, int maxPoolSize, OpenFlags openFlags)
     {
         PoolState state = Pools.GetOrAdd(connectionString, _ => new PoolState());
 
@@ -88,7 +88,7 @@ internal static class SqliteConnectionPool
         string connectionString,
         string dataSource,
         int maxPoolSize,
-        SqliteOpenFlags openFlags,
+        OpenFlags openFlags,
         CancellationToken cancellationToken = default)
     {
         PoolState state = Pools.GetOrAdd(connectionString, _ => new PoolState());

@@ -69,10 +69,10 @@ public class SqliteException : DbException
     /// <summary>
     /// Gets the base SQLite error code (lowest 8 bits).
     /// </summary>
-    public SqliteResult? Result { get; }
+    public Result? Result { get; }
 
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public SqliteExtendedResult? ExtendedResult { get; }
+    public ExtendedResult? ExtendedResult { get; }
 }

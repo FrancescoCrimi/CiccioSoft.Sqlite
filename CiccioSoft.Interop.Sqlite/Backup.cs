@@ -60,7 +60,7 @@ public sealed unsafe class Backup : IDisposable
             if ((nint)backupHandle == nint.Zero)
             {
                 throw new EngineException(
-                    (SqliteExtendedResult)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer()),
+                    (ExtendedResult)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer()),
                     destination.Handle,
                     "SQLite backup init");
             }
@@ -69,10 +69,10 @@ public sealed unsafe class Backup : IDisposable
         }
     }
 
-    public SqliteExtendedResult Step(int pages = -1)
+    public ExtendedResult Step(int pages = -1)
     {
         ThrowIfInvalid();
-        return (SqliteExtendedResult)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        return (ExtendedResult)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
     }
 
     public int Remaining()

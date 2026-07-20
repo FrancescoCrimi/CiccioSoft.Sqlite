@@ -54,9 +54,9 @@ public sealed unsafe class Statement : IDisposable
     public bool Step()
     {
         ThrowIfInvalid();
-        var res = (SqliteExtendedResult)NativeMethods.sqlite3_step(_handle.AsStructPointer());
-        if (res == SqliteExtendedResult.Row) return true;
-        if (res == SqliteExtendedResult.Done) return false;
+        var res = (ExtendedResult)NativeMethods.sqlite3_step(_handle.AsStructPointer());
+        if (res == ExtendedResult.Row) return true;
+        if (res == ExtendedResult.Done) return false;
         throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.Step");
     }
 
@@ -72,7 +72,7 @@ public sealed unsafe class Statement : IDisposable
     public void Reset()
     {
         ThrowIfInvalid();
-        var res = (SqliteExtendedResult)NativeMethods.sqlite3_reset(_handle.AsStructPointer());
+        var res = (ExtendedResult)NativeMethods.sqlite3_reset(_handle.AsStructPointer());
         CheckResult(res);
     }
 
@@ -88,7 +88,7 @@ public sealed unsafe class Statement : IDisposable
     public void ClearBindings()
     {
         ThrowIfInvalid();
-        var res = (SqliteExtendedResult)NativeMethods.sqlite3_clear_bindings(_handle.AsStructPointer());
+        var res = (ExtendedResult)NativeMethods.sqlite3_clear_bindings(_handle.AsStructPointer());
         CheckResult(res);
     }
 
@@ -447,7 +447,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_bind_null(_handle.AsStructPointer(), index);
+        var result = (ExtendedResult)NativeMethods.sqlite3_bind_null(_handle.AsStructPointer(), index);
         CheckBindResult(result, index);
     }
 
@@ -463,7 +463,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_bind_int(_handle.AsStructPointer(), index, value);
+        var result = (ExtendedResult)NativeMethods.sqlite3_bind_int(_handle.AsStructPointer(), index, value);
         CheckBindResult(result, index);
     }
 
@@ -478,7 +478,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_bind_int64(_handle.AsStructPointer(), index, value);
+        var result = (ExtendedResult)NativeMethods.sqlite3_bind_int64(_handle.AsStructPointer(), index, value);
         CheckBindResult(result, index);
     }
 
@@ -493,7 +493,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
+        var result = (ExtendedResult)NativeMethods.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
         CheckBindResult(result, index);
     }
 
@@ -516,7 +516,7 @@ public sealed unsafe class Statement : IDisposable
         {
             // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
             // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
-            var res = (SqliteExtendedResult)NativeMethods.sqlite3_bind_text(
+            var res = (ExtendedResult)NativeMethods.sqlite3_bind_text(
                 _handle.AsStructPointer(),
                 index,
                 pBuf,
@@ -575,7 +575,7 @@ public sealed unsafe class Statement : IDisposable
 
         fixed (byte* pData = data)
         {
-            var res = (SqliteExtendedResult)NativeMethods.sqlite3_bind_blob(
+            var res = (ExtendedResult)NativeMethods.sqlite3_bind_blob(
                 _handle.AsStructPointer(),
                 index,
                 pData,
@@ -595,17 +595,17 @@ public sealed unsafe class Statement : IDisposable
         if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Statement));
     }
 
-    private void CheckResult(SqliteExtendedResult res, [CallerMemberName] string caller = "")
+    private void CheckResult(ExtendedResult res, [CallerMemberName] string caller = "")
     {
-        if (res == SqliteExtendedResult.OK)
+        if (res == ExtendedResult.OK)
             return;
         throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
     }
 
     // Piccolo helper per centralizzare il controllo degli errori
-    private void CheckBindResult(SqliteExtendedResult res, int index, [CallerMemberName] string caller = "")
+    private void CheckBindResult(ExtendedResult res, int index, [CallerMemberName] string caller = "")
     {
-        if (res == SqliteExtendedResult.OK)
+        if (res == ExtendedResult.OK)
             return;
 
         throw new EngineException(res, _sqlite3SafeHandle,

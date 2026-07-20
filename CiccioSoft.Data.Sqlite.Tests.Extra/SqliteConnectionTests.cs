@@ -24,8 +24,8 @@ public class SqliteConnectionTests
         var ex = Assert.Throws<SqliteException>(
             () => connection.ExecuteNonQuery("INSERT INTO Person (Name) VALUES ('Waldo');"));
 
-        Assert.Equal(SqliteResult.Constraint, ex.Result);
-        Assert.Equal(SqliteExtendedResult.ConstraintUnique, ex.ExtendedResult);
+        Assert.Equal(Result.Constraint, ex.Result);
+        Assert.Equal(ExtendedResult.ConstraintUnique, ex.ExtendedResult);
     }
 
     [Fact]

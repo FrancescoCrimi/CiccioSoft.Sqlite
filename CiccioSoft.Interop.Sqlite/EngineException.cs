@@ -18,18 +18,18 @@ public sealed unsafe class EngineException : Exception
 
     public EngineException(string message) : base(message) { }
 
-    public EngineException(SqliteExtendedResult result, string nativeMessage, string operation)
+    public EngineException(ExtendedResult result, string nativeMessage, string operation)
     {
         ExtendedErrorCode = result;
-        BaseErrorCode = (SqliteResult)(((int)result) & 0xFF);
+        BaseErrorCode = (Result)(((int)result) & 0xFF);
         NativeMessage = nativeMessage;
         _operation = operation;
     }
 
-    public EngineException(SqliteExtendedResult result, SafeConnectionHandle sqlite3SafeHandle, string operation)
+    public EngineException(ExtendedResult result, SafeConnectionHandle sqlite3SafeHandle, string operation)
     {
         ExtendedErrorCode = result;
-        BaseErrorCode = (SqliteResult)(((int)result) & 0xFF);
+        BaseErrorCode = (Result)(((int)result) & 0xFF);
         _operation = operation;
 
         if (!sqlite3SafeHandle.IsInvalid)
@@ -54,12 +54,12 @@ public sealed unsafe class EngineException : Exception
     /// <summary>
     /// Gets the base SQLite error code (lowest 8 bits).
     /// </summary>
-    public SqliteResult BaseErrorCode { get; }
+    public Result BaseErrorCode { get; }
 
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public SqliteExtendedResult ExtendedErrorCode { get; }
+    public ExtendedResult ExtendedErrorCode { get; }
 
     /// <summary>
     /// Gets the native message returned by SQLite.

@@ -177,7 +177,7 @@ public sealed class SqliteConnection : DbConnection
                 return;
 
             string dataSource = ResolveDataSource();
-            SqliteOpenFlags openFlags = GetOpenFlags(dataSource);
+            OpenFlags openFlags = GetOpenFlags(dataSource);
 
             if (!string.IsNullOrWhiteSpace(_settings.Password))
             {
@@ -523,35 +523,35 @@ public sealed class SqliteConnection : DbConnection
         return true;
     }
 
-    private SqliteOpenFlags GetOpenFlags(string dataSource)
+    private OpenFlags GetOpenFlags(string dataSource)
     {
-        SqliteOpenFlags flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.FullMutex;
+        OpenFlags flags = OpenFlags.ReadWrite | OpenFlags.Create | OpenFlags.FullMutex;
 
         if (_settings.Mode == SqliteOpenMode.ReadOnly)
         {
-            flags = SqliteOpenFlags.ReadOnly | SqliteOpenFlags.FullMutex;
+            flags = OpenFlags.ReadOnly | OpenFlags.FullMutex;
         }
         else if (_settings.Mode == SqliteOpenMode.ReadWrite)
         {
-            flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.FullMutex;
+            flags = OpenFlags.ReadWrite | OpenFlags.FullMutex;
         }
         else if (_settings.Mode == SqliteOpenMode.Memory)
         {
-            flags = SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create | SqliteOpenFlags.Memory | SqliteOpenFlags.FullMutex;
+            flags = OpenFlags.ReadWrite | OpenFlags.Create | OpenFlags.Memory | OpenFlags.FullMutex;
         }
 
         if (dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
         {
-            flags |= SqliteOpenFlags.Uri;
+            flags |= OpenFlags.Uri;
         }
 
         if (_settings.Cache == SqliteCacheMode.Shared)
         {
-            flags |= SqliteOpenFlags.SharedCache;
+            flags |= OpenFlags.SharedCache;
         }
         else if (_settings.Cache == SqliteCacheMode.Private)
         {
-            flags |= SqliteOpenFlags.PrivateCache;
+            flags |= OpenFlags.PrivateCache;
         }
 
         return flags;
@@ -642,7 +642,7 @@ public sealed class SqliteConnection : DbConnection
             using var backup = Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
 
             var result = backup.Step(-1);
-            if (result != SqliteExtendedResult.Done)
+            if (result != ExtendedResult.Done)
                 throw new SqliteException($"SQLite backup failed with result {result}.");
         }
 

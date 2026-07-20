@@ -9,7 +9,7 @@ namespace CiccioSoft.Interop.Sqlite;
 /// <summary>
 /// Allowed return values from sqlite3_txn_state().
 /// </summary>
-public enum SqliteTransactionState
+public enum TransactionState
 {
     None    = NativeMethods.SQLITE_TXN_NONE,    // SQLITE_TXN_NONE: Nessuna transazione attiva
     Read    = NativeMethods.SQLITE_TXN_READ,    // SQLITE_TXN_READ: Transazione di sola lettura (SELECT attiva)

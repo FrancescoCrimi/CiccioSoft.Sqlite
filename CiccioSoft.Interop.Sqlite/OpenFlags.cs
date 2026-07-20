@@ -9,7 +9,7 @@ using System;
 namespace CiccioSoft.Interop.Sqlite;
 
 [Flags]
-public enum SqliteOpenFlags
+public enum OpenFlags
 {
     ReadOnly        = NativeMethods.SQLITE_OPEN_READONLY,
     ReadWrite       = NativeMethods.SQLITE_OPEN_READWRITE,

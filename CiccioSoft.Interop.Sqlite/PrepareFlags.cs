@@ -9,7 +9,7 @@ using System;
 namespace CiccioSoft.Interop.Sqlite;
 
 [Flags]
-public enum SqlitePrepareFlags : uint
+public enum PrepareFlags : uint
 {
     None        = 0,
     Persistent  = NativeMethods.SQLITE_PREPARE_PERSISTENT,

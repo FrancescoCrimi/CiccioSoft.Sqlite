@@ -9,7 +9,7 @@ namespace CiccioSoft.Interop.Sqlite;
 /// <summary>
 /// Run-Time Limit Categories.
 /// </summary>
-public enum SqliteLimitCategory
+public enum LimitCategory
 {
     Length              = NativeMethods.SQLITE_LIMIT_LENGTH,                    // SQLITE_LIMIT_LENGTH (Dimensione max stringhe/BLOB)
     SqlLength           = NativeMethods.SQLITE_LIMIT_SQL_LENGTH,                // SQLITE_LIMIT_SQL_LENGTH (Lunghezza max testo SQL)

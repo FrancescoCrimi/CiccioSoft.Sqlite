@@ -55,7 +55,7 @@ public sealed unsafe class Connection : IDisposable
     /// <exception cref="EngineException">Thrown if the database cannot be opened.</exception>
     public static Connection Open(string filename)
     {
-        return Open(filename, SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create);
+        return Open(filename, OpenFlags.ReadWrite | OpenFlags.Create);
     }
 
     /// <summary>
@@ -67,11 +67,11 @@ public sealed unsafe class Connection : IDisposable
     /// <param name="vfs">Optional VFS module name. Use <c>null</c> to use SQLite default VFS.</param>
     /// <returns>A new <see cref="Connection"/> connection.</returns>
     /// <exception cref="EngineException">Thrown if the database cannot be opened.</exception>
-    public static Connection Open(string filename, SqliteOpenFlags flags, bool useUri = false, string? vfs = null)
+    public static Connection Open(string filename, OpenFlags flags, bool useUri = false, string? vfs = null)
     {
         sqlite3* pDb = default;
 
-        SqliteOpenFlags openFlags = useUri ? flags | SqliteOpenFlags.Uri : flags;
+        OpenFlags openFlags = useUri ? flags | OpenFlags.Uri : flags;
 
         using var filenameBuffer = new Utf8SafeStackBuffer(filename, stackalloc byte[512]);
         using var vfsBuffer = new Utf8SafeStackBuffer(vfs, stackalloc byte[512]);
@@ -83,12 +83,12 @@ public sealed unsafe class Connection : IDisposable
             byte* pVfs = string.IsNullOrEmpty(vfs) ? null : pVfsRaw;
 
             // 1. Chiamata nativa
-            var result = (SqliteExtendedResult)NativeMethods.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
+            var result = (ExtendedResult)NativeMethods.sqlite3_open_v2(pFilename, &pDb, (int)openFlags, pVfs);
             var sqlite3SafeHandle = new SafeConnectionHandle(pDb);
 
             // Se l'apertura fallisce, Dobbiamo COMUNQUE recuperare l'errore 
             // PRIMA di chiudere l'handle, altrimenti pDb diventa invalido.
-            if (result != SqliteExtendedResult.OK)
+            if (result != ExtendedResult.OK)
             {
                 string errorMessage = "Unknown SQLite error";
 
@@ -117,7 +117,7 @@ public sealed unsafe class Connection : IDisposable
 
         fixed (byte* pBuf = sql)
         {
-            var result = (SqliteExtendedResult)NativeMethods.sqlite3_exec(
+            var result = (ExtendedResult)NativeMethods.sqlite3_exec(
                 _handle.AsStructPointer(),
                 pBuf,
                 null,
@@ -150,18 +150,18 @@ public sealed unsafe class Connection : IDisposable
     /// <exception cref="EngineException">Thrown if the SQL syntax is invalid or the statement cannot be prepared.</exception>
     public Statement Prepare(string sql)
     {
-        return Prepare(sql, SqlitePrepareFlags.None);
+        return Prepare(sql, PrepareFlags.None);
     }
 
     /// <summary>
     /// Compiles an SQL statement using <c>sqlite3_prepare_v3</c>, enabling explicit prepare flags.
     /// </summary>
     /// <param name="sql">The SQL query string to compile.</param>
-    /// <param name="prepareFlags">Flags such as <see cref="SqlitePrepareFlags.Persistent"/> or <see cref="SqlitePrepareFlags.NoVtab"/>.</param>
+    /// <param name="prepareFlags">Flags such as <see cref="PrepareFlags.Persistent"/> or <see cref="PrepareFlags.NoVtab"/>.</param>
     /// <returns>A new <see cref="Statement"/> instance wrapping the compiled statement.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
     /// <exception cref="EngineException">Thrown if the SQL syntax is invalid or the statement cannot be prepared.</exception>
-    public Statement Prepare(string sql, SqlitePrepareFlags prepareFlags = SqlitePrepareFlags.None)
+    public Statement Prepare(string sql, PrepareFlags prepareFlags = PrepareFlags.None)
     {
         ThrowIfInvalid();
 
@@ -171,7 +171,7 @@ public sealed unsafe class Connection : IDisposable
         {
             // Chiamata nativa
             sqlite3_stmt* pStmt = default;
-            var result = (SqliteExtendedResult)NativeMethods.sqlite3_prepare_v3(
+            var result = (ExtendedResult)NativeMethods.sqlite3_prepare_v3(
                 _handle.AsStructPointer(),
                 pBuf,
                 utf8Buffer.Length, // Lunghezza esatta dei dati
@@ -180,7 +180,7 @@ public sealed unsafe class Connection : IDisposable
                 null);
             var stmtSafeHandle = new SafeStatementHandle(pStmt);
 
-            if (result != SqliteExtendedResult.OK)
+            if (result != ExtendedResult.OK)
             {
                 var exception = new EngineException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
@@ -197,14 +197,14 @@ public sealed unsafe class Connection : IDisposable
     /// <param name="sql">The full SQL batch text.</param>
     /// <param name="sqlByteOffset">The UTF-8 byte offset where statement preparation should start.</param>
     /// <param name="nextSqlByteOffset">The UTF-8 byte offset immediately after the prepared statement.</param>
-    /// <param name="prepareFlags">Flags such as <see cref="SqlitePrepareFlags.Persistent"/> or <see cref="SqlitePrepareFlags.NoVtab"/>.</param>
+    /// <param name="prepareFlags">Flags such as <see cref="PrepareFlags.Persistent"/> or <see cref="PrepareFlags.NoVtab"/>.</param>
     /// <returns>
     /// A prepared statement if one is found at the given offset; otherwise <c>null</c> when only whitespace/comments remain.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="sqlByteOffset"/> is outside the SQL byte buffer range.</exception>
     /// <exception cref="ObjectDisposedException">Thrown if the database connection is no longer valid.</exception>
     /// <exception cref="EngineException">Thrown if the statement cannot be prepared.</exception>
-    public Statement? Prepare(string sql, int sqlByteOffset, out int nextSqlByteOffset, SqlitePrepareFlags prepareFlags = SqlitePrepareFlags.None)
+    public Statement? Prepare(string sql, int sqlByteOffset, out int nextSqlByteOffset, PrepareFlags prepareFlags = PrepareFlags.None)
     {
         ThrowIfInvalid();
 
@@ -221,7 +221,7 @@ public sealed unsafe class Connection : IDisposable
 
             sqlite3_stmt* pStmt = default;
             byte* pTail = null;
-            var result = (SqliteExtendedResult)NativeMethods.sqlite3_prepare_v3(
+            var result = (ExtendedResult)NativeMethods.sqlite3_prepare_v3(
                 _handle.AsStructPointer(),
                 pStart,
                 remainingLength,
@@ -230,7 +230,7 @@ public sealed unsafe class Connection : IDisposable
                 &pTail);
             var stmtSafeHandle = new SafeStatementHandle(pStmt);
 
-            if (result != SqliteExtendedResult.OK)
+            if (result != ExtendedResult.OK)
             {
                 var exception = new EngineException(result, _handle, "SQLite prepare");
                 stmtSafeHandle.Dispose();
@@ -296,7 +296,7 @@ public sealed unsafe class Connection : IDisposable
     /// <param name="id">The category of the limit to check or modify.</param>
     /// <param name="newVal">The new limit value, or -1 to only query the current limit.</param>
     /// <returns>The limit value that was in effect before this call.</returns>
-    public int Limit(SqliteLimitCategory id, int newVal)
+    public int Limit(LimitCategory id, int newVal)
     {
         ThrowIfInvalid();
         return NativeMethods.sqlite3_limit(_handle.AsStructPointer(), (int)id, newVal);
@@ -308,7 +308,7 @@ public sealed unsafe class Connection : IDisposable
     /// <param name="schemaName">The name of the schema (e.g., "main"). Pass null for the global connection state.</param>
     /// <returns>The specific transaction state.</returns>
     /// <exception cref="EngineException">Thrown if the schema name is invalid.</exception>
-    public SqliteTransactionState TransactionState(string? schemaName = null)
+    public TransactionState TransactionState(string? schemaName = null)
     {
         ThrowIfInvalid();
 
@@ -334,7 +334,7 @@ public sealed unsafe class Connection : IDisposable
                 $"[SQLite Error in {GetType().Name}.TransactionState] The schema '{schemaName}' is not a valid attached database.");
         }
 
-        return (SqliteTransactionState)result;
+        return (TransactionState)result;
     }
 
     /// <summary>
@@ -365,10 +365,10 @@ public sealed unsafe class Connection : IDisposable
     /// <summary>
     /// Returns the latest extended SQLite error code for this connection.
     /// </summary>
-    public SqliteExtendedResult ExtendedErrCode()
+    public ExtendedResult ExtendedErrCode()
     {
         ThrowIfInvalid();
-        return (SqliteExtendedResult)NativeMethods.sqlite3_extended_errcode(_handle.AsStructPointer());
+        return (ExtendedResult)NativeMethods.sqlite3_extended_errcode(_handle.AsStructPointer());
     }
 
     /// <summary>
@@ -388,8 +388,8 @@ public sealed unsafe class Connection : IDisposable
     public void BusyTimeout(int milliseconds)
     {
         ThrowIfInvalid();
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
-        if (result == SqliteExtendedResult.OK)
+        var result = (ExtendedResult)NativeMethods.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
+        if (result == ExtendedResult.OK)
             return;
         CheckResult(result);
     }
@@ -401,8 +401,8 @@ public sealed unsafe class Connection : IDisposable
     public void ExtendedResultCodes(bool enabled)
     {
         ThrowIfInvalid();
-        var result = (SqliteExtendedResult)NativeMethods.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
-        if (result == SqliteExtendedResult.OK)
+        var result = (ExtendedResult)NativeMethods.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
+        if (result == ExtendedResult.OK)
             return;
         CheckResult(result);
     }
@@ -510,7 +510,7 @@ public sealed unsafe class Connection : IDisposable
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)
             {
-                var rc = (SqliteExtendedResult)NativeMethods.sqlite3_table_column_metadata(
+                var rc = (ExtendedResult)NativeMethods.sqlite3_table_column_metadata(
                     dbHandle,
                     null,
                     pTableName,
@@ -521,7 +521,7 @@ public sealed unsafe class Connection : IDisposable
                     &primaryKey,
                     &autoInc);
 
-                if (rc != SqliteExtendedResult.OK)
+                if (rc != ExtendedResult.OK)
                 {
                     string operation = $"SQLite metadata lookup for column '{columnName}' in table '{tableName}'";
                     throw new EngineException(rc, _handle, operation);
@@ -551,9 +551,9 @@ public sealed unsafe class Connection : IDisposable
 
 
 
-    private void CheckResult(SqliteExtendedResult res, [CallerMemberName] string caller = "")
+    private void CheckResult(ExtendedResult res, [CallerMemberName] string caller = "")
     {
-        if (res == SqliteExtendedResult.OK)
+        if (res == ExtendedResult.OK)
             return;
         throw new EngineException(res, _handle, $"SQLite error in: {GetType().Name}.{caller}");
     }
