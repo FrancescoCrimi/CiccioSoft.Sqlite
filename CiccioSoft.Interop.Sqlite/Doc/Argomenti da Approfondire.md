@@ -2,7 +2,7 @@
 
 
 
-### SkipLocalsInit
+## SkipLocalsInit
 
 Questo attributo per classi o i metodi P/Invoke evita che .NET azzeri la memoria dello stack ad ogni chiamata, risparmiando preziosi cicli di clock.
 
@@ -72,13 +72,13 @@ Inizializza la variabile prima di passarla se usi out in contesti ad alto rischi
 
 
 
-### SuppressGCTransition
+## SuppressGCTransition
  
 Visto che punti alle performance assolute, hai già preso in considerazione l'uso dell'attributo [SuppressGCTransition] sulle tue P/Invoke?
  Per funzioni ultra-rapide come quelle di SQLite può raddoppiare la velocità della chiamata. Ti interessa approfondire questo dettaglio?
 
 
 
-### Puntatori opachi
+## Puntatori opachi
 
 Il modo standard e più elegante per risolvere il problema dei puntatori opachi nel mondo gestito è creare una readonly struct vuote con lo stesso nome del puntatore opaco non gestito che wrappano il puntatore.

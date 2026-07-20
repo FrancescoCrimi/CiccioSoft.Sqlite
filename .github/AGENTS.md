@@ -1,4 +1,4 @@
-# CiccioSoft.Data.Sqlite — Configurazione Agent AI Specializzati
+# CiccioSoft.Sqlite — Configurazione Agent AI Specializzati
 
 Guida completa e professionale per gli AI agent specializzati che governano lo sviluppo del provider SQLite educational per .NET 10. Questo documento definisce ruoli, competenze, workflow e best practices per ogni agent.
 
@@ -20,7 +20,7 @@ Guida completa e professionale per gli AI agent specializzati che governano lo s
 
 ### Struttura Architetturale
 
-CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
+CiccioSoft.Sqlite è organizzato su **architettura two-layer**:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -40,10 +40,10 @@ CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
 │  ↓ depends on ↓                                                  │
 │                                                                  │
 │  LAYER 2: P/Invoke Binding                                       │
-│  CiccioSoft.Sqlite.Interop                                       │
+│  CiccioSoft.Interop.Sqlite                                       │
 │                                                                  │
 │  • Sqlite3 (P/Invoke declarations, cdecl)                        │
-│  • Sqlite3Handle (SafeHandleZeroOrMinusOneIsInvalid)             │
+│  • Sqlite3Handle (SafeHandle)             │
 │  • SqliteErrorHelper (Error code translation)                    │
 │  • Memory strategies (ArrayPool, stackalloc, Span<T>)            │
 │  • Platform abstraction (Windows/Linux/macOS)                    │
@@ -73,7 +73,7 @@ CiccioSoft.Data.Sqlite è organizzato su **architettura two-layer**:
 **Specializzazione**: P/Invoke bindings, FFI, memory management, low-level interoperability
 
 **Ambito Prevalente**:
-- Path: `CiccioSoft.Sqlite.Interop/**/*.cs`
+- Path: `CiccioSoft.Interop.Sqlite/**/*.cs`
 - File chiave: `Sqlite3.cs`, `SqliteErrorHelper.cs`
 - Istruzioni: `.github/instructions/interop.instructions.md`
 
