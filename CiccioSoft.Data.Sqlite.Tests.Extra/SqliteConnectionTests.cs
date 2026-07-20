@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
@@ -24,8 +24,8 @@ public class SqliteConnectionTests
         var ex = Assert.Throws<SqliteException>(
             () => connection.ExecuteNonQuery("INSERT INTO Person (Name) VALUES ('Waldo');"));
 
-        Assert.Equal(SqliteResult.Constraint, ex.SqliteErrorCode);
-        Assert.Equal(SqliteExtendedResult.ConstraintUnique, ex.SqliteExtendedErrorCode);
+        Assert.Equal(SqliteResult.Constraint, ex.Result);
+        Assert.Equal(SqliteExtendedResult.ConstraintUnique, ex.ExtendedResult);
     }
 
     [Fact]

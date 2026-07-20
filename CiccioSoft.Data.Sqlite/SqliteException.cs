@@ -6,7 +6,7 @@
 
 using System;
 using System.Data.Common;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -39,7 +39,7 @@ public class SqliteException : DbException
         SqliteExtendedErrorCode = extendedErrorCode;
     }
 
-    public SqliteException(string message, SqliteInteropException? innerException = null)
+    public SqliteException(string message, EngineException? innerException = null)
         : base(message, innerException)
     {
         if (innerException != null)

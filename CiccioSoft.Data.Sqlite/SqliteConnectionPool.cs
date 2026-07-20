@@ -8,7 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -70,7 +70,7 @@ internal static class SqliteConnectionPool
             {
                 try
                 {
-                    return new SqliteSession(Sqlite3.Open(dataSource, openFlags));
+                    return new SqliteSession(Connection.Open(dataSource, openFlags));
                 }
                 catch
                 {
@@ -130,7 +130,7 @@ internal static class SqliteConnectionPool
             {
                 try
                 {
-                    return new SqliteSession(Sqlite3.Open(dataSource, openFlags));
+                    return new SqliteSession(Connection.Open(dataSource, openFlags));
                 }
                 catch
                 {

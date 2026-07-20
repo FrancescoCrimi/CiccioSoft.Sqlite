@@ -14,7 +14,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -46,7 +46,7 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     ///     Gets the underlying low-level SQLite interop object for advanced/native operations.
     /// </summary>
-    public Sqlite3 Interop
+    public Connection Interop
     {
         get
         {
@@ -60,7 +60,7 @@ public sealed class SqliteConnection : DbConnection
     ///     Gets a handle to underlying database connection.
     /// </summary>
     /// <value>A handle to underlying database connection.</value>
-    public Sqlite3? Handle
+    public Connection? Handle
         => _session?.Native;
 
     [DefaultValue("")]
@@ -103,7 +103,7 @@ public sealed class SqliteConnection : DbConnection
     {
         get
         {
-            return Sqlite3.LibVersion()!;
+            return Connection.LibVersion()!;
         }
     }
 
@@ -189,7 +189,7 @@ public sealed class SqliteConnection : DbConnection
                 bool pooling = IsPoolingEnabled();
                 SqliteSession session = pooling
                     ? SqliteConnectionPool.Rent(_connectionString, dataSource, _settings.MaxPoolSize, openFlags)
-                    : new SqliteSession(Sqlite3.Open(dataSource, openFlags));
+                    : new SqliteSession(Connection.Open(dataSource, openFlags));
 
                 ApplyConnectionSettings(session.Native);
 
@@ -198,7 +198,7 @@ public sealed class SqliteConnection : DbConnection
                 _writerKey = ResolveWriterKey(_connectionString, _dataSource);
                 _state = ConnectionState.Open;
             }
-            catch (SqliteInteropException ex)
+            catch (EngineException ex)
             {
                 throw new SqliteException(ex.Message, ex);
             }
@@ -442,7 +442,7 @@ public sealed class SqliteConnection : DbConnection
         {
             session.Native.Execute(sql);
         }
-        catch (SqliteInteropException ex)
+        catch (EngineException ex)
         {
             throw new SqliteException(ex.Message, ex);
         }
@@ -557,7 +557,7 @@ public sealed class SqliteConnection : DbConnection
         return flags;
     }
 
-    private void ApplyConnectionSettings(Sqlite3 native)
+    private void ApplyConnectionSettings(Connection native)
     {
         native.ExtendedResultCodes(true);
         native.BusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
@@ -639,7 +639,7 @@ public sealed class SqliteConnection : DbConnection
 
         try
         {
-            using var backup = Sqlite3Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
+            using var backup = Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
 
             var result = backup.Step(-1);
             if (result != SqliteExtendedResult.Done)
@@ -653,7 +653,7 @@ public sealed class SqliteConnection : DbConnection
         }
 
         // Intercetta eventuali SqliteInteropException
-        catch (SqliteInteropException siex)
+        catch (EngineException siex)
         {
             throw new SqliteException(siex.Message, siex);
         }

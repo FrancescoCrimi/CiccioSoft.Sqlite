@@ -6,16 +6,16 @@
 
 using System;
 using System.Threading;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
 internal sealed class SqliteSession : IDisposable
 {
-    public Sqlite3 Native { get; }
+    public Connection Native { get; }
     public SemaphoreSlim Gate { get; } = new(1, 1);
 
-    public SqliteSession(Sqlite3 native)
+    public SqliteSession(Connection native)
     {
         Native = native;
     }

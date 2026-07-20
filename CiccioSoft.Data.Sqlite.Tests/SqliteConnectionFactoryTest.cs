@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;
@@ -37,7 +37,7 @@ public class SqliteConnectionFactoryTest : IDisposable
     [Fact(Skip = "wip")]
     public void Internal_connections_are_reused_across_connections()
     {
-        Sqlite3 db;
+        Connection db;
         using (var connection1 = new SqliteConnection(ConnectionString))
         {
             connection1.Open();
@@ -156,7 +156,7 @@ public class SqliteConnectionFactoryTest : IDisposable
     [Fact(Skip = "wip")]
     public void ReadUncommitted_doesnt_bleed_across_connections()
     {
-        Sqlite3 db;
+        Connection db;
         using (var connection1 = new SqliteConnection(ConnectionString))
         {
             connection1.Open();
@@ -178,7 +178,7 @@ public class SqliteConnectionFactoryTest : IDisposable
     [Fact(Skip = "wip")]
     public void Functions_dont_bleed_across_connections()
     {
-        Sqlite3 db;
+        Connection db;
         using (var connection1 = new SqliteConnection(ConnectionString))
         {
             if (new Version(connection1.ServerVersion) < new Version(3, 31, 0))
@@ -206,7 +206,7 @@ public class SqliteConnectionFactoryTest : IDisposable
     [Fact(Skip = "ericsink/SQLitePCL.raw#421")]
     public void Collations_dont_bleed_across_connections()
     {
-        Sqlite3 db;
+        Connection db;
         using (var connection1 = new SqliteConnection(ConnectionString))
         {
             // connection1.CreateCollation("COLLATION1", string.CompareOrdinal);
@@ -226,7 +226,7 @@ public class SqliteConnectionFactoryTest : IDisposable
     [Fact(Skip = "wip")]
     public void EnableExtensions_doesnt_bleed_across_connections()
     {
-        Sqlite3 db;
+        Connection db;
         SqliteException ex;
         string disabledMessage;
         using (var connection1 = new SqliteConnection(ConnectionString))

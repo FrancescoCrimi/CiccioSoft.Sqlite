@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using System.Collections.Generic;
 

@@ -10,7 +10,7 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -146,7 +146,7 @@ public class SqliteTransaction : DbTransaction
         {
             session.Native.Execute(sql);
         }
-        catch (SqliteInteropException ex)
+        catch (EngineException ex)
         {
             throw new SqliteException(ex.Message, ex);
         }

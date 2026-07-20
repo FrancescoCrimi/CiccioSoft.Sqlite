@@ -15,7 +15,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Interop;
+using CiccioSoft.Interop.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -25,7 +25,7 @@ public sealed class SqliteCommand : DbCommand
 
     private const SqlitePrepareFlags SqlitePreparePersistentFlag = SqlitePrepareFlags.Persistent;
     private readonly object _statementCacheSync = new();
-    private readonly List<(Sqlite3Stmt Statement, int ParamCount)> _preparedStatements = new(1);
+    private readonly List<(Statement Statement, int ParamCount)> _preparedStatements = new(1);
     private SqliteConnection? _connection;
     private CachedStatement? _cachedStatement;
     private bool _prepared;
@@ -230,7 +230,7 @@ public sealed class SqliteCommand : DbCommand
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
         scope.Execute(() =>
         {
-            foreach ((Sqlite3Stmt _, int _) in PrepareAndEnumerateStatements(session))
+            foreach ((Statement _, int _) in PrepareAndEnumerateStatements(session))
             {
             }
         });
@@ -425,19 +425,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 return operation();
             }
-            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (SqliteInteropException ex)
+            catch (EngineException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
@@ -465,19 +465,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 operation();
             }
-            catch (SqliteInteropException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when (_timeoutTriggered && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (SqliteInteropException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (SqliteInteropException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
+            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == SqliteResult.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (SqliteInteropException ex)
+            catch (EngineException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
@@ -532,17 +532,17 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    internal Sqlite3Stmt? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
+    internal Statement? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
         => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true);
 
-    internal Sqlite3Stmt? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
+    internal Statement? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
     {
         if (_prepared)
         {
             return PrepareAndBindFromCache(batchState, throwOnMissingParameter);
         }
 
-        Sqlite3Stmt? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
+        Statement? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
         if (stmt is null)
         {
@@ -553,7 +553,7 @@ public sealed class SqliteCommand : DbCommand
         return stmt;
     }
 
-    internal void ReleaseStatement(Sqlite3Stmt? stmt)
+    internal void ReleaseStatement(Statement? stmt)
     {
         if (stmt is null)
         {
@@ -571,7 +571,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private void BindParameters(Sqlite3Stmt stmt, bool throwOnMissingParameter)
+    private void BindParameters(Statement stmt, bool throwOnMissingParameter)
     {
         int parameterCount = stmt.ParameterCount();
         bool[] boundParameters = parameterCount == 0
@@ -613,7 +613,7 @@ public sealed class SqliteCommand : DbCommand
     //     }
     // }
 
-    private static int ResolveParameterIndex(Sqlite3Stmt stmt, SqliteParameter parameter, int ordinal)
+    private static int ResolveParameterIndex(Statement stmt, SqliteParameter parameter, int ordinal)
     {
         string parameterName = parameter.ParameterName;
         if (string.IsNullOrEmpty(parameterName))
@@ -671,7 +671,7 @@ public sealed class SqliteCommand : DbCommand
         return commandText.StartsWith("EXPLAIN", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void ThrowIfMissingParameters(Sqlite3Stmt stmt, bool[] boundParameters)
+    private static void ThrowIfMissingParameters(Statement stmt, bool[] boundParameters)
     {
         List<string>? missingParameters = null;
         for (int i = 1; i < boundParameters.Length; i++)
@@ -691,7 +691,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private static void BindParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter)
+    private static void BindParameter(Statement stmt, int index, SqliteParameter parameter)
     {
         object? value = parameter.Value;
         if (value is null || value is DBNull)
@@ -744,7 +744,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private static void BindDoubleParameter(Sqlite3Stmt stmt, int index, double value)
+    private static void BindDoubleParameter(Statement stmt, int index, double value)
     {
         if (double.IsNaN(value))
         {
@@ -795,7 +795,7 @@ public sealed class SqliteCommand : DbCommand
         return milliseconds / 86400000.0;
     }
 
-    private static void BindTextParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter, string value)
+    private static void BindTextParameter(Statement stmt, int index, SqliteParameter parameter, string value)
     {
         if (parameter.TryGetTruncatedSize(value.Length, out int size))
         {
@@ -805,7 +805,7 @@ public sealed class SqliteCommand : DbCommand
         stmt.BindText(index, value);
     }
 
-    private static void BindBlobParameter(Sqlite3Stmt stmt, int index, SqliteParameter parameter, byte[] value)
+    private static void BindBlobParameter(Statement stmt, int index, SqliteParameter parameter, byte[] value)
     {
         stmt.BindBlob(
             index,
@@ -847,14 +847,14 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private IEnumerable<(Sqlite3Stmt Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
+    private IEnumerable<(Statement Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
     {
         DisposePreparedStatements();
 
         var batchState = new BatchExecutionState(CommandText);
         while (true)
         {
-            Sqlite3Stmt? stmt = session.Native.Prepare(
+            Statement? stmt = session.Native.Prepare(
                 batchState.Sql,
                 batchState.SqlByteOffset,
                 out int nextSqlByteOffset,
@@ -875,7 +875,7 @@ public sealed class SqliteCommand : DbCommand
         _prepared = true;
     }
 
-    private Sqlite3Stmt? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
+    private Statement? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
     {
         int index = batchState.PreparedStatementIndex;
         if (index >= _preparedStatements.Count)
@@ -883,7 +883,7 @@ public sealed class SqliteCommand : DbCommand
             return null;
         }
 
-        Sqlite3Stmt stmt = _preparedStatements[index].Statement;
+        Statement stmt = _preparedStatements[index].Statement;
         batchState.PreparedStatementIndex = index + 1;
         stmt.Reset();
         stmt.ClearBindings();
@@ -893,7 +893,7 @@ public sealed class SqliteCommand : DbCommand
 
     private void DisposePreparedStatements()
     {
-        foreach ((Sqlite3Stmt stmt, int _) in _preparedStatements)
+        foreach ((Statement stmt, int _) in _preparedStatements)
         {
             stmt.Dispose();
         }
@@ -917,7 +917,7 @@ public sealed class SqliteCommand : DbCommand
                     _cachedStatement = null;
                 }
 
-                Sqlite3Stmt statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
+                Statement statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
                 _cachedStatement = new CachedStatement(session, CommandText, statement);
                 _cachedStatement.TryAcquire();
             }
@@ -943,7 +943,7 @@ public sealed class SqliteCommand : DbCommand
 
     private sealed class CachedStatement
     {
-        public CachedStatement(SqliteSession session, string commandText, Sqlite3Stmt statement)
+        public CachedStatement(SqliteSession session, string commandText, Statement statement)
         {
             Session = session;
             CommandText = commandText;
@@ -952,7 +952,7 @@ public sealed class SqliteCommand : DbCommand
 
         public SqliteSession Session { get; }
         public string CommandText { get; }
-        public Sqlite3Stmt Statement { get; }
+        public Statement Statement { get; }
         public bool InUse { get; private set; }
 
         public bool TryAcquire()
@@ -983,7 +983,7 @@ public sealed class SqliteCommand : DbCommand
             _cached = cached;
         }
 
-        public Sqlite3Stmt Statement => _cached.Statement;
+        public Statement Statement => _cached.Statement;
 
         public void Dispose()
         {
