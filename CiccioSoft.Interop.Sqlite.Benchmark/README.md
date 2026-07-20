@@ -1,0 +1,1 @@
+# CiccioSoft.Interop.Sqlite.Benchmark

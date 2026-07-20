@@ -1,4 +1,4 @@
-# CiccioSoft.Sqlite.Interop
+# CiccioSoft.Interop.Sqlite
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)
@@ -18,11 +18,11 @@ This project contains the low-level interop layer that binds .NET to the native 
 
 ## Key Components
 
-- `Sqlite3`: Main database connection class
-- `Sqlite3Stmt`: Prepared statement wrapper
-- `NativeSqlite3`: P/Invoke declarations for SourceGear.sqlite3
-- `SqliteErrorHelper`: Error code translation utilities
-- `SqliteInteropException`: Native error exceptions
+- `Connection`: Main database connection class
+- `Statement`: Prepared statement wrapper
+- `NativeMethods`: P/Invoke declarations for SourceGear.sqlite3
+- `Backup`: sqlite3 backup helper wrapper
+- `EngineException`: Native error exceptions
 
 ## Features
 
@@ -50,15 +50,15 @@ while (stmt.Step() == SqliteResult.Row)
 
 ## Design Principles & Modern C# Interop
 
-`CiccioSoft.Sqlite.Interop` is not just a direct 1:1 P/Invoke translation; it acts as a modern, lightweight, and purely Object-Oriented bridge between the procedural C API of SQLite and idiomatic C# 10+.
+`CiccioSoft.Interop.Sqlite` is not just a direct 1:1 P/Invoke translation; it acts as a modern, lightweight, and purely Object-Oriented bridge between the procedural C API of SQLite and idiomatic C# 10+.
 
 ### 1. Object-Oriented Architecture & Type Safety
-The raw procedural API (`sqlite3*`) is encapsulated into clean, distinct classes like `Sqlite3` (connection) and `Sqlite3Stmt` (prepared statement).  
-We eliminate C "magic numbers" by mapping all flags, result codes, and data types to strongly-typed .NET `enum`s (`SqliteResult`, `SqliteOpenFlags`, `SqliteType`). This ensures compile-time safety and full IntelliSense support.
+The raw procedural API (`sqlite3*`) is encapsulated into clean, distinct classes like `Connection` and `Statement` (prepared statement).  
+We eliminate C "magic numbers" by mapping all flags, result codes, and data types to strongly-typed .NET `enum`s (`Result`, `OpenFlags`, `SqliteType`). This ensures compile-time safety and full IntelliSense support.
 
 ### 2. Robust Resource Management (No Memory Leaks)
 Memory leaks are a common pitfall in native wrappers. This library prevents them by design:
-- **`SafeHandle` Pattern**: Raw pointers (`IntPtr`/`nint`) are never exposed directly. They are wrapped in `SafeHandleZeroOrMinusOneIsInvalid` implementations (e.g., `Sqlite3Handle`). This guarantees that the .NET Garbage Collector will deterministically invoke `sqlite3_close_v2` or `sqlite3_finalize` during finalization, even if the developer forgets to call `Dispose()`.
+- **`SafeHandle` Pattern**: Raw pointers (`IntPtr`/`nint`) are never exposed directly. They are wrapped in `SafeHandle` implementations (e.g., `SafeConnectionHandle`). This guarantees that the .NET Garbage Collector will deterministically invoke `sqlite3_close_v2` or `sqlite3_finalize` during finalization, even if the developer forgets to call `Dispose()`.
 - **Pervasive `IDisposable`**: All core wrapper classes implement `IDisposable`, enabling native use of C# `using` blocks.
 
 ### 3. Modern Performance: Zero-Allocation & Zero-Copy
@@ -68,8 +68,8 @@ The interop layer heavily leverages modern .NET features to minimize Garbage Col
 
 ### 4. Idiomatic Control Flow & Error Handling
 We transform C-style conditional checks into standard .NET control flows:
-- **Boolean Iteration**: `Sqlite3Stmt.Step()` returns a clear `bool` (`true` for a new row, `false` for done), allowing clean `while (stmt.Step()) { ... }` loops.
-- **Rich Exceptions**: Any result other than `OK`, `ROW`, or `DONE` immediately throws a `SqliteInteropException`. Instead of forcing developers to check integer error codes manually, the exception automatically extracts and decodes the exact native error message (via `sqlite3_errmsg`), the base error code, and the extended error code, enabling "fail-fast" integration with standard `try-catch` blocks.
+- **Boolean Iteration**: `Statement.Step()` returns a clear `bool` (`true` for a new row, `false` for done), allowing clean `while (stmt.Step()) { ... }` loops.
+- **Rich Exceptions**: Any result other than `OK`, `ROW`, or `DONE` immediately throws a `EngineException`. Instead of forcing developers to check integer error codes manually, the exception automatically extracts and decodes the exact native error message (via `sqlite3_errmsg`), the base error code, and the extended error code, enabling "fail-fast" integration with standard `try-catch` blocks.
 
 ## Dependencies
 
