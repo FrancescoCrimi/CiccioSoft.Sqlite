@@ -5,16 +5,15 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop;
 
 [Flags]
 public enum SqlitePrepareFlags : uint
 {
-    None = 0,
-    Persistent = Sqlite3Native.SQLITE_PREPARE_PERSISTENT,
-    Normalize = Sqlite3Native.SQLITE_PREPARE_NORMALIZE,
-    NoVtab = Sqlite3Native.SQLITE_PREPARE_NO_VTAB,
-    DontLog = Sqlite3Native.SQLITE_PREPARE_DONT_LOG
+    None        = 0,
+    Persistent  = Sqlite3Native.SQLITE_PREPARE_PERSISTENT,
+    Normalize   = Sqlite3Native.SQLITE_PREPARE_NORMALIZE,
+    NoVtab      = Sqlite3Native.SQLITE_PREPARE_NO_VTAB,
+    DontLog     = Sqlite3Native.SQLITE_PREPARE_DONT_LOG
 }

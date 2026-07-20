@@ -7,7 +7,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop;
 
@@ -20,7 +19,7 @@ public sealed unsafe class Sqlite3StmtSafeHandle : SafeHandle
 
     public override bool IsInvalid => handle == nint.Zero;
 
-    public sqlite3_stmt* AsStructPointer() => (sqlite3_stmt*)handle;
+    internal sqlite3_stmt* AsStructPointer() => (sqlite3_stmt*)handle;
 
     protected override bool ReleaseHandle()
     {

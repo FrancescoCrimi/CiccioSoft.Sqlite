@@ -4,8 +4,6 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-using CiccioSoft.Sqlite.Interop.Native;
-
 namespace CiccioSoft.Sqlite.Interop;
 
 public enum SqliteResult

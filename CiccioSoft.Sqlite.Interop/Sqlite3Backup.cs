@@ -6,7 +6,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using CiccioSoft.Sqlite.Interop.Native;
 
 namespace CiccioSoft.Sqlite.Interop;
 
@@ -19,7 +18,7 @@ public sealed unsafe class Sqlite3BackupSafeHandle : SafeHandle
 
     public override bool IsInvalid => handle == nint.Zero;
 
-    public sqlite3_backup* AsStructPointer() => (sqlite3_backup*)handle;
+    internal sqlite3_backup* AsStructPointer() => (sqlite3_backup*)handle;
 
     protected override bool ReleaseHandle()
     {

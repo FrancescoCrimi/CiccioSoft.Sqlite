@@ -17,7 +17,7 @@ sqlite3.h
 
 # Namespace C# di destinazione
 --namespace
-CiccioSoft.Sqlite.Interop.Native
+CiccioSoft.Sqlite.Interop
 
 # Nome della DLL/libreria nativa inserito nei [DllImport] (es. sqlite3)
 --libraryPath
@@ -33,7 +33,77 @@ c
 
 # Modificatore di accesso per i tipi e metodi C# generati (public/internal)
 --with-access-specifier
-Sqlite3Native=internal
+Sqlite3Native=public
+# Struct
+sqlite3=internal
+sqlite3_backup=internal
+sqlite3_stmt=internal
+sqlite3_value=internal
+# Function
+sqlite3_libversion=internal
+sqlite3_libversion_number=internal
+sqlite3_close_v2=internal
+sqlite3_exec=internal
+sqlite3_extended_result_codes=internal
+sqlite3_last_insert_rowid=internal
+sqlite3_changes=internal
+sqlite3_changes64=internal
+sqlite3_total_changes=internal
+sqlite3_total_changes64=internal
+sqlite3_interrupt=internal
+sqlite3_is_interrupted=internal
+sqlite3_busy_timeout=internal
+sqlite3_free=internal
+sqlite3_open_v2=internal
+sqlite3_errcode=internal
+sqlite3_extended_errcode=internal
+sqlite3_errmsg=internal
+sqlite3_errstr=internal
+sqlite3_error_offset=internal
+sqlite3_limit=internal
+sqlite3_prepare_v3=internal
+sqlite3_sql=internal
+sqlite3_expanded_sql=internal
+sqlite3_stmt_readonly=internal
+sqlite3_stmt_busy=internal
+sqlite3_bind_blob=internal
+sqlite3_bind_double=internal
+sqlite3_bind_int=internal
+sqlite3_bind_int64=internal
+sqlite3_bind_null=internal
+sqlite3_bind_text=internal
+sqlite3_bind_value=internal
+sqlite3_bind_parameter_count=internal
+sqlite3_bind_parameter_name=internal
+sqlite3_bind_parameter_index=internal
+sqlite3_clear_bindings=internal
+sqlite3_column_count=internal
+sqlite3_column_name=internal
+sqlite3_column_database_name=internal
+sqlite3_column_table_name=internal
+sqlite3_column_origin_name=internal
+sqlite3_column_decltype=internal
+sqlite3_step=internal
+sqlite3_column_blob=internal
+sqlite3_column_double=internal
+sqlite3_column_int=internal
+sqlite3_column_int64=internal
+sqlite3_column_text=internal
+sqlite3_column_value=internal
+sqlite3_column_bytes=internal
+sqlite3_column_type=internal
+sqlite3_finalize=internal
+sqlite3_reset=internal
+sqlite3_get_autocommit=internal
+sqlite3_db_readonly=internal
+sqlite3_txn_state=internal
+sqlite3_table_column_metadata=internal
+sqlite3_backup_init=internal
+sqlite3_backup_step=internal
+sqlite3_backup_finish=internal
+sqlite3_backup_remaining=internal
+sqlite3_backup_pagecount=internal
+
 
 # Esclude specifiche funzioni, struct o macro dalla generazione (Sintassi: nome)
 --exclude

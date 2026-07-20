@@ -1,6 +1,6 @@
-namespace CiccioSoft.Sqlite.Interop.Native
+namespace CiccioSoft.Sqlite.Interop
 {
-    public partial struct sqlite3_stmt
+    internal partial struct sqlite3_stmt
     {
     }
 }
