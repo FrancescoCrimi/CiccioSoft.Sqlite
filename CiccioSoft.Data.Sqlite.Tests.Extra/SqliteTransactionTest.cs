@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 using Xunit;
+using static CiccioSoft.Sqlite.Interop.Native.Sqlite3Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -116,8 +117,8 @@ public class SqliteTransactionTest
         // in un'eccezione managed quando il lock è esclusivo.
         var ex = Assert.Throws<SqliteException>(() => c2.ExecuteScalar<long>("SELECT * FROM Data;"));
 
-        // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
-        Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
+        Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
+        // Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
     }
 
     [Fact]

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
+using static CiccioSoft.Sqlite.Interop.Native.Sqlite3Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -91,10 +92,8 @@ public class SqliteTransactionTest
                 }
             });
 
-            // Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
-            // Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
-            Assert.Equal(SqliteResult.Locked, ex.SqliteErrorCode);
-            Assert.Equal(SqliteExtendedResult.LockedSharedCache, ex.SqliteExtendedErrorCode);
+            Assert.Equal(SQLITE_LOCKED, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_LOCKED_SHAREDCACHE, ex.SqliteExtendedErrorCode);
         }
     }
 
@@ -187,8 +186,6 @@ public class SqliteTransactionTest
 
         Assert.Equal(1L, connection.ExecuteScalar<long>("SELECT COUNT(*) FROM TestTable;"));
     }
-
-
 
     [Fact(Skip = "This test assumes a decoupled, state-tracked client-side transaction model that tolerates state desynchronization. " +
                  "CiccioSoft.Data.Sqlite implements an enterprise-grade, deterministic architecture that queries the underlying engine's " +

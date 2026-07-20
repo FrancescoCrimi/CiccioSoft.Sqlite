@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite.Interop;
 using Xunit;
+using static CiccioSoft.Sqlite.Interop.Native.Sqlite3Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -51,10 +52,11 @@ CREATE TABLE "Products" (
         }
         catch (SqliteException ex)
         {
-            Assert.Equal(SqliteResult.TooBig, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_TOOBIG, ex.SqliteErrorCode);
         }
         finally
         {
+#if NET5_0_OR_GREATER
             if (async)
             {
                 await connection.CloseAsync();
@@ -63,6 +65,9 @@ CREATE TABLE "Products" (
             {
                 connection.Close();
             }
+#else
+            connection.Close();
+#endif
         }
     }
 
@@ -261,7 +266,7 @@ CREATE TABLE "Products" (
             command.CommandText = "CREATE TABLE Data (Value); SELECT * FROM Data;";
             var ex = Assert.Throws<SqliteException>(() => command.Prepare());
 
-            Assert.Equal(Resources.SqliteNativeError((int)SqliteResult.Error, "no such table: Data"), ex.Message);
+            Assert.Equal(Resources.SqliteNativeError(SQLITE_ERROR, "no such table: Data"), ex.Message);
         }
     }
 
@@ -353,7 +358,7 @@ CREATE TABLE "Products" (
 
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteReader());
 
-            Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
         }
     }
 
@@ -961,7 +966,7 @@ CREATE TABLE "Products" (
         {
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteScalar());
 
-            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+            AssertBusy(ex.SqliteErrorCode);
         });
 
     [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
@@ -970,7 +975,7 @@ CREATE TABLE "Products" (
         {
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteNonQuery());
 
-            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+            AssertBusy(ex.SqliteErrorCode);
         });
 
     [Fact(Skip = "#35585: Flaky in Microsoft.Data.Sqlite.Tests. RETURNING + cross-connection lock contention is not a supported contract with WAL-by-default, deferred reader stepping, and silent reader drain.")]
@@ -987,7 +992,7 @@ CREATE TABLE "Products" (
             {
                 var ex = Assert.Throws<SqliteException>(() => reader.Dispose());
 
-                    Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+                AssertBusy(ex.SqliteErrorCode);
             }
         });
 
@@ -1003,8 +1008,11 @@ CREATE TABLE "Products" (
 
             var ex = Assert.Throws<SqliteException>(() => reader.Read());
 
-            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+            AssertBusy(ex.SqliteErrorCode);
         });
+
+    private static void AssertBusy(int rc)
+        => Assert.True(rc is SQLITE_LOCKED or SQLITE_BUSY or SQLITE_LOCKED_SHAREDCACHE);
 
     private static async Task Execute_throws_when_busy_with_returning(Action<SqliteCommand> action)
     {
@@ -1143,7 +1151,7 @@ CREATE TABLE "Products" (
             command.CommandText = "SELECT 1 FROM dual";
 
             var ex = Assert.Throws<SqliteException>(() => command.ExecuteScalar());
-            Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
 
             connection.ExecuteNonQuery("CREATE TABLE dual (dummy); INSERT INTO dual (dummy) VALUES ('X');");
 

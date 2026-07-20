@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using CiccioSoft.Sqlite.Interop;
 using CiccioSoft.Data.Sqlite.Properties;
+using static CiccioSoft.Sqlite.Interop.Native.Sqlite3Native;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;
@@ -182,8 +183,7 @@ public class SqliteConnectionTest
         using var connection = new SqliteConnection("Data Source=file:data.db?mode=invalidmode");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        // Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
-        Assert.Equal(SqliteResult.Error, ex.SqliteErrorCode); // TODO: fix ex.SqliteErrorCode = SqliteResult
+        Assert.Equal(SQLITE_ERROR, ex.SqliteErrorCode);
     }
 
     [Fact]
@@ -231,8 +231,7 @@ public class SqliteConnectionTest
 
             var ex = Assert.Throws<SqliteException>(() => connection.ExecuteNonQuery("INSERT INTO Idomic VALUES ('arimfexendrapuse');"));
 
-            // Assert.Equal(SQLITE_READONLY, ex.SqliteErrorCode);
-            Assert.Equal(SqliteResult.ReadOnly, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_READONLY, ex.SqliteErrorCode);
         }
     }
 
@@ -242,8 +241,7 @@ public class SqliteConnectionTest
         using var connection = new SqliteConnection("Data Source=readwrite.db;Mode=ReadWrite");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        // Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
-        Assert.Equal(SqliteResult.CantOpen, ex.SqliteErrorCode);
+        Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
     }
 
     [Fact]
@@ -450,7 +448,7 @@ public class SqliteConnectionTest
             source.ExecuteNonQuery("UPDATE Data SET Value = 1;");
 
             var ex = Assert.Throws<SqliteException>(() => source.BackupDatabase(destination));
-            Assert.Equal(SqliteResult.Busy, ex.SqliteErrorCode);
+            Assert.Equal(SQLITE_BUSY, ex.SqliteErrorCode);
         }
     }
 
@@ -460,8 +458,7 @@ public class SqliteConnectionTest
         using var connection = new SqliteConnection("Data Source=file:readwrite.db?mode=rw");
         var ex = Assert.Throws<SqliteException>(() => connection.Open());
 
-        // Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
-        Assert.Equal(SqliteResult.CantOpen, ex.SqliteErrorCode);
+        Assert.Equal(SQLITE_CANTOPEN, ex.SqliteErrorCode);
     }
 
     [Fact]

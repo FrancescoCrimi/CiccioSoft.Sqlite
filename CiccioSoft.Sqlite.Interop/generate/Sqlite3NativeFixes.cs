@@ -1,6 +1,6 @@
 namespace CiccioSoft.Sqlite.Interop.Native
 {
-    internal static unsafe partial class Sqlite3Native
+    public static unsafe partial class Sqlite3Native
     {
         // // Definisci qui la stringa reale in modo pulito e moderno
         internal const string SQLITE_DLL = "e_sqlite3";

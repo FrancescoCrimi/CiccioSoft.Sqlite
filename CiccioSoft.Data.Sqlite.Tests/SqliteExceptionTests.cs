@@ -15,23 +15,21 @@ public class SqliteExceptionTests
     [Fact]
     public void Ctor_sets_message_and_errorCode()
     {
-        // var ex = new SqliteException("test", 1);
-        var ex = new SqliteException("test");
+        var ex = new SqliteException("test", 1);
 
         Assert.Equal("test", ex.Message);
-        // Assert.Equal(1, ex.SqliteErrorCode);
-        // Assert.Equal(0, ex.SqliteExtendedErrorCode);
+        Assert.Equal(1, ex.SqliteErrorCode);
+        Assert.Equal(1, ex.SqliteExtendedErrorCode);
     }
 
     [Fact]
     public void Ctor_sets_extendedErrorCode()
     {
-        // var ex = new SqliteException("test", 1, 2);
-        var ex = new SqliteException("test");
+        var ex = new SqliteException("test", 1, 2);
 
         Assert.Equal("test", ex.Message);
-        // Assert.Equal(1, ex.SqliteErrorCode);
-        // Assert.Equal(2, ex.SqliteExtendedErrorCode);
+        Assert.Equal(1, ex.SqliteErrorCode);
+        Assert.Equal(2, ex.SqliteExtendedErrorCode);
     }
 
     // [Theory, InlineData(SQLITE_OK), InlineData(SQLITE_ROW), InlineData(SQLITE_DONE)]
