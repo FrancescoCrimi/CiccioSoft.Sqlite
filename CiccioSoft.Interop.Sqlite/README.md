@@ -37,11 +37,11 @@ This project contains the low-level interop layer that binds .NET to the native 
 ## Usage Example
 
 ```csharp
-using var db = Sqlite3.Open("app.db", SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create);
+using var db = Connection.Open("app.db", SqliteOpenFlags.ReadWrite | SqliteOpenFlags.Create);
 using var stmt = db.Prepare("SELECT name FROM users WHERE age > ?");
 stmt.BindInt(1, 18);
 
-while (stmt.Step() == SqliteResult.Row)
+while (stmt.Step())
 {
     string name = stmt.ColumnText(0);
     Console.WriteLine(name);
