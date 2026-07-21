@@ -1,120 +1,122 @@
 # Ri-analisi gap ADO.NET (vendor-neutral) per `CiccioSoft.Data.Sqlite`
 
-Data analisi: **9 aprile 2026**.
+Data analisi: **20 luglio 2026** (aggiornamento verificato contro il codice sorgente corrente su `main`).
 
-Obiettivo: verificare lo stato attuale del provider rispetto ai contratti ADO.NET generici (non specifici SQLite), aggiornando la precedente analisi.
+Obiettivo: verificare lo stato attuale del provider rispetto ai contratti ADO.NET generici (non specifici SQLite), correggendo le imprecisioni emerse dal confronto diretto con il codice rispetto al report del 9 aprile 2026.
 
 ## Sintesi esecutiva
 
-Rispetto alla fotografia precedente, il provider è maturato in modo significativo: i principali gap P0/P1 individuati in precedenza risultano oggi **coperti** (o coperti con policy esplicita e test dedicati).
+Il provider resta maturo sui gap P0/P1 storici: i principali problemi individuati nelle analisi precedenti sono coperti da codice e da policy esplicite. Rispetto al report del 9 aprile, questa revisione **corregge tre imprecisioni** che erano presenti nel documento precedente (verificate riga per riga sul codice):
 
-In particolare:
-- `CommandType` è ora vincolato a `Text` con rifiuto esplicito degli altri valori.
-- `CommandTimeout` è applicato con un meccanismo reale di timeout/cancel via `Interrupt`.
-- La coerenza `Command.Transaction` è validata in esecuzione/prepare.
-- `ParameterDirection` ha una policy esplicita: solo `Input` in esecuzione.
-- `DbDataReader.NextResult()` supporta batch/multi-result set.
-- `DbDataReader.GetSchemaTable()` è implementato con una shape utile e allineata al contratto ADO.NET.
+1. L'eccezione sollevata da `CommandType` non è `NotSupportedException` come indicato, ma `ArgumentException`.
+2. Il meccanismo di enforcement su `ParameterDirection` è invertito rispetto a quanto descritto: il rifiuto avviene già a livello di proprietà (`SqliteParameter.Direction`), non in fase di bind del comando — la validazione lato `SqliteCommand` è codice morto, commentato.
+3. Il gap residuo su `IsKey`/`IsUnique` in `GetSchemaTable()` risultava già superato: l'inferenza da catalogo è implementata e funzionante, non è un default conservativo.
 
-## Stato attuale per area (delta rispetto al precedente report)
+## Stato attuale per area (verificato sul codice)
 
 ## 1) `DbCommand.CommandType` — **RISOLTO**
 
-Stato corrente:
+Stato corrente (`SqliteCommand.cs`):
 - `SqliteCommand.CommandType` accetta solo `CommandType.Text`.
-- Valori diversi vengono rifiutati con `NotSupportedException` e messaggio risorsa dedicato.
+- Valori diversi vengono rifiutati con **`ArgumentException`** (non `NotSupportedException`) e messaggio risorsa dedicato (`InvalidCommandType`).
 
 Valutazione:
 - Contratto chiaro e prevedibile lato consumer cross-provider.
+- Nota semantica: `ArgumentException` è discutibile per un valore "non supportato in questo provider" — molti provider storici userebbero `NotSupportedException` in questo scenario. Non è un errore, ma è una scelta di design da confermare consapevolmente (vedi raccomandazioni).
 
 ## 2) `CommandTimeout` enforcement — **RISOLTO**
 
 Stato corrente:
-- Ogni esecuzione crea una `CommandExecutionScope` che collega cancellazione esterna e timeout interno.
-- In caso di timeout viene invocato `Interrupt` e sollevata `SqliteException` con messaggio semantico di timeout.
+- Ogni esecuzione crea una `CommandExecutionScope` che collega cancellazione esterna, cancellazione dell'operazione e timeout interno tramite `CancellationTokenSource` dedicato.
+- Tre percorsi di errore distinti sono gestiti esplicitamente: timeout (`_timeoutTriggered`), cancellazione dell'operazione (`operationCancellationToken`), cancellazione esterna (`_externalCancellationToken`) — tutti intercettano `EngineException` con `Result.Interrupt` e la rimappano in modo semantico.
+- In caso di timeout viene invocato `Interrupt` e sollevata `SqliteException` con messaggio esplicito di timeout.
 
 Valutazione:
-- Comportamento robusto sia su `Execute*` sia durante lo stepping del reader.
+- Comportamento robusto sia su `Execute*` sia durante lo stepping del reader. Nessuna correzione necessaria.
 
 ## 3) Semantica `Command.Transaction` — **RISOLTO**
 
 Stato corrente:
-- Prima delle operazioni viene validata la transazione.
-- Sono gestiti i casi di transazione completata e mismatch di connessione.
+- `ValidateTransaction` viene invocato prima di ogni operazione di esecuzione (`ExecuteReader`, `ExecuteNonQuery`, `ExecuteScalar`, prepare).
+- Gestisce esplicitamente: transazione richiesta ma assente (`TransactionRequired`), transazione già completata/disconnessa (`TransactionCompleted`), mismatch tra la connessione del comando e quella della transazione (`TransactionConnectionMismatch`).
 
 Valutazione:
-- Contratto transaction/connection ora solido per ORM/unit-of-work.
+- Contratto transaction/connection solido per scenari ORM/unit-of-work. Nessuna correzione necessaria.
 
-## 4) `ParameterDirection` — **RISOLTO (policy di non supporto esplicito)**
+## 4) `ParameterDirection` — **RISOLTO, ma descrizione precedente invertita**
 
-Stato corrente:
-- `SqliteParameter` ammette i valori `Input/Output/InputOutput/ReturnValue` a livello proprietà.
-- In fase di bind comando, qualunque direzione diversa da `Input` viene rifiutata esplicitamente.
+Stato corrente (verificato in `SqliteParameter.cs` e `SqliteCommand.cs`):
+- Il rifiuto avviene **a livello di proprietà**: il setter di `SqliteParameter.Direction` lancia `ArgumentException` non appena si assegna un valore diverso da `ParameterDirection.Input`. Non è quindi possibile impostare `Output`/`InputOutput`/`ReturnValue` su un'istanza, a differenza di quanto indicato nel report precedente.
+- La validazione equivalente lato `SqliteCommand` (`ValidateParameterDirection`) esiste nel codice ma è **interamente commentata** (dead code), quindi non viene mai eseguita in fase di bind.
 
 Valutazione:
-- Policy coerente e trasparente: output/return non supportati in execute.
+- Il comportamento finale verso il consumer è corretto (solo `Input` è utilizzabile), ma il punto di enforcement è diverso da quanto documentato in precedenza. Non è un problema funzionale, ma un disallineamento di documentazione ora corretto.
+- Consigliato: rimuovere il codice morto `ValidateParameterDirection` in `SqliteCommand.cs`, oppure riattivarlo esplicitamente come difesa in profondità se si prevede che `SqliteParameter` possa in futuro ammettere altri valori a livello di proprietà.
 
-## 5) `DbDataReader.GetSchemaTable()` — **RISOLTO (implementazione base avanzata)**
+## 5) `DbDataReader.GetSchemaTable()` — **RISOLTO, con inferenza chiave/unicità già implementata**
 
 Stato corrente:
 - Metodo implementato con colonne metadata standard (`ColumnName`, `ColumnOrdinal`, `DataType`, base table/column, alias/expression, ecc.).
-- Include inferenze tipo utili in scenari SQLite dinamici.
+- **`IsKey` e `IsUnique` sono effettivamente inferiti dal catalogo quando la colonna ha un'origine tracciabile** (non aliasata): `IsSingleColumnUnique(baseTableName, baseColumnName)` per l'unicità, `TryGetTableColumnMetadata(...)` per chiave primaria, nullability e auto-increment.
+- Il fallback a `false`/`DBNull` scatta solo per colonne senza origine tracciabile (espressioni, alias) o quando il metadata non è recuperabile — comportamento corretto, non un default conservativo generalizzato come indicato in precedenza.
 
 Valutazione:
-- Copertura adeguata per `DataTable.Load`, tooling, mapper e casi legacy.
+- Il gap "P1: arricchire inferenza chiavi/unicità" del report precedente **risulta già coperto** dal codice attuale. Non richiede più priorità P1; resta eventualmente da verificare la copertura di test su casi limite (colonne composte in chiavi multi-colonna, viste).
 
 ## 6) Multi-result set (`NextResult`) — **RISOLTO**
 
 Stato corrente:
-- `NextResult()` attraversa gli statement successivi e salta i DML senza result-set.
-- Gestisce correttamente fine batch/errori/close.
+- `NextResultCore` attraversa gli statement successivi e salta i DML senza result-set.
+- Gestisce correttamente fine batch/errori/close, sia dalla chiamata iniziale (`initialResult: true`) sia da `NextResult()` esplicito.
 
 Valutazione:
-- Comportamento allineato alle aspettative pratiche ADO.NET.
+- Comportamento allineato alle aspettative pratiche ADO.NET. Nessuna correzione necessaria.
 
 ## 7) `DbParameterCollection` hardening — **PARZIALMENTE RISOLTO**
 
-Miglioramenti presenti:
+Stato corrente:
 - Validazione robusta tipo parametro (`SqliteParameter` obbligatorio, no null).
-- Normalizzazione prefissi (`@`, `:`, `$`) per lookup coerente.
+- Normalizzazione prefissi (`@`, `:`, `$`) tramite `NormalizeParameterName`, usata sia in ricerca/lookup sia in validazione nome (rifiuto di nomi che contengono solo il prefisso).
 
-Gap residui (non bloccanti):
-- Nessuna policy forte sui nomi duplicati oltre alla logica attuale di lista.
-- Eccezioni/semantiche su alcuni edge case restano “minimali” rispetto ai provider storici più maturi.
+Gap residui confermati (non bloccanti):
+- Nessuna policy esplicita sui nomi duplicati oltre al confronto case-insensitive già presente nel lookup lineare.
+- Semantiche di errore su alcuni edge case restano minimali rispetto ai provider storici più maturi.
 
-## 8) Async model — **RISOLTO (no `Task.Run` di facciata)**
+## 8) Async model — **RISOLTO (nessun `Task.Run` di facciata)**
 
 Stato corrente:
-- `OpenAsync` e `ReadAsync` sono implementati in modalità cooperativa (completamento immediato + cancellazione), senza wrapper `Task.Run`.
-- Il controllo del cancel/timeout passa dal meccanismo comune di scope + interrupt.
+- `OpenAsync` (in `SqliteConnection.cs`) e `ReadAsync` (in `SqliteDataReader.cs`) sono implementati in modalità cooperativa: `ReadAsync` esegue lo step sincrono e ritorna `Task.FromResult(_hasRow)`, senza alcun `Task.Run` o offload artificiale su thread pool.
+- Il controllo cancel/timeout passa dal meccanismo comune di `CommandExecutionScope` + `Interrupt` descritto al punto 2.
 
 Valutazione:
-- Migliorata prevedibilità e assenza di offload artificiale su thread pool.
+- Comportamento prevedibile e coerente con l'assenza di vera asincronia nativa di SQLite. Nessuna correzione necessaria.
 
-## Gap residui (nuova fotografia)
+## Gap residui (fotografia aggiornata)
 
-Questi punti non sono regressioni, ma possibili evoluzioni per una copertura “enterprise-grade” ancora più ampia:
-
-1. **Factory completeness (perimetro intenzionale)**
-   - `SqliteFactory` espone connection/command/parameter/builder e **non** include `DbDataAdapter`/`DbCommandBuilder`.
-   - Decisione di prodotto: `DataAdapter` è considerato legacy e fuori scope (in linea con l'impostazione moderna anche di `Microsoft.Data.Sqlite`).
+1. **Factory completeness (perimetro intenzionale)** — confermato nel codice:
+   - `SqliteFactory.CanCreateDataAdapter` e `CanCreateCommandBuilder` sono esplicitamente `false`.
+   - Decisione di prodotto: `DataAdapter`/`CommandBuilder` fuori scope, in linea con l'impostazione moderna di `Microsoft.Data.Sqlite`.
    - Impatto: scenari DataSet/DataAdapter richiedono un layer applicativo dedicato o migrazione a pattern data reader/ORM.
 
-2. **Metadata fidelity avanzata in `GetSchemaTable()`**
-   - Campi come `IsKey`/`IsUnique` risultano oggi impostati in modo conservativo (default) e non sempre inferiti dal catalogo.
-   - Impatto: alcuni tool di generazione schema potrebbero voler maggiore precisione.
+2. **Coerenza semantica dell'eccezione su `CommandType`** — nuovo finding di questa revisione:
+   - Il codice usa `ArgumentException`; se l'intento architetturale è segnalare "funzionalità non supportata dal provider" (piuttosto che "argomento non valido in questo contesto"), `NotSupportedException` sarebbe più coerente con le convenzioni ADO.NET e con altri punti del provider (es. `CanCreateDataAdapter = false`).
+   - Da decidere consapevolmente: mantenere `ArgumentException` (documentandolo come scelta esplicita) o migrare a `NotSupportedException` con relativo aggiornamento dei test.
 
-3. **Allineamento test/contratto eccezioni su `CommandType`**
-   - Nel codice produzione il rifiuto usa `NotSupportedException`; verificare che i test riflettano esattamente questa scelta semantica.
+3. **Codice morto in `SqliteCommand.ValidateParameterDirection`** — nuovo finding di questa revisione:
+   - Metodo completo ma interamente commentato. Da rimuovere se ridondante rispetto al controllo sulla property, oppure da riattivare se si vuole difesa in profondità.
 
-## Priorità consigliata (nuova roadmap)
+4. **`DbParameterCollection` edge case** — invariato dal report precedente:
+   - Nessuna policy forte sui nomi duplicati.
+   - Parity con provider ADO.NET storici su messaggi/eccezioni di edge case ancora da rifinire.
 
-1. **P1**: arricchire inferenza chiavi/unicità in `GetSchemaTable()`.
-2. **P2**: rifinire ulteriormente `DbParameterCollection` per edge case e parity con provider ADO.NET storici.
-3. **P2**: verifica periodica di coerenza tra contratti runtime e test (eccezioni/tipi/messaggi).
+## Priorità consigliata (roadmap aggiornata)
+
+1. **P1**: decidere e applicare in modo coerente il tipo di eccezione per funzionalità non supportate (`CommandType`, `ParameterDirection`) — uniformare a `NotSupportedException` oppure documentare esplicitamente la scelta di `ArgumentException`.
+2. **P2**: rimuovere o riattivare il codice morto `ValidateParameterDirection` in `SqliteCommand.cs`.
+3. **P2**: rifinire ulteriormente `DbParameterCollection` per edge case (duplicati) e parity con provider ADO.NET storici.
+4. **P3**: aggiungere test espliciti di regressione per l'inferenza `IsKey`/`IsUnique` in `GetSchemaTable()` su chiavi composte e viste, per blindare un comportamento già corretto ma non ancora coperto da questa verifica documentale.
+5. **P3**: verifica periodica di coerenza tra contratti runtime e test (eccezioni/tipi/messaggi) — retained dal report precedente.
 
 ## Conclusione
 
-Il provider è oggi in uno stato **molto più vicino a un ADO.NET provider general-purpose** rispetto al report precedente: i gap funzionali più critici risultano coperti e testati in modo esteso.
-
-Le attività rimanenti sono prevalentemente di **finitura contrattuale** (metadata/edge case), più che di core functionality; il perimetro `DataAdapter` resta intenzionalmente escluso.
+Il provider resta in uno stato **molto vicino a un ADO.NET provider general-purpose**: tutti i gap funzionali critici P0/P1 storici sono coperti e testati. Questa revisione non individua nuove regressioni funzionali, ma corregge tre imprecisioni documentali del report precedente (tipo di eccezione su `CommandType`, punto di enforcement su `ParameterDirection`, stato dell'inferenza in `GetSchemaTable()`) e segnala un piccolo pezzo di codice morto da ripulire. Le attività rimanenti sono di **finitura contrattuale e igiene del codice**, non di core functionality; il perimetro `DataAdapter` resta intenzionalmente escluso.
