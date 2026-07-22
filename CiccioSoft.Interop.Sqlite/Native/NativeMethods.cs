@@ -197,6 +197,24 @@ namespace CiccioSoft.Interop.Sqlite
         internal static extern int sqlite3_table_column_metadata(sqlite3* db, [NativeTypeName("const char *")] byte* zDbName, [NativeTypeName("const char *")] byte* zTableName, [NativeTypeName("const char *")] byte* zColumnName, [NativeTypeName("const char **")] byte** pzDataType, [NativeTypeName("const char **")] byte** pzCollSeq, int* pNotNull, int* pPrimaryKey, int* pAutoinc);
 
         [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_open(sqlite3* param0, [NativeTypeName("const char *")] byte* zDb, [NativeTypeName("const char *")] byte* zTable, [NativeTypeName("const char *")] byte* zColumn, [NativeTypeName("sqlite3_int64")] long iRow, int flags, sqlite3_blob** ppBlob);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_reopen(sqlite3_blob* param0, [NativeTypeName("sqlite3_int64")] long param1);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_close(sqlite3_blob* param0);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_bytes(sqlite3_blob* param0);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_read(sqlite3_blob* param0, void* Z, int N, int iOffset);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern int sqlite3_blob_write(sqlite3_blob* param0, [NativeTypeName("const void *")] void* z, int n, int iOffset);
+
+        [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern sqlite3_backup* sqlite3_backup_init(sqlite3* pDest, [NativeTypeName("const char *")] byte* zDestName, sqlite3* pSource, [NativeTypeName("const char *")] byte* zSourceName);
 
         [DllImport(SQLITE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]

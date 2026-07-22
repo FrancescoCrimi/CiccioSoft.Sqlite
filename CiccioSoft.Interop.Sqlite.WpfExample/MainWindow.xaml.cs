@@ -8,7 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace CiccioSoft.Interop.Sqlite.Example;
+namespace CiccioSoft.Interop.Sqlite.WpfExample;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml

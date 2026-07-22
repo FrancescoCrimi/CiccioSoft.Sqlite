@@ -56,6 +56,12 @@ sqlite3_get_autocommit								// 6799
 sqlite3_db_readonly									// 6876
 sqlite3_txn_state 									// 6894
 sqlite3_table_column_metadata						// 7348
+sqlite3_blob_open 									// 8001
+sqlite3_blob_reopen 								// 8034
+sqlite3_blob_close 									// 8057
+sqlite3_blob_bytes 									// 8073
+sqlite3_blob_read 								    // 8102
+sqlite3_blob_write 									// 8144
 sqlite3_backup_init									// 9553
 sqlite3_backup_step									// 9559
 sqlite3_backup_finish								// 9560

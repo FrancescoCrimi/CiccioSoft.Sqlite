@@ -157,12 +157,6 @@ sqlite3_create_module_v2
 sqlite3_drop_modules
 sqlite3_declare_vtab
 sqlite3_overload_function
-sqlite3_blob_open
-sqlite3_blob_reopen
-sqlite3_blob_close
-sqlite3_blob_bytes
-sqlite3_blob_read
-sqlite3_blob_write
 sqlite3_vfs_find
 sqlite3_vfs_register
 sqlite3_vfs_unregister

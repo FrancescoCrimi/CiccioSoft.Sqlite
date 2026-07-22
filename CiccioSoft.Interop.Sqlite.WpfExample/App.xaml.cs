@@ -8,7 +8,7 @@ using System.Configuration;
 using System.Data;
 using System.Windows;
 
-namespace CiccioSoft.Interop.Sqlite.Example;
+namespace CiccioSoft.Interop.Sqlite.WpfExample;
 
 /// <summary>
 /// Interaction logic for App.xaml

@@ -39,6 +39,7 @@ sqlite3=internal
 sqlite3_backup=internal
 sqlite3_stmt=internal
 sqlite3_value=internal
+sqlite3_blob=internal
 # Function
 sqlite3_libversion=internal
 sqlite3_libversion_number=internal
@@ -98,6 +99,12 @@ sqlite3_get_autocommit=internal
 sqlite3_db_readonly=internal
 sqlite3_txn_state=internal
 sqlite3_table_column_metadata=internal
+sqlite3_blob_open=internal
+sqlite3_blob_reopen=internal
+sqlite3_blob_close=internal
+sqlite3_blob_bytes=internal
+sqlite3_blob_read=internal
+sqlite3_blob_write=internal
 sqlite3_backup_init=internal
 sqlite3_backup_step=internal
 sqlite3_backup_finish=internal
@@ -131,7 +138,6 @@ sqlite3_vfs
 sqlite3_vtab
 sqlite3_vtab_cursor
 sqlite3_api_routines
-sqlite3_blob
 sqlite3_context
 sqlite3_mutex
 sqlite3_str
@@ -296,12 +302,6 @@ sqlite3_create_module_v2
 sqlite3_drop_modules
 sqlite3_declare_vtab
 sqlite3_overload_function
-sqlite3_blob_open
-sqlite3_blob_reopen
-sqlite3_blob_close
-sqlite3_blob_bytes
-sqlite3_blob_read
-sqlite3_blob_write
 sqlite3_vfs_find
 sqlite3_vfs_register
 sqlite3_vfs_unregister
