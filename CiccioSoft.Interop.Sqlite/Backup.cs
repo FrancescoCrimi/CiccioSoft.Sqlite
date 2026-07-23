@@ -5,26 +5,8 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Interop.Sqlite;
-
-public sealed unsafe class SafeBackupHandle : SafeHandle
-{
-    internal SafeBackupHandle(sqlite3_backup* sqlite3_backup)
-        : base((nint)sqlite3_backup, true)
-    {
-    }
-
-    public override bool IsInvalid => handle == nint.Zero;
-
-    internal sqlite3_backup* AsStructPointer() => (sqlite3_backup*)handle;
-
-    protected override bool ReleaseHandle()
-    {
-        return NativeMethods.sqlite3_backup_finish((sqlite3_backup*)handle) == NativeMethods.SQLITE_OK;
-    }
-}
 
 public sealed unsafe class Backup : IDisposable
 {
@@ -56,6 +38,8 @@ public sealed unsafe class Backup : IDisposable
                 pDest,
                 source.Handle.AsStructPointer(),
                 pSource);
+            GC.KeepAlive(destination.Handle);
+            GC.KeepAlive(source.Handle);
 
             if ((nint)backupHandle == nint.Zero)
             {
@@ -72,19 +56,25 @@ public sealed unsafe class Backup : IDisposable
     public ExtendedResult Step(int pages = -1)
     {
         ThrowIfInvalid();
-        return (ExtendedResult)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        var rtn = (ExtendedResult)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     public int Remaining()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_backup_remaining(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_backup_remaining(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     public int PageCount()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_backup_pagecount(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_backup_pagecount(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     public void Finish()

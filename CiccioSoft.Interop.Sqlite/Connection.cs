@@ -12,23 +12,6 @@ using System.Text;
 
 namespace CiccioSoft.Interop.Sqlite;
 
-public sealed unsafe class SafeConnectionHandle : SafeHandle
-{
-    internal SafeConnectionHandle(sqlite3* sqlite3)
-        : base((nint)sqlite3, true)
-    {
-    }
-
-    public override bool IsInvalid => handle == nint.Zero;
-
-    internal sqlite3* AsStructPointer() => (sqlite3*)handle;
-
-    protected override bool ReleaseHandle()
-    {
-        return NativeMethods.sqlite3_close_v2((sqlite3*)handle) == NativeMethods.SQLITE_OK;
-    }
-}
-
 /// <summary>
 /// Provides a high-performance, low-allocation wrapper for a SQLite database connection.
 /// </summary>
@@ -99,11 +82,11 @@ public sealed unsafe class Connection : IDisposable
                     errorMessage = Marshal.PtrToStringUTF8((nint)msgPtr) ?? "Unreadable SQLite error";
 
                     // 3. Ora che abbiamo i dati, liberiamo IMMEDIATAMENTE l'handle per evitare leak
-                    sqlite3SafeHandle.Dispose();   
+                    sqlite3SafeHandle.Dispose();
                 }
 
-               // 4. Creiamo e lanciamo l'eccezione (dbHandle è già chiuso in sicurezza)
-                throw  new EngineException(result, errorMessage, "SQLite open");
+                // 4. Creiamo e lanciamo l'eccezione (dbHandle è già chiuso in sicurezza)
+                throw new EngineException(result, errorMessage, "SQLite open");
             }
 
             // Se tutto è andato bene, incapsuliamo l'handle sicuro
@@ -123,6 +106,7 @@ public sealed unsafe class Connection : IDisposable
                 null,
                 null,
                 null);
+            GC.KeepAlive(_handle);
             CheckResult(result);
         }
     }
@@ -178,6 +162,7 @@ public sealed unsafe class Connection : IDisposable
                 (uint)prepareFlags,
                 &pStmt,
                 null);
+            GC.KeepAlive(_handle);
             var stmtSafeHandle = new SafeStatementHandle(pStmt);
 
             if (result != ExtendedResult.OK)
@@ -228,6 +213,7 @@ public sealed unsafe class Connection : IDisposable
                 (uint)prepareFlags,
                 &pStmt,
                 &pTail);
+            GC.KeepAlive(_handle);
             var stmtSafeHandle = new SafeStatementHandle(pStmt);
 
             if (result != ExtendedResult.OK)
@@ -257,7 +243,9 @@ public sealed unsafe class Connection : IDisposable
     public long LastInsertRowId()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_last_insert_rowid(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_last_insert_rowid(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -268,7 +256,9 @@ public sealed unsafe class Connection : IDisposable
     public int Changes()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_changes(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_changes(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -277,7 +267,9 @@ public sealed unsafe class Connection : IDisposable
     public long TotalChanges()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_total_changes64(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_total_changes64(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -286,7 +278,9 @@ public sealed unsafe class Connection : IDisposable
     public bool GetAutoCommit()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_get_autocommit(_handle.AsStructPointer()) != 0;
+        var rtn = NativeMethods.sqlite3_get_autocommit(_handle.AsStructPointer()) != 0;
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -299,7 +293,9 @@ public sealed unsafe class Connection : IDisposable
     public int Limit(LimitCategory id, int newVal)
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_limit(_handle.AsStructPointer(), (int)id, newVal);
+        var rtn = NativeMethods.sqlite3_limit(_handle.AsStructPointer(), (int)id, newVal);
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -317,15 +313,18 @@ public sealed unsafe class Connection : IDisposable
         if (schemaName is null)
         {
             result = NativeMethods.sqlite3_txn_state(_handle.AsStructPointer(), null);
+            GC.KeepAlive(_handle);
         }
-		else
-		{
-			using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[512]);
-			fixed (byte* pSchema = utf8Buffer)
-			{
-				result = NativeMethods.sqlite3_txn_state(_handle.AsStructPointer(), pSchema);
-			}
-		}
+
+        else
+        {
+            using var utf8Buffer = new Utf8SafeStackBuffer(schemaName, stackalloc byte[512]);
+            fixed (byte* pSchema = utf8Buffer)
+            {
+                result = NativeMethods.sqlite3_txn_state(_handle.AsStructPointer(), pSchema);
+                GC.KeepAlive(_handle);
+            }
+        }
 
         // Se il risultato è -1, lo schema specificato non esiste
         if (result == -1)
@@ -352,6 +351,7 @@ public sealed unsafe class Connection : IDisposable
         fixed (byte* pSchema = utf8Buffer)
         {
             int result = NativeMethods.sqlite3_db_readonly(_handle.AsStructPointer(), pSchema);
+            GC.KeepAlive(_handle);
             return result switch
             {
                 1 => true,  // Read-Only
@@ -368,7 +368,9 @@ public sealed unsafe class Connection : IDisposable
     public ExtendedResult ExtendedErrCode()
     {
         ThrowIfInvalid();
-        return (ExtendedResult)NativeMethods.sqlite3_extended_errcode(_handle.AsStructPointer());
+        var rtn = (ExtendedResult)NativeMethods.sqlite3_extended_errcode(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -378,7 +380,9 @@ public sealed unsafe class Connection : IDisposable
     public int GetLastErrorOffset()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_error_offset(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_error_offset(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -389,6 +393,7 @@ public sealed unsafe class Connection : IDisposable
     {
         ThrowIfInvalid();
         var result = (ExtendedResult)NativeMethods.sqlite3_busy_timeout(_handle.AsStructPointer(), milliseconds);
+        GC.KeepAlive(_handle);
         if (result == ExtendedResult.OK)
             return;
         CheckResult(result);
@@ -402,6 +407,7 @@ public sealed unsafe class Connection : IDisposable
     {
         ThrowIfInvalid();
         var result = (ExtendedResult)NativeMethods.sqlite3_extended_result_codes(_handle.AsStructPointer(), enabled ? 1 : 0);
+        GC.KeepAlive(_handle);
         if (result == ExtendedResult.OK)
             return;
         CheckResult(result);
@@ -414,6 +420,7 @@ public sealed unsafe class Connection : IDisposable
     {
         ThrowIfInvalid();
         NativeMethods.sqlite3_interrupt(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
     }
 
     /// <summary>
@@ -505,13 +512,11 @@ public sealed unsafe class Connection : IDisposable
             Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
             columnNameBuffer[^1] = 0;
 
-            sqlite3* dbHandle = _handle.AsStructPointer();
-
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)
             {
                 var rc = (ExtendedResult)NativeMethods.sqlite3_table_column_metadata(
-                    dbHandle,
+                    _handle.AsStructPointer(),
                     null,
                     pTableName,
                     pColumnName,
@@ -520,6 +525,7 @@ public sealed unsafe class Connection : IDisposable
                     &notNull,
                     &primaryKey,
                     &autoInc);
+                GC.KeepAlive(_handle);
 
                 if (rc != ExtendedResult.OK)
                 {

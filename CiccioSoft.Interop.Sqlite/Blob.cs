@@ -6,26 +6,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Interop.Sqlite;
-
-public sealed unsafe class SafeBlobHandle : SafeHandle
-{
-    internal SafeBlobHandle(sqlite3_blob* pBlob)
-        : base((nint)pBlob, true)
-    {
-    }
-
-    public override bool IsInvalid => handle == nint.Zero;
-
-    internal sqlite3_blob* AsStructPointer() => (sqlite3_blob*)handle;
-
-    protected override bool ReleaseHandle()
-    {
-        return NativeMethods.sqlite3_blob_close((sqlite3_blob*)handle) == NativeMethods.SQLITE_OK;
-    }
-}
 
 /// <summary>
 /// Provides low-allocation, incremental read/write access to a single BLOB value
@@ -87,6 +69,7 @@ public sealed unsafe class Blob : IDisposable
                 rowId,
                 readWrite ? 1 : 0,
                 &pBlob);
+            GC.KeepAlive(connection.Handle);
 
             var blobSafeHandle = new SafeBlobHandle(pBlob);
 
@@ -108,7 +91,9 @@ public sealed unsafe class Blob : IDisposable
     public int Bytes()
     {
         ThrowIfInvalid();
-        return NativeMethods.sqlite3_blob_bytes(_handle.AsStructPointer());
+        var rtn = NativeMethods.sqlite3_blob_bytes(_handle.AsStructPointer());
+        GC.KeepAlive(_handle);
+        return rtn;
     }
 
     /// <summary>
@@ -127,6 +112,7 @@ public sealed unsafe class Blob : IDisposable
         {
             var result = (ExtendedResult)NativeMethods.sqlite3_blob_read(
                 _handle.AsStructPointer(), pDest, destination.Length, blobOffset);
+            GC.KeepAlive(_handle);
             CheckResult(result);
         }
     }
@@ -149,6 +135,7 @@ public sealed unsafe class Blob : IDisposable
         {
             var result = (ExtendedResult)NativeMethods.sqlite3_blob_write(
                 _handle.AsStructPointer(), pSrc, source.Length, blobOffset);
+                GC.KeepAlive(_handle);
             CheckResult(result);
         }
     }
@@ -163,6 +150,7 @@ public sealed unsafe class Blob : IDisposable
     {
         ThrowIfInvalid();
         var result = (ExtendedResult)NativeMethods.sqlite3_blob_reopen(_handle.AsStructPointer(), rowId);
+        GC.KeepAlive(_handle);
         CheckResult(result);
     }
 

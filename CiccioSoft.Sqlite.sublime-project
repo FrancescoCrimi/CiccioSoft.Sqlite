@@ -11,12 +11,12 @@
             "name": "Sqlite1",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "program": "${folder}/CiccioSoft.Interop.Sqlite.Example/bin/Debug/net10.0/CiccioSoft.Interop.Sqlite.Example.exe",
             "args": [
                 "-parallel",
                 "none"
             ],
-            "cwd": "${folder}",
+            "cwd": "${folder}/CiccioSoft.Interop.Sqlite.Example",
             "stopAtEntry": false
         },
         {
