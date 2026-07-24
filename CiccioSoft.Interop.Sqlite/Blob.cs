@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Interop.Sqlite;
 
@@ -18,13 +19,13 @@ namespace CiccioSoft.Interop.Sqlite;
 /// </threadsafety>
 public sealed unsafe class Blob : IDisposable
 {
-    private readonly SafeBlobHandle _handle;
-    private readonly SafeConnectionHandle _sqlite3SafeHandle;
+    private readonly BlobSafeHandle _handle;
+    private readonly ConnectionSafeHandle _connectionSafeHandle;
 
-    private Blob(SafeBlobHandle handle, SafeConnectionHandle sqlite3SafeHandle)
+    private Blob(BlobSafeHandle handle, ConnectionSafeHandle connectionSafeHandle)
     {
         _handle = handle;
-        _sqlite3SafeHandle = sqlite3SafeHandle;
+        _connectionSafeHandle = connectionSafeHandle;
     }
 
     /// <summary>
@@ -61,7 +62,7 @@ public sealed unsafe class Blob : IDisposable
         {
             sqlite3_blob* pBlob = default;
 
-            var result = (ExtendedResult)NativeMethods.sqlite3_blob_open(
+            var result = (ResultCodes)NativeMethods.sqlite3_blob_open(
                 connection.Handle.AsStructPointer(),
                 pDb,
                 pTable,
@@ -71,14 +72,16 @@ public sealed unsafe class Blob : IDisposable
                 &pBlob);
             GC.KeepAlive(connection.Handle);
 
-            var blobSafeHandle = new SafeBlobHandle(pBlob);
+            var blobSafeHandle = new BlobSafeHandle(pBlob);
 
-            if (result != ExtendedResult.OK)
+            if (result != ResultCodes.OK)
             {
-                var exception = new EngineException(result, connection.Handle,
-                    $"SQLite blob open on {tableName}.{columnName} (rowid {rowId})");
+                // var exception = new EngineException(result, connection.Handle,
+                //     $"SQLite blob open on {tableName}.{columnName} (rowid {rowId})");
                 blobSafeHandle.Dispose();
-                throw exception;
+                // throw exception;
+
+                throw EngineException.ThrowExceptionCore(connection.Handle, result, $"{nameof(Blob)}.Open on {tableName}.{columnName} (rowid {rowId})");
             }
 
             return new Blob(blobSafeHandle, connection.Handle);
@@ -110,7 +113,7 @@ public sealed unsafe class Blob : IDisposable
 
         fixed (byte* pDest = destination)
         {
-            var result = (ExtendedResult)NativeMethods.sqlite3_blob_read(
+            var result = (ResultCodes)NativeMethods.sqlite3_blob_read(
                 _handle.AsStructPointer(), pDest, destination.Length, blobOffset);
             GC.KeepAlive(_handle);
             CheckResult(result);
@@ -133,9 +136,9 @@ public sealed unsafe class Blob : IDisposable
 
         fixed (byte* pSrc = source)
         {
-            var result = (ExtendedResult)NativeMethods.sqlite3_blob_write(
+            var result = (ResultCodes)NativeMethods.sqlite3_blob_write(
                 _handle.AsStructPointer(), pSrc, source.Length, blobOffset);
-                GC.KeepAlive(_handle);
+            GC.KeepAlive(_handle);
             CheckResult(result);
         }
     }
@@ -149,7 +152,7 @@ public sealed unsafe class Blob : IDisposable
     public void Reopen(long rowId)
     {
         ThrowIfInvalid();
-        var result = (ExtendedResult)NativeMethods.sqlite3_blob_reopen(_handle.AsStructPointer(), rowId);
+        var result = (ResultCodes)NativeMethods.sqlite3_blob_reopen(_handle.AsStructPointer(), rowId);
         GC.KeepAlive(_handle);
         CheckResult(result);
     }
@@ -161,12 +164,42 @@ public sealed unsafe class Blob : IDisposable
         if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Blob));
     }
 
-    private void CheckResult(ExtendedResult res, [CallerMemberName] string caller = "")
+    private void CheckResult(ResultCodes res, [CallerMemberName] string caller = "")
     {
-        if (res == ExtendedResult.OK)
+        if (res == ResultCodes.OK)
             return;
-        throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
+        // throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
+        throw EngineException.ThrowExceptionCore(_connectionSafeHandle, res, $"{nameof(Blob)}.{caller}");
     }
+
+    // private EngineException ThrowException(ResultCodes result, string caller)
+    // {
+    //     return EngineException.ThrowExceptionCore(_connectionSafeHandle, result, caller);
+    // }
+
+    // private static EngineException ThrowExceptionCore(ConnectionSafeHandle connectionSafeHandle, ResultCodes result, string caller)
+    // {
+    //     string errorMessage;
+    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
+    //     string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
+
+    //     if (connectionSafeHandle.IsInvalid)
+    //     {
+    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
+    //         // providing contextual details (e.g. which column or constraint failed).
+    //         byte* pErr = NativeMethods.sqlite3_errmsg(connectionSafeHandle.AsStructPointer());
+    //         GC.KeepAlive(connectionSafeHandle);
+    //         errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
+    //     }
+    //     else
+    //     {
+    //         // No valid connection handle available: fall back to the generic
+    //         // error code description provided by sqlite3_errstr.
+    //         errorMessage = errorString;
+    //     }
+
+    //     return new EngineException(result, errorMessage, caller);
+    // }
 
     #endregion
 

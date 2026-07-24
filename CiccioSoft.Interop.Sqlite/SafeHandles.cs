@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Interop.Sqlite;
 
-public sealed unsafe class SafeConnectionHandle : SafeHandle
+public sealed unsafe class ConnectionSafeHandle : SafeHandle
 {
-    internal SafeConnectionHandle(sqlite3* sqlite3)
+    internal ConnectionSafeHandle(sqlite3* sqlite3)
         : base((nint)sqlite3, true)
     {
     }
@@ -25,9 +25,9 @@ public sealed unsafe class SafeConnectionHandle : SafeHandle
     }
 }
 
-public sealed unsafe class SafeStatementHandle : SafeHandle
+public sealed unsafe class StatementSafeHandle : SafeHandle
 {
-    internal SafeStatementHandle(sqlite3_stmt* pStmt)
+    internal StatementSafeHandle(sqlite3_stmt* pStmt)
         : base((nint)pStmt, true)
     {
     }
@@ -43,9 +43,9 @@ public sealed unsafe class SafeStatementHandle : SafeHandle
 }
 
 
-public sealed unsafe class SafeBackupHandle : SafeHandle
+public sealed unsafe class BackupSafeHandle : SafeHandle
 {
-    internal SafeBackupHandle(sqlite3_backup* sqlite3_backup)
+    internal BackupSafeHandle(sqlite3_backup* sqlite3_backup)
         : base((nint)sqlite3_backup, true)
     {
     }
@@ -60,9 +60,9 @@ public sealed unsafe class SafeBackupHandle : SafeHandle
     }
 }
 
-public sealed unsafe class SafeBlobHandle : SafeHandle
+public sealed unsafe class BlobSafeHandle : SafeHandle
 {
-    internal SafeBlobHandle(sqlite3_blob* pBlob)
+    internal BlobSafeHandle(sqlite3_blob* pBlob)
         : base((nint)pBlob, true)
     {
     }

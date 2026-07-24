@@ -6,7 +6,10 @@
 
 namespace CiccioSoft.Interop.Sqlite;
 
-public enum Result
+/// <summary>
+/// Represents SQLite Result Codes.
+/// </summary>
+public enum BaseResultCodes
 {
     OK          = NativeMethods.SQLITE_OK,
     Error       = NativeMethods.SQLITE_ERROR,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2026 Francesco Crimi
+// Copyright (c) 2026 Francesco Crimi
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file or at
@@ -44,11 +44,11 @@ public class SqliteException : DbException
     {
         if (innerException != null)
         {
-            Result = innerException?.BaseErrorCode;
-            ExtendedResult = innerException?.ExtendedErrorCode;
+            Result = innerException.BaseResultCode;
+            ExtendedResult = innerException.ResultCode;
 
-            SqliteErrorCode = (int)innerException.BaseErrorCode;
-            SqliteExtendedErrorCode = (int)innerException.ExtendedErrorCode;
+            SqliteErrorCode = (int)innerException.BaseResultCode;
+            SqliteExtendedErrorCode = (int)innerException.ResultCode;
         }
     }
 
@@ -69,10 +69,10 @@ public class SqliteException : DbException
     /// <summary>
     /// Gets the base SQLite error code (lowest 8 bits).
     /// </summary>
-    public Result? Result { get; }
+    public BaseResultCodes? Result { get; }
 
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public ExtendedResult? ExtendedResult { get; }
+    public ResultCodes? ExtendedResult { get; }
 }

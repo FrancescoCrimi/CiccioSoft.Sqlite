@@ -18,52 +18,102 @@ public sealed unsafe class EngineException : Exception
 
     public EngineException(string message) : base(message) { }
 
-    public EngineException(ExtendedResult result, string nativeMessage, string operation)
+    private EngineException(ResultCodes result, string errorMessage, string operation)
     {
-        ExtendedErrorCode = result;
-        BaseErrorCode = (Result)(((int)result) & 0xFF);
-        NativeMessage = nativeMessage;
-        _operation = operation;
-    }
-
-    public EngineException(ExtendedResult result, SafeConnectionHandle sqlite3SafeHandle, string operation)
-    {
-        ExtendedErrorCode = result;
-        BaseErrorCode = (Result)(((int)result) & 0xFF);
+        ResultCode = result;
+        BaseResultCode = (BaseResultCodes)(((int)result) & 0xFF);
+        ErrorMessage = errorMessage;
         _operation = operation;
 
-        if (!sqlite3SafeHandle.IsInvalid)
-        {
-            // Read extended code exactly once from the native connection.
-            // ExtendedErrorCode = (SqliteExtendedErrorCode)NativeMethods.sqlite3_extended_errcode(sqlite3SafeHandle.AsStructPointer());
-            byte* pErr = NativeMethods.sqlite3_errmsg(sqlite3SafeHandle.AsStructPointer());
-            GC.KeepAlive(sqlite3SafeHandle);
-            NativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
-        }
-        else
-        {
-            // ExtendedErrorCode = (SqliteExtendedErrorCode)result;
-            NativeMessage = "Unknown SQLite error";
-        }
+        // sqlite3_errstr translates a result code into its English-language description.
+        // It does not require a database connection handle.
+        byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
+        ErrorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
     }
+
+    // public EngineException(ResultCodes result, ConnectionSafeHandle connectionSafeHandle, string operation)
+    // {
+    //     ResultCode = result;
+    //     BaseResultCode = (BaseResultCodes)(((int)result) & 0xFF);
+    //     _operation = operation;
+
+    //     // sqlite3_errstr translates a result code into its English-language description.
+    //     // It does not require a database connection handle.
+    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
+    //     ErrorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
+
+    //     if (!connectionSafeHandle.IsInvalid)
+    //     {
+    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
+    //         // providing contextual details (e.g. which column or constraint failed).
+    //         byte* pErr = NativeMethods.sqlite3_errmsg(connectionSafeHandle.AsStructPointer());
+    //         GC.KeepAlive(connectionSafeHandle);
+    //         ErrorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
+    //     }
+    //     else
+    //     {
+    //         // No valid connection handle available: fall back to the generic
+    //         // error code description provided by sqlite3_errstr.
+    //         ErrorMessage = ErrorString;
+    //     }
+    // }
 
     public override string Message =>
-        $"{_operation} failed. Base code: {BaseErrorCode}, " +
-        $"Extended code: {ExtendedErrorCode} ({(int)ExtendedErrorCode}). " +
-        $"Native message: {NativeMessage}";
+        $"{_operation} failed. {ErrorString}. " +
+        $"Base code: {BaseResultCode}, " +
+        $"Extended code: {ResultCode} ({(int)ResultCode}). " +
+        $"Native message: {ErrorMessage}";
 
     /// <summary>
     /// Gets the base SQLite error code (lowest 8 bits).
     /// </summary>
-    public Result BaseErrorCode { get; }
+    public BaseResultCodes BaseResultCode { get; }
 
     /// <summary>
     /// Gets the extended SQLite error code.
     /// </summary>
-    public ExtendedResult ExtendedErrorCode { get; }
+    public ResultCodes ResultCode { get; }
 
     /// <summary>
-    /// Gets the native message returned by SQLite.
+    /// Gets the generic English-language description of the result code,
+    /// as returned by <c>sqlite3_errstr</c>. This value is always available
+    /// regardless of whether a database connection handle exists.
     /// </summary>
-    public string? NativeMessage { get; }
+    /// <remarks>
+    /// Examples: "not an error", "SQL logic error", "database is locked",
+    /// "constraint failed", "disk I/O error".
+    /// </remarks>
+    public string? ErrorString { get; }
+
+    /// <summary>
+    /// Gets the connection-specific native message returned by <c>sqlite3_errmsg</c>.
+    /// When no valid connection handle was available at construction time,
+    /// this falls back to <see cref="ErrorString"/>.
+    /// </summary>
+    public string? ErrorMessage { get; }
+
+
+    internal static EngineException ThrowExceptionCore(ConnectionSafeHandle connectionSafeHandle, ResultCodes result, string caller)
+    {
+        string errorMessage;
+        byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
+        string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
+
+        if (connectionSafeHandle != null && !connectionSafeHandle.IsInvalid)
+        {
+            // sqlite3_errmsg returns the most recent error message for this specific connection,
+            // providing contextual details (e.g. which column or constraint failed).
+            byte* pErr = NativeMethods.sqlite3_errmsg(connectionSafeHandle.AsStructPointer());
+            GC.KeepAlive(connectionSafeHandle);
+            errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
+        }
+        else
+        {
+            // No valid connection handle available: fall back to the generic
+            // error code description provided by sqlite3_errstr.
+            errorMessage = errorString;
+        }
+
+        return new EngineException(result, errorMessage, caller);
+    }
 }

@@ -10,9 +10,9 @@ namespace CiccioSoft.Interop.Sqlite;
 
 public sealed unsafe class Backup : IDisposable
 {
-    private readonly SafeBackupHandle _handle;
+    private readonly BackupSafeHandle _handle;
 
-    internal Backup(SafeBackupHandle handle)
+    internal Backup(BackupSafeHandle handle)
     {
         _handle = handle;
     }
@@ -43,23 +43,24 @@ public sealed unsafe class Backup : IDisposable
 
             if ((nint)backupHandle == nint.Zero)
             {
-                var result = (ExtendedResult)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer());
+                var result = (ResultCodes)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer());
                 GC.KeepAlive(destination.Handle);   // ridondante qui (destination.Handle è riusato subito sotto),
                                                     // presente per uniformità con l'invariante del progetto
-                throw new EngineException(
-                    result,
-                    destination.Handle,
-                    "SQLite backup init");
+                // throw new EngineException(
+                //     result,
+                //     destination.Handle,
+                //     "SQLite backup init");
+                throw EngineException.ThrowExceptionCore(destination.Handle, result, $"{nameof(Backup)}.Init");
             }
 
-            return new Backup(new SafeBackupHandle(backupHandle));
+            return new Backup(new BackupSafeHandle(backupHandle));
         }
     }
 
-    public ExtendedResult Step(int pages = -1)
+    public ResultCodes Step(int pages = -1)
     {
         ThrowIfInvalid();
-        var rtn = (ExtendedResult)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
+        var rtn = (ResultCodes)NativeMethods.sqlite3_backup_step(_handle.AsStructPointer(), pages);
         GC.KeepAlive(_handle);
         return rtn;
     }

@@ -425,22 +425,22 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 return operation();
             }
-            catch (EngineException ex) when (_timeoutTriggered && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when (_timeoutTriggered && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
             catch (EngineException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
-                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseResultCode, ex.ErrorMessage), ex);
             }
             finally
             {
@@ -465,22 +465,22 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 operation();
             }
-            catch (EngineException ex) when (_timeoutTriggered && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when (_timeoutTriggered && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseErrorCode == Result.Interrupt)
+            catch (EngineException ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == BaseResultCodes.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
             catch (EngineException ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
-                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseErrorCode, ex.NativeMessage), ex);
+                throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseResultCode, ex.ErrorMessage), ex);
             }
             finally
             {

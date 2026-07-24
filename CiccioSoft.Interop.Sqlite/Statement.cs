@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,13 +14,13 @@ namespace CiccioSoft.Interop.Sqlite;
 
 public sealed unsafe class Statement : IDisposable
 {
-    private readonly SafeStatementHandle _handle;
-    private readonly SafeConnectionHandle _sqlite3SafeHandle;
+    private readonly StatementSafeHandle _handle;
+    private readonly ConnectionSafeHandle _connectionSafeHandle;
 
-    internal Statement(SafeStatementHandle handle, SafeConnectionHandle sqlite3SafeHandle)
+    internal Statement(StatementSafeHandle handle, ConnectionSafeHandle connectionSafeHandle)
     {
         _handle = handle;
-        _sqlite3SafeHandle = sqlite3SafeHandle;
+        _connectionSafeHandle = connectionSafeHandle;
     }
 
 
@@ -38,11 +39,12 @@ public sealed unsafe class Statement : IDisposable
     public bool Step()
     {
         ThrowIfInvalid();
-        var res = (ExtendedResult)NativeMethods.sqlite3_step(_handle.AsStructPointer());
+        var res = (ResultCodes)NativeMethods.sqlite3_step(_handle.AsStructPointer());
         GC.KeepAlive(_handle);
-        if (res == ExtendedResult.Row) return true;
-        if (res == ExtendedResult.Done) return false;
-        throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.Step");
+        if (res == ResultCodes.Row) return true;
+        if (res == ResultCodes.Done) return false;
+        // throw new EngineException(res, _connectionSafeHandle, $"SQLite {GetType().Name}.Step");
+        throw ThrowException(res);
     }
 
     #endregion
@@ -57,7 +59,7 @@ public sealed unsafe class Statement : IDisposable
     public void Reset()
     {
         ThrowIfInvalid();
-        var res = (ExtendedResult)NativeMethods.sqlite3_reset(_handle.AsStructPointer());
+        var res = (ResultCodes)NativeMethods.sqlite3_reset(_handle.AsStructPointer());
         GC.KeepAlive(_handle);
         CheckResult(res);
     }
@@ -74,7 +76,7 @@ public sealed unsafe class Statement : IDisposable
     public void ClearBindings()
     {
         ThrowIfInvalid();
-        var res = (ExtendedResult)NativeMethods.sqlite3_clear_bindings(_handle.AsStructPointer());
+        var res = (ResultCodes)NativeMethods.sqlite3_clear_bindings(_handle.AsStructPointer());
         GC.KeepAlive(_handle);
         CheckResult(res);
     }
@@ -287,7 +289,7 @@ public sealed unsafe class Statement : IDisposable
 
         var rtn = NativeMethods.sqlite3_column_int64(_handle.AsStructPointer(), index);
         GC.KeepAlive(_handle);
-        return rtn;        
+        return rtn;
     }
 
     /// <summary>
@@ -465,7 +467,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (ExtendedResult)NativeMethods.sqlite3_bind_null(_handle.AsStructPointer(), index);
+        var result = (ResultCodes)NativeMethods.sqlite3_bind_null(_handle.AsStructPointer(), index);
         GC.KeepAlive(_handle);
         CheckBindResult(result, index);
     }
@@ -482,7 +484,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (ExtendedResult)NativeMethods.sqlite3_bind_int(_handle.AsStructPointer(), index, value);
+        var result = (ResultCodes)NativeMethods.sqlite3_bind_int(_handle.AsStructPointer(), index, value);
         GC.KeepAlive(_handle);
         CheckBindResult(result, index);
     }
@@ -498,7 +500,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (ExtendedResult)NativeMethods.sqlite3_bind_int64(_handle.AsStructPointer(), index, value);
+        var result = (ResultCodes)NativeMethods.sqlite3_bind_int64(_handle.AsStructPointer(), index, value);
         GC.KeepAlive(_handle);
         CheckBindResult(result, index);
     }
@@ -514,7 +516,7 @@ public sealed unsafe class Statement : IDisposable
         if (index < 1)
             throw new ArgumentOutOfRangeException(nameof(index), "SQLite bind parameter index must be 1 or greater.");
 
-        var result = (ExtendedResult)NativeMethods.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
+        var result = (ResultCodes)NativeMethods.sqlite3_bind_double(_handle.AsStructPointer(), index, value);
         GC.KeepAlive(_handle);
         CheckBindResult(result, index);
     }
@@ -538,7 +540,7 @@ public sealed unsafe class Statement : IDisposable
         {
             // Usiamo SQLITE_TRANSIENT (IntPtr(-1)) perché il buffer stackalloc 
             // verrà distrutto al termine di questo metodo, quindi SQLite deve copiarlo.
-            var res = (ExtendedResult)NativeMethods.sqlite3_bind_text(
+            var res = (ResultCodes)NativeMethods.sqlite3_bind_text(
                 _handle.AsStructPointer(),
                 index,
                 pBuf,
@@ -598,7 +600,7 @@ public sealed unsafe class Statement : IDisposable
 
         fixed (byte* pData = data)
         {
-            var res = (ExtendedResult)NativeMethods.sqlite3_bind_blob(
+            var res = (ResultCodes)NativeMethods.sqlite3_bind_blob(
                 _handle.AsStructPointer(),
                 index,
                 pData,
@@ -619,22 +621,55 @@ public sealed unsafe class Statement : IDisposable
         if (_handle.IsInvalid) throw new ObjectDisposedException(nameof(Statement));
     }
 
-    private void CheckResult(ExtendedResult res, [CallerMemberName] string caller = "")
+    private void CheckResult(ResultCodes res, [CallerMemberName] string caller = "")
     {
-        if (res == ExtendedResult.OK)
+        if (res == ResultCodes.OK)
             return;
-        throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
+        // throw new EngineException(res, _connectionSafeHandle, $"SQLite {nameof(Statement)}.{caller}");
+        throw ThrowException(res, $"{nameof(Statement)}.{caller}");
     }
 
     // Piccolo helper per centralizzare il controllo degli errori
-    private void CheckBindResult(ExtendedResult res, int index, [CallerMemberName] string caller = "")
+    private void CheckBindResult(ResultCodes res, int index, [CallerMemberName] string caller = "")
     {
-        if (res == ExtendedResult.OK)
+        if (res == ResultCodes.OK)
             return;
 
-        throw new EngineException(res, _sqlite3SafeHandle,
-            $"SQLite {GetType().Name}.{caller} to parameter index {index}");
+        // throw new EngineException(res, _connectionSafeHandle,
+        //     $"SQLite {nameof(Statement)}.{caller} to parameter index {index}");
+        throw EngineException.ThrowExceptionCore(_connectionSafeHandle, res, $"{nameof(Statement)}.{caller} to parameter index {index}");
     }
+
+
+    private EngineException ThrowException(ResultCodes result, [CallerMemberName] string caller = "")
+    {
+        return EngineException.ThrowExceptionCore(_connectionSafeHandle, result, $"{nameof(Statement)}.{caller}");
+    }
+
+
+    // private EngineException ThrowExceptionCore(ResultCodes result, string caller)
+    // {
+    //     string errorMessage;
+    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
+    //     string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
+
+    //     if (_connectionSafeHandle.IsInvalid)
+    //     {
+    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
+    //         // providing contextual details (e.g. which column or constraint failed).
+    //         byte* pErr = NativeMethods.sqlite3_errmsg(_connectionSafeHandle.AsStructPointer());
+    //         GC.KeepAlive(_connectionSafeHandle);
+    //         errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
+    //     }
+    //     else
+    //     {
+    //         // No valid connection handle available: fall back to the generic
+    //         // error code description provided by sqlite3_errstr.
+    //         errorMessage = errorString;
+    //     }
+
+    //     return new EngineException(result, errorMessage, caller);
+    // }
 
     #endregion
 

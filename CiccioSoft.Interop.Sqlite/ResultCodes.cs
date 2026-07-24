@@ -7,9 +7,9 @@
 namespace CiccioSoft.Interop.Sqlite;
 
 /// <summary>
-/// Represents SQLite extended error codes.
+/// Represents SQLite Extended Result Codes.
 /// </summary>
-public enum ExtendedResult
+public enum ResultCodes
 {
     OK                      = NativeMethods.SQLITE_OK,
     Error                   = NativeMethods.SQLITE_ERROR,
