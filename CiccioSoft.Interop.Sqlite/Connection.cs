@@ -79,6 +79,8 @@ public sealed unsafe class Connection : IDisposable
                 {
                     // 2. Estraiamo il messaggio nativo MENTRE l'handle è ancora vivo
                     var msgPtr = NativeMethods.sqlite3_errmsg(sqlite3SafeHandle.AsStructPointer());
+                    GC.KeepAlive(sqlite3SafeHandle);    // ridondante qui (Dispose() successivo è già un uso), 
+                                                        // presente per uniformità con l'invariante del progetto
                     errorMessage = Marshal.PtrToStringUTF8((nint)msgPtr) ?? "Unreadable SQLite error";
 
                     // 3. Ora che abbiamo i dati, liberiamo IMMEDIATAMENTE l'handle per evitare leak

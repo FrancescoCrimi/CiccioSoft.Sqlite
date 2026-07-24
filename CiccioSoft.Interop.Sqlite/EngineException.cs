@@ -37,6 +37,7 @@ public sealed unsafe class EngineException : Exception
             // Read extended code exactly once from the native connection.
             // ExtendedErrorCode = (SqliteExtendedErrorCode)NativeMethods.sqlite3_extended_errcode(sqlite3SafeHandle.AsStructPointer());
             byte* pErr = NativeMethods.sqlite3_errmsg(sqlite3SafeHandle.AsStructPointer());
+            GC.KeepAlive(sqlite3SafeHandle);
             NativeMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
         }
         else

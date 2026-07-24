@@ -43,8 +43,11 @@ public sealed unsafe class Backup : IDisposable
 
             if ((nint)backupHandle == nint.Zero)
             {
+                var result = (ExtendedResult)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer());
+                GC.KeepAlive(destination.Handle);   // ridondante qui (destination.Handle è riusato subito sotto),
+                                                    // presente per uniformità con l'invariante del progetto
                 throw new EngineException(
-                    (ExtendedResult)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer()),
+                    result,
                     destination.Handle,
                     "SQLite backup init");
             }
