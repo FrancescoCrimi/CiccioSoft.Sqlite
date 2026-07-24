@@ -90,21 +90,21 @@ public static SqliteSession Rent(
 
 ## Detailed Comparison Table
 
-| Aspect | Microsoft.Data.Sqlite | CiccioSoft.Data.Sqlite |
-|--------|----------------------|------------------------|
-| **Pool Storage** | `Stack<T>` (Warm/Cold) | `ConcurrentBag<T>` |
-| **Concurrency Model** | `lock(_connections)` | Lock-free (Interlocked + ConcurrentBag) |
-| **Max Pool Size** | ❌ NO (implicit, uncontrolled) | ✅ YES (explicit `maxPoolSize` parameter) |
-| **Size Limit Type** | Soft (heuristic `Count % 2`) | Hard (guaranteed <= maxPoolSize) |
-| **Backpressure** | ❌ None (unbounded growth possible) | ✅ `SemaphoreSlim.Wait()` (BLOCKING) |
-| **Connection Validation** | Basic poolability check | `IsValid()` health check (SELECT 1) |
-| **Lifecycle Management** | `Timer`-based pruning (2-4 min) | On-demand cleanup + Return semantics |
-| **Async Support** | Limited (wrapper `Task`) | True async `RentAsync()` with `WaitAsync()` |
-| **Thread Safety** | `lock()` for all operations | Atomics (`Volatile`, `Interlocked`) + ConcurrentBag |
-| **Memory Boundedness** | ❌ Unbounded (peak depends on heuristic) | ✅ Bounded (maxPoolSize * session_size) |
-| **Tuning** | ❌ Hardcoded (single pool) | ✅ Configurable per connection string |
-| **Default Limit** | Implicit (~100 observed) | Explicit: 100 (configurable) |
-| **Fair Access** | ⚠️ Unclear (lock-based) | ✅ FIFO (SemaphoreSlim semantics) |
+| Aspect                    | Microsoft.Data.Sqlite                     | CiccioSoft.Data.Sqlite                                |
+|---------------------------|-------------------------------------------|-------------------------------------------------------|
+| **Pool Storage**          | `Stack<T>` (Warm/Cold)                    | `ConcurrentBag<T>`                                    |
+| **Concurrency Model**     | `lock(_connections)`                      | Lock-free (Interlocked + ConcurrentBag)               |
+| **Max Pool Size**         | ❌ NO (implicit, uncontrolled)            | ✅ YES (explicit `maxPoolSize` parameter)            |
+| **Size Limit Type**       | Soft (heuristic `Count % 2`)              | Hard (guaranteed <= maxPoolSize)                      |
+| **Backpressure**          | ❌ None (unbounded growth possible)       | ✅ `SemaphoreSlim.Wait()` (BLOCKING)                 |
+| **Connection Validation** | Basic poolability check                   | `IsValid()` health check (SELECT 1)                   |
+| **Lifecycle Management**  | `Timer`-based pruning (2-4 min)           | On-demand cleanup + Return semantics                  |
+| **Async Support**         | Limited (wrapper `Task`)                  | True async `RentAsync()` with `WaitAsync()`           |
+| **Thread Safety**         | `lock()` for all operations               | Atomics (`Volatile`, `Interlocked`) + ConcurrentBag   |
+| **Memory Boundedness**    | ❌ Unbounded (peak depends on heuristic)  | ✅ Bounded (maxPoolSize * session_size)              |
+| **Tuning**                | ❌ Hardcoded (single pool)                | ✅ Configurable per connection string                |
+| **Default Limit**         | Implicit (~100 observed)                  | Explicit: 100 (configurable)                          |
+| **Fair Access**           | ⚠️ Unclear (lock-based)                   | ✅ FIFO (SemaphoreSlim semantics)                    |
 
 ---
 
@@ -114,7 +114,7 @@ public static SqliteSession Rent(
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ GetConnection()                                          │
+│ GetConnection()                                         │
 ├─────────────────────────────────────────────────────────┤
 │ 1. lock(_connections)                                   │
 │    ├─ TryPop(_warmPool)?                                │
@@ -359,27 +359,27 @@ var readDb = new SqliteConnection(
 
 ### Rent (Pool Hit) Performance
 
-| Scenario | Microsoft | CiccioSoft |
-|----------|-----------|-----------|
-| **Fast path** (pool has connection) | `lock + TryPop()` | `Volatile.Read() + TryTake()` |
-| **Latency** | ~100-500ns (with lock contention) | ~50-200ns (lock-free) |
-| **Scalability** | ⚠️ Degrades with threads | ✅ Scales better (lock-free) |
+| Scenario                            | Microsoft                         | CiccioSoft                    |
+|-------------------------------------|-----------------------------------|-------------------------------|
+| **Fast path** (pool has connection) | `lock + TryPop()`                 | `Volatile.Read() + TryTake()` |
+| **Latency**                         | ~100-500ns (with lock contention) | ~50-200ns (lock-free)         |
+| **Scalability**                     | ⚠️ Degrades with threads          | ✅ Scales better (lock-free) |
 
 ### Rent (Pool Miss) Performance
 
-| Scenario | Microsoft | CiccioSoft |
-|----------|-----------|-----------|
-| **Creation** | `lock + new SqliteConnectionInternal()` | `CAS + new SqliteSession()` |
-| **Pool full** | ❌ Creates anyway (heuristic) | ✅ Waits on Semaphore (~fair) |
-| **Worst-case latency** | Unbounded | Semaphore timeout + creation |
+| Scenario               | Microsoft                               | CiccioSoft                     |
+|------------------------|-----------------------------------------|--------------------------------|
+| **Creation**           | `lock + new SqliteConnectionInternal()` | `CAS + new SqliteSession()`    |
+| **Pool full**          | ❌ Creates anyway (heuristic)           | ✅ Waits on Semaphore (~fair) |
+| **Worst-case latency** | Unbounded                               | Semaphore timeout + creation   |
 
 ### Return Performance
 
-| Scenario | Microsoft | CiccioSoft |
-|----------|-----------|-----------|
-| **Push back** | `lock + Push()` | `Add() + Release()` |
-| **Latency** | ~100-500ns | ~50-200ns |
-| **Fairness** | Unclear | FIFO (SemaphoreSlim) |
+| Scenario      | Microsoft       | CiccioSoft           |
+|---------------|-----------------|----------------------|
+| **Push back** | `lock + Push()` | `Add() + Release()`  |
+| **Latency**   | ~100-500ns      | ~50-200ns            |
+| **Fairness**  | Unclear         | FIFO (SemaphoreSlim) |
 
 ---
 
@@ -617,18 +617,18 @@ Production environment: 500+ concurrent users
 
 ## Summary: Key Differentiators
 
-| Feature | Microsoft | CiccioSoft | Winner |
-|---------|-----------|-----------|--------|
-| **Deterministic Limits** | ❌ Heuristic | ✅ Hard limit | CiccioSoft |
-| **Backpressure** | ❌ None | ✅ SemaphoreSlim | CiccioSoft |
-| **Memory Bounded** | ❌ Unbounded | ✅ Guaranteed | CiccioSoft |
-| **Configurability** | ❌ Hardcoded | ✅ Per-string tuning | CiccioSoft |
-| **Lock-Free Atomics** | ❌ Global lock | ✅ Interlocked | CiccioSoft |
-| **True Async** | ⚠️ Wrapper | ✅ Full async | CiccioSoft |
-| **Connection Validation** | ⚠️ Basic | ✅ Health check | CiccioSoft |
-| **Fair Access** | ⚠️ Unclear | ✅ FIFO (Semaphore) | CiccioSoft |
-| **Simplicity** | ✅ Simple | ⚠️ More complex | Microsoft |
-| **Production-Ready** | ⚠️ Limited | ✅ Enterprise-grade | CiccioSoft |
+| Feature                   | Microsoft       | CiccioSoft           | Winner     |
+|---------------------------|-----------------|----------------------|------------|
+| **Deterministic Limits**  | ❌ Heuristic   | ✅ Hard limit        | CiccioSoft |
+| **Backpressure**          | ❌ None        | ✅ SemaphoreSlim     | CiccioSoft |
+| **Memory Bounded**        | ❌ Unbounded   | ✅ Guaranteed        | CiccioSoft |
+| **Configurability**       | ❌ Hardcoded   | ✅ Per-string tuning | CiccioSoft |
+| **Lock-Free Atomics**     | ❌ Global lock | ✅ Interlocked       | CiccioSoft |
+| **True Async**            | ⚠️ Wrapper     | ✅ Full async        | CiccioSoft |
+| **Connection Validation** | ⚠️ Basic       | ✅ Health check      | CiccioSoft |
+| **Fair Access**           | ⚠️ Unclear     | ✅ FIFO (Semaphore)  | CiccioSoft |
+| **Simplicity**            | ✅ Simple      | ⚠️ More complex      | Microsoft  |
+| **Production-Ready**      | ⚠️ Limited     | ✅ Enterprise-grade  | CiccioSoft |
 
 ---
 

@@ -16,8 +16,6 @@ public sealed unsafe class EngineException : Exception
 {
     string? _operation;
 
-    public EngineException(string message) : base(message) { }
-
     private EngineException(ResultCodes result, string errorMessage, string operation)
     {
         ResultCode = result;
@@ -30,33 +28,6 @@ public sealed unsafe class EngineException : Exception
         byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
         ErrorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
     }
-
-    // public EngineException(ResultCodes result, ConnectionSafeHandle connectionSafeHandle, string operation)
-    // {
-    //     ResultCode = result;
-    //     BaseResultCode = (BaseResultCodes)(((int)result) & 0xFF);
-    //     _operation = operation;
-
-    //     // sqlite3_errstr translates a result code into its English-language description.
-    //     // It does not require a database connection handle.
-    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
-    //     ErrorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
-
-    //     if (!connectionSafeHandle.IsInvalid)
-    //     {
-    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
-    //         // providing contextual details (e.g. which column or constraint failed).
-    //         byte* pErr = NativeMethods.sqlite3_errmsg(connectionSafeHandle.AsStructPointer());
-    //         GC.KeepAlive(connectionSafeHandle);
-    //         ErrorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
-    //     }
-    //     else
-    //     {
-    //         // No valid connection handle available: fall back to the generic
-    //         // error code description provided by sqlite3_errstr.
-    //         ErrorMessage = ErrorString;
-    //     }
-    // }
 
     public override string Message =>
         $"{_operation} failed. {ErrorString}. " +
@@ -93,7 +64,7 @@ public sealed unsafe class EngineException : Exception
     public string? ErrorMessage { get; }
 
 
-    internal static EngineException ThrowExceptionCore(ConnectionSafeHandle connectionSafeHandle, ResultCodes result, string caller)
+    internal static EngineException CreateException(ConnectionSafeHandle connectionSafeHandle, ResultCodes result, string caller)
     {
         string errorMessage;
         byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);

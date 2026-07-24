@@ -559,7 +559,6 @@ public sealed class SqliteConnection : DbConnection
 
     private void ApplyConnectionSettings(Connection native)
     {
-        native.ExtendedResultCodes(true);
         native.BusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
 
         native.Execute($"PRAGMA foreign_keys={(_settings.ForeignKeys ? "ON" : "OFF")};");

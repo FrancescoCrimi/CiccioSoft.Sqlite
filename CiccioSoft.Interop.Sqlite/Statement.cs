@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -625,7 +624,6 @@ public sealed unsafe class Statement : IDisposable
     {
         if (res == ResultCodes.OK)
             return;
-        // throw new EngineException(res, _connectionSafeHandle, $"SQLite {nameof(Statement)}.{caller}");
         throw ThrowException(res, $"{nameof(Statement)}.{caller}");
     }
 
@@ -634,42 +632,13 @@ public sealed unsafe class Statement : IDisposable
     {
         if (res == ResultCodes.OK)
             return;
-
-        // throw new EngineException(res, _connectionSafeHandle,
-        //     $"SQLite {nameof(Statement)}.{caller} to parameter index {index}");
-        throw EngineException.ThrowExceptionCore(_connectionSafeHandle, res, $"{nameof(Statement)}.{caller} to parameter index {index}");
+        throw EngineException.CreateException(_connectionSafeHandle, res, $"{nameof(Statement)}.{caller} to parameter index {index}");
     }
-
 
     private EngineException ThrowException(ResultCodes result, [CallerMemberName] string caller = "")
     {
-        return EngineException.ThrowExceptionCore(_connectionSafeHandle, result, $"{nameof(Statement)}.{caller}");
+        return EngineException.CreateException(_connectionSafeHandle, result, $"{nameof(Statement)}.{caller}");
     }
-
-
-    // private EngineException ThrowExceptionCore(ResultCodes result, string caller)
-    // {
-    //     string errorMessage;
-    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
-    //     string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
-
-    //     if (_connectionSafeHandle.IsInvalid)
-    //     {
-    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
-    //         // providing contextual details (e.g. which column or constraint failed).
-    //         byte* pErr = NativeMethods.sqlite3_errmsg(_connectionSafeHandle.AsStructPointer());
-    //         GC.KeepAlive(_connectionSafeHandle);
-    //         errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
-    //     }
-    //     else
-    //     {
-    //         // No valid connection handle available: fall back to the generic
-    //         // error code description provided by sqlite3_errstr.
-    //         errorMessage = errorString;
-    //     }
-
-    //     return new EngineException(result, errorMessage, caller);
-    // }
 
     #endregion
 

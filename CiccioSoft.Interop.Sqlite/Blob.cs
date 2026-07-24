@@ -6,7 +6,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Interop.Sqlite;
 
@@ -40,13 +39,12 @@ public sealed unsafe class Blob : IDisposable
     /// <returns>A new <see cref="Blob"/> instance wrapping the open handle.</returns>
     /// <exception cref="ObjectDisposedException">Thrown if the connection is no longer valid.</exception>
     /// <exception cref="EngineException">Thrown if the BLOB cannot be opened (e.g. row/column not found).</exception>
-    public static Blob Open(
-        Connection connection,
-        string tableName,
-        string columnName,
-        long rowId,
-        bool readWrite = false,
-        string databaseName = "main")
+    public static Blob Open(Connection connection,
+                            string tableName,
+                            string columnName,
+                            long rowId,
+                            bool readWrite = false,
+                            string databaseName = "main")
     {
         ArgumentNullException.ThrowIfNull(connection);
         if (connection.Handle.IsInvalid) throw new ObjectDisposedException(nameof(Connection));
@@ -71,17 +69,12 @@ public sealed unsafe class Blob : IDisposable
                 readWrite ? 1 : 0,
                 &pBlob);
             GC.KeepAlive(connection.Handle);
-
             var blobSafeHandle = new BlobSafeHandle(pBlob);
 
             if (result != ResultCodes.OK)
             {
-                // var exception = new EngineException(result, connection.Handle,
-                //     $"SQLite blob open on {tableName}.{columnName} (rowid {rowId})");
                 blobSafeHandle.Dispose();
-                // throw exception;
-
-                throw EngineException.ThrowExceptionCore(connection.Handle, result, $"{nameof(Blob)}.Open on {tableName}.{columnName} (rowid {rowId})");
+                throw EngineException.CreateException(connection.Handle, result, $"{nameof(Blob)}.Open on {tableName}.{columnName} (rowid {rowId})");
             }
 
             return new Blob(blobSafeHandle, connection.Handle);
@@ -168,38 +161,8 @@ public sealed unsafe class Blob : IDisposable
     {
         if (res == ResultCodes.OK)
             return;
-        // throw new EngineException(res, _sqlite3SafeHandle, $"SQLite {GetType().Name}.{caller}");
-        throw EngineException.ThrowExceptionCore(_connectionSafeHandle, res, $"{nameof(Blob)}.{caller}");
+        throw EngineException.CreateException(_connectionSafeHandle, res, $"{nameof(Blob)}.{caller}");
     }
-
-    // private EngineException ThrowException(ResultCodes result, string caller)
-    // {
-    //     return EngineException.ThrowExceptionCore(_connectionSafeHandle, result, caller);
-    // }
-
-    // private static EngineException ThrowExceptionCore(ConnectionSafeHandle connectionSafeHandle, ResultCodes result, string caller)
-    // {
-    //     string errorMessage;
-    //     byte* pErrStr = NativeMethods.sqlite3_errstr((int)result);
-    //     string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
-
-    //     if (connectionSafeHandle.IsInvalid)
-    //     {
-    //         // sqlite3_errmsg returns the most recent error message for this specific connection,
-    //         // providing contextual details (e.g. which column or constraint failed).
-    //         byte* pErr = NativeMethods.sqlite3_errmsg(connectionSafeHandle.AsStructPointer());
-    //         GC.KeepAlive(connectionSafeHandle);
-    //         errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
-    //     }
-    //     else
-    //     {
-    //         // No valid connection handle available: fall back to the generic
-    //         // error code description provided by sqlite3_errstr.
-    //         errorMessage = errorString;
-    //     }
-
-    //     return new EngineException(result, errorMessage, caller);
-    // }
 
     #endregion
 

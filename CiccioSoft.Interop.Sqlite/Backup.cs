@@ -33,11 +33,10 @@ public sealed unsafe class Backup : IDisposable
 
         fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
         {
-            sqlite3_backup* backupHandle = NativeMethods.sqlite3_backup_init(
-                destination.Handle.AsStructPointer(),
-                pDest,
-                source.Handle.AsStructPointer(),
-                pSource);
+            sqlite3_backup* backupHandle = NativeMethods.sqlite3_backup_init(destination.Handle.AsStructPointer(),
+                                                                             pDest,
+                                                                             source.Handle.AsStructPointer(),
+                                                                             pSource);
             GC.KeepAlive(destination.Handle);
             GC.KeepAlive(source.Handle);
 
@@ -46,11 +45,7 @@ public sealed unsafe class Backup : IDisposable
                 var result = (ResultCodes)NativeMethods.sqlite3_errcode(destination.Handle.AsStructPointer());
                 GC.KeepAlive(destination.Handle);   // ridondante qui (destination.Handle è riusato subito sotto),
                                                     // presente per uniformità con l'invariante del progetto
-                // throw new EngineException(
-                //     result,
-                //     destination.Handle,
-                //     "SQLite backup init");
-                throw EngineException.ThrowExceptionCore(destination.Handle, result, $"{nameof(Backup)}.Init");
+                throw EngineException.CreateException(destination.Handle, result, $"{nameof(Backup)}.Init");
             }
 
             return new Backup(new BackupSafeHandle(backupHandle));
@@ -83,15 +78,6 @@ public sealed unsafe class Backup : IDisposable
 
     public void Finish()
     {
-        // if (_handle.IsClosed || _handle.IsInvalid)
-        // {
-        //     return SqliteExtendedResult.OK;
-        // }
-
-        // SqliteResult result = (SqliteResult)NativeMethods.sqlite3_backup_finish(_handle.AsStructPointer());
-        // _handle.SetHandleAsInvalid();
-        // _handle.Dispose();
-        // return result;
         Dispose();
     }
 
