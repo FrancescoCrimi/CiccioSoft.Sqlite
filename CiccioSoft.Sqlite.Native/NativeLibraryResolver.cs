@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Sqlite;
 
-public static class NativeLibrary
+public static class NativeLibraryResolver
 {
     private static nint _cachedHandle;
     private static NativeSource? _configured;
@@ -46,13 +46,13 @@ public static class NativeLibrary
                 _ => throw new ArgumentOutOfRangeException(nameof(source))
             };
 
-            if (System.Runtime.InteropServices.NativeLibrary.TryLoad(target, typeof(NativeLibrary).Assembly, null, out nint handle))
+            if (System.Runtime.InteropServices.NativeLibrary.TryLoad(target, typeof(NativeLibraryResolver).Assembly, null, out nint handle))
                 _cachedHandle = handle;
             else
                 throw new DllNotFoundException(
                     $"Impossibile caricare '{target}' per la sorgente {source}.");
 
-            System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(typeof(NativeLibrary).Assembly, Resolver);
+            System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(typeof(NativeLibraryResolver).Assembly, Resolver);
             _configured = source;
             _customPath = customPath;
         }

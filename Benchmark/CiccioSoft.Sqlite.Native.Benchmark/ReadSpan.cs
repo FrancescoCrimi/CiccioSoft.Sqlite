@@ -11,7 +11,7 @@ using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Benchmark;
 
-public class ReadString
+public class ReadSpan
 {
     public const int RowCount = 100_000;
     public const string TestString = "User_Performance_Test_String_12345";
@@ -28,7 +28,7 @@ public class ReadString
     // BENCHMARK DI LETTURA (SELECT)
     // ==========================================
 
-    [GlobalSetup(Target = nameof(ReadString_SQLitePCL))]
+    [GlobalSetup(Target = nameof(ReadSpan_SQLitePCL))]
     public void Setup_SQLitePCL()
     {
         Batteries_V2.Init();
@@ -52,32 +52,33 @@ public class ReadString
         raw.sqlite3_exec(_db1, "COMMIT;");
     }
 
-    [GlobalCleanup(Target = nameof(ReadString_SQLitePCL))]
+    [GlobalCleanup(Target = nameof(ReadSpan_SQLitePCL))]
     public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public unsafe void ReadString_SQLitePCL()
+    public unsafe void ReadSpan_SQLitePCL()
     {
         raw.sqlite3_prepare_v2(_db1, "SELECT Id, Name, Score FROM Users;", out var stmtRaw);
-        while (raw.sqlite3_step(stmtRaw) == SQLitePCL.raw.SQLITE_ROW)
+        using (stmtRaw)
         {
-            long id = raw.sqlite3_column_int64(stmtRaw, 0);
-            string name = raw.sqlite3_column_text(stmtRaw, 1).utf8_to_string();
-            double score = raw.sqlite3_column_double(stmtRaw, 2);
-            _consumer.Consume(id);
-            _consumer.Consume(name);
-            _consumer.Consume(score);
+            while (raw.sqlite3_step(stmtRaw) == SQLitePCL.raw.SQLITE_ROW)
+            {
+                long id = raw.sqlite3_column_int64(stmtRaw, 0);
+                ReadOnlySpan<byte> nameSpan = raw.sqlite3_column_blob(stmtRaw, 1);
+                double score = raw.sqlite3_column_double(stmtRaw, 2);
+                _consumer.Consume(id);
+                _consumer.Consume(nameSpan[0]);
+                _consumer.Consume(score);
+            }
         }
-
-        raw.sqlite3_finalize(stmtRaw);
     }
 
 
 
-    [GlobalSetup(Target = nameof(ReadString_Interop))]
+    [GlobalSetup(Target = nameof(ReadSpan_Interop))]
     public void Setup_Interop()
     {
-        NativeLibrary.Configure(NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
         _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
         _db2.Execute("PRAGMA synchronous = OFF;");
         _db2.Execute("DROP TABLE IF EXISTS Users;");
@@ -97,21 +98,21 @@ public class ReadString
         _db2.Execute("COMMIT;");
     }
 
-    [GlobalCleanup(Target = nameof(ReadString_Interop))]
+    [GlobalCleanup(Target = nameof(ReadSpan_Interop))]
     public void Cleanup_Interop() => _db2.Dispose();
 
     [Benchmark]
-    public void ReadString_Interop()
+    public void ReadSpan_Interop()
     {
         using (var stmt = _db2.Prepare("SELECT Id, Name, Score FROM Users;"))
         {
             while (stmt.Step())
             {
                 long id = stmt.GetLong(0);
-                string name = stmt.GetText(1);
+                ReadOnlySpan<byte> nameSpan = stmt.GetTextAsSpan(1);
                 double score = stmt.GetDouble(2);
                 _consumer.Consume(id);
-                _consumer.Consume(name);
+                _consumer.Consume(nameSpan[0]);
                 _consumer.Consume(score);
             }
         }

@@ -10,21 +10,15 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 
-namespace CiccioSoft.Sqlite.Benchmark;
+namespace CiccioSoft.Data.Sqlite.Benchmark;
 
 class Program
 {
     static void Main(string[] args)
     {
-        // SqliteBenchmark.Run();
-        // RawComparisonBenchmark2.Run();
-        // RawComparisonBenchmark.Run();
-
         var config = new MyBenchmarkDotNetConfig();
         BenchmarkRunner.Run<ReadString>(config);
-        BenchmarkRunner.Run<ReadSpan>(config);
         BenchmarkRunner.Run<WriteString>(config);
-        BenchmarkRunner.Run<WriteSpan>(config);
     }
 }
 

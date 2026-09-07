@@ -10,16 +10,16 @@ using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Benchmark;
 
-public class WriteString
+public class WriteSpan
 {
     private const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\write.db";
     private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
-    private const string TestString = "User_Performance_Test_String_12345";
+    private static ReadOnlySpan<byte> TestString => "User_Performance_Test_String_12345"u8;
 
     private sqlite3 _db1;
     private Connection _db2;
 
-    [GlobalSetup(Target = nameof(WriteString_SQLitePCL))]
+    [GlobalSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()
     {
         Batteries_V2.Init();
@@ -28,10 +28,10 @@ public class WriteString
         raw.sqlite3_exec(_db1, "PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(WriteString_SQLitePCL))]
+    [GlobalCleanup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalCleanup_SQLitePCL() => raw.sqlite3_close(_db1);
 
-    [IterationSetup(Target = nameof(WriteString_SQLitePCL))]
+    [IterationSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void IterationSetup_SQLitePCL()
     {
         raw.sqlite3_exec(_db1, "DROP TABLE IF EXISTS Users;");
@@ -39,7 +39,7 @@ public class WriteString
     }
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public void WriteString_SQLitePCL()
+    public void WriteSpan_SQLitePCL()
     {
         raw.sqlite3_exec(_db1, "BEGIN;");
         raw.sqlite3_prepare_v2(_db1, "INSERT INTO Users VALUES (?, ?, ?);", out sqlite3_stmt stmtRaw);
@@ -59,19 +59,19 @@ public class WriteString
 
 
 
-    [GlobalSetup(Target = nameof(WriteString_Interop))]
+    [GlobalSetup(Target = nameof(WriteSpan_Interop))]
     public void GlobalSetup_Interop()
     {
-        NativeLibrary.Configure(NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
         _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
         _db2.Execute("PRAGMA journal_mode = WAL;");
         _db2.Execute("PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(WriteString_Interop))]
+    [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
     public void GlobalCleanup_Interop() => _db2.Dispose();
 
-    [IterationSetup(Target = nameof(WriteString_Interop))]
+    [IterationSetup(Target = nameof(WriteSpan_Interop))]
     public void IterationSetup_Interop()
     {
         _db2.Execute("DROP TABLE IF EXISTS Users;");
@@ -79,7 +79,7 @@ public class WriteString
     }
 
     [Benchmark]
-    public void WriteString_Interop()
+    public void WriteSpan_Interop()
     {
         _db2.Execute("BEGIN;");
         using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))

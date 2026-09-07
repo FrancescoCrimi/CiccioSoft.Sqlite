@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CiccioSoft.Sqlite.Native\CiccioSoft.Sqlite.Native.csproj" />
+    <ProjectReference Include="..\..\CiccioSoft.Sqlite.Native\CiccioSoft.Sqlite.Native.csproj" />
   </ItemGroup>
 
 </Project>
