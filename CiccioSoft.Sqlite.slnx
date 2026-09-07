@@ -6,18 +6,25 @@
   </Configurations>
 
   <Project Path="CiccioSoft.Sqlite.Native/CiccioSoft.Sqlite.Native.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Native.Benchmark/CiccioSoft.Sqlite.Native.Benchmark.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Native.Example/CiccioSoft.Sqlite.Native.Example.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Native.WpfExample/CiccioSoft.Sqlite.Native.WpfExample.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Native.Tests/CiccioSoft.Sqlite.Native.Tests.csproj" />
-
   <Project Path="CiccioSoft.Sqlite/CiccioSoft.Sqlite.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Benchmark/CiccioSoft.Sqlite.Benchmark.csproj" />
-  <Project Path="CiccioSoft.Sqlite.Tests/CiccioSoft.Sqlite.Tests.csproj" />
-
   <Project Path="CiccioSoft.Data.Sqlite/CiccioSoft.Data.Sqlite.csproj" />
-  <Project Path="CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj" />
-  <Project Path="CiccioSoft.Data.Sqlite.Tests.Extra/CiccioSoft.Data.Sqlite.Tests.Extra.csproj" />
+
+  <Folder Name="/Benchmark/">
+    <Project Path="Benchmark/CiccioSoft.Sqlite.Native.Benchmark/CiccioSoft.Sqlite.Native.Benchmark.csproj" />
+    <Project Path="Benchmark/CiccioSoft.Sqlite.Benchmark/CiccioSoft.Sqlite.Benchmark.csproj" />
+  </Folder>
+
+  <Folder Name="/Example/">
+    <Project Path="Example/CiccioSoft.Sqlite.Native.Example/CiccioSoft.Sqlite.Native.Example.csproj" />
+    <Project Path="Example/CiccioSoft.Sqlite.Native.WpfExample/CiccioSoft.Sqlite.Native.WpfExample.csproj" />
+  </Folder>
+
+  <Folder Name="/Tests/">
+    <Project Path="Tests/CiccioSoft.Sqlite.Native.Tests/CiccioSoft.Sqlite.Native.Tests.csproj" />
+    <Project Path="Tests/CiccioSoft.Sqlite.Tests/CiccioSoft.Sqlite.Tests.csproj" />
+    <Project Path="Tests/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj" />
+    <Project Path="Tests/CiccioSoft.Data.Sqlite.Tests.Extra/CiccioSoft.Data.Sqlite.Tests.Extra.csproj" />
+  </Folder>
 
 <!-- 
   <Project Path="SQLitePCL.raw/src/SQLitePCLRaw.batteries.e_sqlite3.dllimport/SQLitePCLRaw.batteries_v2.csproj" />   
