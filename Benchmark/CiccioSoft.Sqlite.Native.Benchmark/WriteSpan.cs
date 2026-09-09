@@ -62,7 +62,7 @@ public class WriteSpan
     [GlobalSetup(Target = nameof(WriteSpan_Interop))]
     public void GlobalSetup_Interop()
     {
-        NativeLibrary.Configure(NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
         _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
         _db2.Execute("PRAGMA journal_mode = WAL;");
         _db2.Execute("PRAGMA synchronous = OFF;");

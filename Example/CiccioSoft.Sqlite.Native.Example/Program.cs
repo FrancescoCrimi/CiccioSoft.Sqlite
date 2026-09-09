@@ -10,7 +10,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        NativeLibrary.Configure(NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
         new Example();
     }
 }

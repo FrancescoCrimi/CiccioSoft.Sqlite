@@ -26,7 +26,7 @@ public class SessionConfigurationFixture : IAsyncLifetime
     public ValueTask InitializeAsync()
     {
         // Viene eseguito una sola volta all'avvio della sessione per questo assembly
-        NativeLibrary.Configure(NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
         return ValueTask.CompletedTask;
     }
 

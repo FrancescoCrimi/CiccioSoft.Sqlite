@@ -1,12 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+
     <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
     <ImplicitUsings>false</ImplicitUsings>
     <Nullable>enable</Nullable>
 
     <PackageTags>SQLite;Data;ADO.NET</PackageTags>
+    <PackageProjectUrl>https://github.com/FrancescoCrimi/CiccioSoft.Sqlite/</PackageProjectUrl>
     <Description>CiccioSoft.Data.Sqlite is a ADO.NET provider for SQLite.</Description>
+
   </PropertyGroup>
 
   <ItemGroup>
