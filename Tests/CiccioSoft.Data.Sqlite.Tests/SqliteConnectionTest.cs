@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
-using CiccioSoft.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
-using static CiccioSoft.Sqlite.NativeMethods;
+using static CiccioSoft.Sqlite.Native.Interop.NativeMethods;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;

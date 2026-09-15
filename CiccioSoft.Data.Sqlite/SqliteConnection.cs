@@ -14,7 +14,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -198,7 +198,7 @@ public sealed class SqliteConnection : DbConnection
                 _writerKey = ResolveWriterKey(_connectionString, _dataSource);
                 _state = ConnectionState.Open;
             }
-            catch (CiccioSoft.Sqlite.Exception ex)
+            catch (CiccioSoft.Sqlite.Native.Exception ex)
             {
                 throw new SqliteException(ex.Message, ex);
             }
@@ -442,7 +442,7 @@ public sealed class SqliteConnection : DbConnection
         {
             session.Native.Execute(sql);
         }
-        catch (CiccioSoft.Sqlite.Exception ex)
+        catch (CiccioSoft.Sqlite.Native.Exception ex)
         {
             throw new SqliteException(ex.Message, ex);
         }
@@ -652,7 +652,7 @@ public sealed class SqliteConnection : DbConnection
         }
 
         // Intercetta eventuali SqliteInteropException
-        catch (CiccioSoft.Sqlite.Exception siex)
+        catch (CiccioSoft.Sqlite.Native.Exception siex)
         {
             throw new SqliteException(siex.Message, siex);
         }

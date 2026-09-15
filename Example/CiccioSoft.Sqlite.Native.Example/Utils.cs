@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.IO.Compression;
 using System.Text;
 
-namespace CiccioSoft.Sqlite.Example;
+namespace CiccioSoft.Sqlite.Native.Example;
 
 internal static class Utils
 {

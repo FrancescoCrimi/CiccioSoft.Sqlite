@@ -7,7 +7,7 @@
 using System;
 using System.IO;
 
-namespace CiccioSoft.Sqlite.Tests.Infrastructure;
+namespace CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 
 /// <summary>
 /// Owns a unique temporary SQLite database file and deletes it on dispose.
@@ -23,8 +23,8 @@ internal sealed class TempDatabase : IDisposable
             $"{prefix ?? "interop"}-{Guid.NewGuid():N}.db");
     }
 
-    public Connection Open(OpenFlags flags = OpenFlags.ReadWrite | OpenFlags.Create)
-        => Connection.Open(Path, flags);
+    public Native.Connection Open(OpenFlags flags = OpenFlags.ReadWrite | OpenFlags.Create)
+        => Native.Connection.Open(Path, flags);
 
     public void Dispose()
     {

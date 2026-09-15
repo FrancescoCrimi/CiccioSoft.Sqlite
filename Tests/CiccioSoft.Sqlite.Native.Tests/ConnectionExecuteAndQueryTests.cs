@@ -5,11 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Text;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class ConnectionExecuteAndQueryTests
 {
@@ -45,7 +44,7 @@ public sealed class ConnectionExecuteAndQueryTests
     {
         using var connection = ConnectionFactory.OpenMemory();
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Execute("CREATE TABL broken (id INTEGER);"));
 
         Assert.Equal(ResultCode.Error, ex.BaseResultCode);
@@ -173,7 +172,7 @@ public sealed class ConnectionExecuteAndQueryTests
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY);");
         connection.Execute("INSERT INTO t VALUES (1);");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Execute("INSERT INTO t VALUES (1);"));
 
         Assert.Equal(ResultCode.Constraint, ex.BaseResultCode);
@@ -185,7 +184,7 @@ public sealed class ConnectionExecuteAndQueryTests
     {
         using var connection = ConnectionFactory.OpenMemory();
 
-        Assert.Throws<Exception>(() =>
+        Assert.Throws<Native.Exception>(() =>
             connection.Execute("SELECT FROM;"));
 
         int offset = connection.GetLastErrorOffset();

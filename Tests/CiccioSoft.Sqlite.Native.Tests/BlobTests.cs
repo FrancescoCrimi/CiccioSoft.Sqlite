@@ -5,10 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class BlobTests
 {
@@ -116,7 +116,7 @@ public sealed class BlobTests
         using (connection)
         using (var blob = connection.OpenBlob("files", "payload", rowId, readWrite: false))
         {
-            var ex = Assert.Throws<Exception>(() =>
+            var ex = Assert.Throws<Native.Exception>(() =>
                 blob.Write(new byte[] { 1, 2, 3, 4 }, 0));
 
             Assert.Equal(ResultCode.ReadOnly, ex.BaseResultCode);
@@ -131,7 +131,7 @@ public sealed class BlobTests
         using (var blob = connection.OpenBlob("files", "payload", rowId))
         {
             byte[] buffer = new byte[8];
-            var ex = Assert.Throws<Exception>(() => blob.Read(buffer, 0));
+            var ex = Assert.Throws<Native.Exception>(() => blob.Read(buffer, 0));
             Assert.Equal(ResultCode.Error, ex.BaseResultCode);
         }
     }
@@ -142,7 +142,7 @@ public sealed class BlobTests
         using var connection = ConnectionFactory.OpenMemory();
         connection.Execute("CREATE TABLE files (id INTEGER PRIMARY KEY, payload BLOB);");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.OpenBlob("files", "payload", rowId: 999));
 
         Assert.Equal(ResultCode.Error, ex.BaseResultCode);

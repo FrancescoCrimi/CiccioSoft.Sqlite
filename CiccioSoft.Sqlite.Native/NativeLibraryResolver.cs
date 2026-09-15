@@ -8,7 +8,7 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 public static class NativeLibraryResolver
 {
@@ -61,7 +61,6 @@ public static class NativeLibraryResolver
     private static nint Resolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
         if (libraryName == "CiccioSoftSqliteLibraryPlaceholder")
-            // se arrivato qui _cachedHandle è stata gia risolta
             return _cachedHandle;
         else
             return nint.Zero;

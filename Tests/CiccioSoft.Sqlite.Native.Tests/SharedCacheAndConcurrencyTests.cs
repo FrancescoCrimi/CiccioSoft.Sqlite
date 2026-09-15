@@ -5,10 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 /// <summary>
 /// Cross-connection / shared-cache scenarios that enterprise consumers rely on.
@@ -59,9 +59,9 @@ public sealed class SharedCacheAndConcurrencyTests
         a.Execute("CREATE TABLE t (id INTEGER);");
         a.Execute("INSERT INTO t VALUES (1);");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             b.Execute("SELECT * FROM t;"));
 
-        Assert.Equal(ResultCode.Error, ex.BaseResultCode);
+        Assert.Equal(Native.ResultCode.Error, ex.BaseResultCode);
     }
 }

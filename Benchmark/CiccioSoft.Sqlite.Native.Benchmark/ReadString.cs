@@ -7,9 +7,10 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
-namespace CiccioSoft.Sqlite.Benchmark;
+namespace CiccioSoft.Sqlite.Native.Benchmark;
 
 public class ReadString
 {
@@ -19,7 +20,7 @@ public class ReadString
     // public const string DbFile = ":memory:";
 
     private sqlite3 _db1;
-    private Connection _db2;
+    private Native.Connection _db2;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
@@ -78,7 +79,7 @@ public class ReadString
     public void Setup_Interop()
     {
         NativeLibraryResolver.Configure(NativeSource.SourceGear);
-        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
+        _db2 = Native.Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
         _db2.Execute("PRAGMA synchronous = OFF;");
         _db2.Execute("DROP TABLE IF EXISTS Users;");
         _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");

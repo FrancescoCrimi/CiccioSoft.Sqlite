@@ -5,10 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class ConnectionPrepareTests
 {
@@ -30,7 +30,7 @@ public sealed class ConnectionPrepareTests
     {
         using var connection = ConnectionFactory.OpenMemory();
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Prepare("SELEC * FROM nowhere;"));
 
         Assert.Equal(ResultCode.Error, ex.BaseResultCode);
@@ -157,7 +157,7 @@ public sealed class ConnectionPrepareTests
         using var connection = ConnectionFactory.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.GetTableColumnMetadata(
                 "t",
                 "missing",

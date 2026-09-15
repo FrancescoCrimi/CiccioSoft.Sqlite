@@ -5,12 +5,12 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
-public sealed class EngineExceptionTests
+public sealed class ExceptionTests
 {
     [Fact]
     public void ConstraintFailure_ExposesBaseAndExtendedCodes()
@@ -19,7 +19,7 @@ public sealed class EngineExceptionTests
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY, email TEXT UNIQUE);");
         connection.Execute("INSERT INTO t VALUES (1, 'a@x.com');");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Execute("INSERT INTO t VALUES (2, 'a@x.com');"));
 
         Assert.Equal(ResultCode.Constraint, ex.BaseResultCode);
@@ -39,7 +39,7 @@ public sealed class EngineExceptionTests
     {
         using var connection = ConnectionFactory.OpenMemory();
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Prepare("NOT VALID SQL !!!"));
 
         Assert.Equal(ResultCode.Error, ex.BaseResultCode);
@@ -55,7 +55,7 @@ public sealed class EngineExceptionTests
             $"no-such-dir-{Guid.NewGuid():N}",
             "db.sqlite");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             Connection.Open(path, OpenFlags.ReadWrite));
 
         Assert.Equal(ResultCode.CantOpen, ex.BaseResultCode);
@@ -70,7 +70,7 @@ public sealed class EngineExceptionTests
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY);");
         connection.Execute("INSERT INTO t VALUES (1);");
 
-        var ex = Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<Native.Exception>(() =>
             connection.Execute("INSERT INTO t VALUES (1);"));
 
         Assert.Equal((ResultCode)((int)ex.ResultCode & 0xFF), ex.BaseResultCode);

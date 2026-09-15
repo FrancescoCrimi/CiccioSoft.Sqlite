@@ -2,9 +2,10 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Order;
+using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
-namespace CiccioSoft.Sqlite.Benchmark;
+namespace CiccioSoft.Sqlite.Native.Benchmark;
 
 [MemoryDiagnoser] // Certifica l'impatto della memoria e del GC
 [Orderer(SummaryOrderPolicy.FastestToSlowest)] // Ordina dal più veloce al più lento

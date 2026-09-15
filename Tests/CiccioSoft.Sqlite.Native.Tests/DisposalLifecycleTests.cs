@@ -5,10 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 /// <summary>
 /// Guards the enterprise disposal contract: after Dispose, every public instance API
@@ -152,7 +152,7 @@ public sealed class DisposalLifecycleTests
         var connection = ConnectionFactory.OpenMemory();
         connection.Dispose();
 
-        Assert.False(string.IsNullOrWhiteSpace(Connection.LibVersion()));
-        Assert.True(Connection.LibVersionNumber() > 0);
+        Assert.False(string.IsNullOrWhiteSpace(Native.Connection.LibVersion()));
+        Assert.True(Native.Connection.LibVersionNumber() > 0);
     }
 }

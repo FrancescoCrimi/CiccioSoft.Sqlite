@@ -5,10 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class StatementLifecycleTests
 {
@@ -128,7 +128,7 @@ public sealed class StatementLifecycleTests
         connection.Execute("INSERT INTO t VALUES (1);");
 
         using var stmt = connection.Prepare("INSERT INTO t VALUES (1);");
-        var ex = Assert.Throws<Exception>(() => stmt.Step());
+        var ex = Assert.Throws<Native.Exception>(() => stmt.Step());
 
         Assert.Equal(ResultCode.Constraint, ex.BaseResultCode);
         Assert.Contains("Step", ex.Message, StringComparison.Ordinal);

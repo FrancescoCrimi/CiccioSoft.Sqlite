@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 

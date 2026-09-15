@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace CiccioSoft.Sqlite.Example;
+namespace CiccioSoft.Sqlite.Native.Example;
 
 public class Example
 {

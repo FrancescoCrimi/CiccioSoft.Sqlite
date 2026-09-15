@@ -7,17 +7,17 @@
 --file
 sqlite3.h
 
-# Forza ClangSharp a elaborare e generare binding anche per i file inclusi (#include)
-# --traverse
-
+# header license
+--headerFile
+license.txt
 
 # Output finale del codice generato
 --output
-../Native
+../Interop
 
 # Namespace C# di destinazione
 --namespace
-CiccioSoft.Sqlite
+CiccioSoft.Sqlite.Native.Interop
 
 # Nome della DLL/libreria nativa inserito nei [DllImport] (es. sqlite3)
 --libraryPath
@@ -111,6 +111,7 @@ sqlite3_backup_step=internal
 sqlite3_backup_finish=internal
 sqlite3_backup_remaining=internal
 sqlite3_backup_pagecount=internal
+sqlite3_wal_checkpoint_v2=internal
 
 
 # Esclude specifiche funzioni, struct o macro dalla generazione (Sintassi: nome)
@@ -191,6 +192,7 @@ sqlite3_database_file_object
 sqlite3_create_filename
 sqlite3_free_filename
 sqlite3_errmsg16
+sqlite3_set_errmsg
 sqlite3_prepare
 sqlite3_prepare_v2
 sqlite3_prepare16
@@ -320,18 +322,21 @@ sqlite3_keyword_name
 sqlite3_keyword_check
 sqlite3_str_new
 sqlite3_str_finish
+sqlite3_str_free
 sqlite3_str_appendf
 sqlite3_str_vappendf
 sqlite3_str_append
 sqlite3_str_appendall
 sqlite3_str_appendchar
 sqlite3_str_reset
+sqlite3_str_truncate
 sqlite3_str_errcode
 sqlite3_str_length
 sqlite3_str_value
 sqlite3_status
 sqlite3_status64
 sqlite3_db_status
+sqlite3_db_status64
 sqlite3_stmt_status
 sqlite3_unlock_notify
 sqlite3_stricmp
@@ -342,7 +347,6 @@ sqlite3_log
 sqlite3_wal_hook
 sqlite3_wal_autocheckpoint
 sqlite3_wal_checkpoint
-sqlite3_wal_checkpoint_v2
 sqlite3_vtab_config
 sqlite3_vtab_on_conflict
 sqlite3_vtab_nochange
@@ -364,6 +368,8 @@ sqlite3_snapshot_cmp
 sqlite3_snapshot_recover
 sqlite3_serialize
 sqlite3_deserialize
+sqlite3_carray_bind_v2
+sqlite3_carray_bind
 sqlite3_rtree_geometry_callback
 sqlite3_rtree_query_callback
 
@@ -663,10 +669,6 @@ SQLITE_STMTSTATUS_RUN
 SQLITE_STMTSTATUS_FILTER_MISS
 SQLITE_STMTSTATUS_FILTER_HIT
 SQLITE_STMTSTATUS_MEMUSED
-SQLITE_CHECKPOINT_PASSIVE
-SQLITE_CHECKPOINT_FULL
-SQLITE_CHECKPOINT_RESTART
-SQLITE_CHECKPOINT_TRUNCATE
 SQLITE_VTAB_CONSTRAINT_SUPPORT
 SQLITE_VTAB_INNOCUOUS
 SQLITE_VTAB_DIRECTONLY

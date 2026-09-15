@@ -8,7 +8,7 @@ using System;
 using BenchmarkDotNet.Attributes;
 using SQLitePCL;
 
-namespace CiccioSoft.Sqlite.Benchmark;
+namespace CiccioSoft.Sqlite.Native.Benchmark;
 
 public class WriteString
 {
@@ -17,7 +17,7 @@ public class WriteString
     private const string TestString = "User_Performance_Test_String_12345";
 
     private sqlite3 _db1;
-    private Connection _db2;
+    private Native.Connection _db2;
 
     [GlobalSetup(Target = nameof(WriteString_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()

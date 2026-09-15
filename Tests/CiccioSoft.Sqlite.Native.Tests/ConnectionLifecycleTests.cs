@@ -6,11 +6,10 @@
 
 using System;
 using System.IO;
-using System.Text;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class ConnectionLifecycleTests
 {
@@ -47,8 +46,8 @@ public sealed class ConnectionLifecycleTests
     {
         string missing = Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}.db");
 
-        var ex = Assert.Throws<Exception>(() =>
-            Connection.Open(missing, OpenFlags.ReadOnly));
+        var ex = Assert.Throws<Native.Exception>(() =>
+            Native.Connection.Open(missing, OpenFlags.ReadOnly));
 
         Assert.Equal(ResultCode.CantOpen, ex.BaseResultCode);
         Assert.Contains("Open", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -58,7 +57,7 @@ public sealed class ConnectionLifecycleTests
     public void Open_DefaultFlags_CreateReadWrite()
     {
         using var temp = new TempDatabase();
-        using var connection = Connection.Open(temp.Path, OpenFlags.ReadWrite | OpenFlags.Create);
+        using var connection = Native.Connection.Open(temp.Path, OpenFlags.ReadWrite | OpenFlags.Create);
 
         Assert.False(connection.DbReadOnly());
         connection.Execute("CREATE TABLE t (id INTEGER);");
@@ -67,7 +66,7 @@ public sealed class ConnectionLifecycleTests
     [Fact]
     public void Open_WithUriMemory_Succeeds()
     {
-        using var connection = Connection.Open(
+        using var connection = Native.Connection.Open(
             "file:lifecycle_uri?mode=memory&cache=shared",
             OpenFlags.ReadWrite | OpenFlags.Create);
 
@@ -91,7 +90,7 @@ public sealed class ConnectionLifecycleTests
     [Fact]
     public void LibVersion_ReturnsNonEmptyVersionString()
     {
-        string? version = Connection.LibVersion();
+        string? version = Native.Connection.LibVersion();
 
         Assert.False(string.IsNullOrWhiteSpace(version));
         Assert.Matches(@"^\d+\.\d+\.\d+", version!);
@@ -100,8 +99,8 @@ public sealed class ConnectionLifecycleTests
     [Fact]
     public void LibVersionNumber_IsPositiveAndConsistentWithString()
     {
-        int number = Connection.LibVersionNumber();
-        string? version = Connection.LibVersion();
+        int number = Native.Connection.LibVersionNumber();
+        string? version = Native.Connection.LibVersion();
 
         Assert.True(number > 3000000);
         Assert.NotNull(version);

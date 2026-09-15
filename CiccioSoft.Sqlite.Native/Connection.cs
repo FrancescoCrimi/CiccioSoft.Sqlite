@@ -10,8 +10,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 public sealed unsafe class ConnectionSafeHandle : SafeHandle
 {

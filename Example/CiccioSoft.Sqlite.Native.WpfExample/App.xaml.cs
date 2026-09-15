@@ -6,7 +6,7 @@
 
 using System.Windows;
 
-namespace CiccioSoft.Sqlite.WpfExample;
+namespace CiccioSoft.Sqlite.Native.WpfExample;
 
 /// <summary>
 /// Interaction logic for App.xaml
