@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading;
+using CiccioSoft.Sqlite.Native;
 using NativeStatement = CiccioSoft.Sqlite.Native.Statement;
 
 namespace CiccioSoft.Sqlite;

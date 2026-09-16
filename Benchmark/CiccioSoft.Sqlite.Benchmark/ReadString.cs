@@ -9,7 +9,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using SQLitePCL;
 
-namespace CiccioSoft.Sqlite.Native.Benchmark;
+namespace CiccioSoft.Sqlite.Benchmark;
 
 public class ReadString
 {
@@ -19,7 +19,7 @@ public class ReadString
     // public const string DbFile = ":memory:";
 
     private sqlite3? _db1;
-    private Connection? _db2;
+    // private CiccioSoft.Sqlite.Connection? _db2;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
@@ -74,49 +74,53 @@ public class ReadString
 
 
 
-    [GlobalSetup(Target = nameof(ReadString_Interop))]
-    public void Setup_Interop()
-    {
-        NativeLibraryResolver.Configure(NativeSource.SourceGear);
-        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
-        _db2.Execute("PRAGMA synchronous = OFF;");
-        _db2.Execute("DROP TABLE IF EXISTS Users;");
-        _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-        _db2.Execute("BEGIN;");
-        using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
-        {
-            for (int i = 0; i < RowCount; i++)
-            {
-                stmt.Reset();
-                stmt.BindLong(1, i);
-                stmt.BindText(2, TestString);
-                stmt.BindDouble(3, i * 1.1);
-                stmt.Step();
-            }
-        }
-        _db2.Execute("COMMIT;");
-    }
+    // [GlobalSetup(Target = nameof(ReadString_Interop))]
+    // public void Setup_Interop()
+    // {
+    //    CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
+    //     var option = new SqliteConnectionOptions
+    //     {
+    //         DataSource = DbFile,
+    //         AdditionalFlags = OpenFlagsDefaults.Coordinated,
+    //         ConcurrencyMode = SqliteConcurrencyMode.Native
+    //     };
+    //     _db2 = new CiccioSoft.Sqlite.SqliteConnection(option);
+    //     _db2.Open();
+    //     _db2.Execute("PRAGMA synchronous = OFF;");
+    //     _db2.Execute("DROP TABLE IF EXISTS Users;");
+    //     _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+    //     _db2.Execute("BEGIN;");
+    //     using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+    //     {
+    //         for (int i = 0; i < RowCount; i++)
+    //         {
+    //             stmt.Reset();
+    //             stmt.BindLong(1, i);
+    //             stmt.BindText(2, TestString);
+    //             stmt.BindDouble(3, i * 1.1);
+    //             stmt.Step();
+    //         }
+    //     }
+    //     _db2.Execute("COMMIT;");
+    // }
 
-    [GlobalCleanup(Target = nameof(ReadString_Interop))]
-    public void Cleanup_Interop() => _db2?.Dispose();
+    // [GlobalCleanup(Target = nameof(ReadString_Interop))]
+    // public void Cleanup_Interop() => _db2.Dispose();
 
-    [Benchmark]
-    public void ReadString_Interop()
-    {
-        if (_db2 != null)
-        {
-            using (var stmt = _db2.Prepare("SELECT Id, Name, Score FROM Users;"))
-            {
-                while (stmt.Step())
-                {
-                    long id = stmt.GetLong(0);
-                    string name = stmt.GetText(1)!;
-                    double score = stmt.GetDouble(2);
-                    _consumer.Consume(id);
-                    _consumer.Consume(name);
-                    _consumer.Consume(score);
-                }
-            }
-        }
-    }
+    // [Benchmark]
+    // public void ReadString_Interop()
+    // {
+    //     using (var stmt = _db2.Prepare("SELECT Id, Name, Score FROM Users;"))
+    //     {
+    //         while (stmt.Step())
+    //         {
+    //             long id = stmt.GetLong(0);
+    //             string name = stmt.GetText(1);
+    //             double score = stmt.GetDouble(2);
+    //             _consumer.Consume(id);
+    //             _consumer.Consume(name);
+    //             _consumer.Consume(score);
+    //         }
+    //     }
+    // }
 }

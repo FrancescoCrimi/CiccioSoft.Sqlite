@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 using Xunit;
 using static CiccioSoft.Sqlite.Native.Interop.NativeMethods;
 

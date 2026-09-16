@@ -9,7 +9,7 @@
 
 using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 /// <summary>
 ///     Represents the type affinities used by columns in SQLite tables.

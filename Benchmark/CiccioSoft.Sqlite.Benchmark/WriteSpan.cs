@@ -6,9 +6,10 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
-namespace CiccioSoft.Sqlite.Native.Benchmark;
+namespace CiccioSoft.Sqlite.Benchmark;
 
 public class WriteSpan
 {
@@ -17,7 +18,7 @@ public class WriteSpan
     private static ReadOnlySpan<byte> TestString => "User_Performance_Test_String_12345"u8;
 
     private sqlite3? _db1;
-    private Connection? _db2;
+    // private CiccioSoft.Sqlite.Connection? _db2;
 
     [GlobalSetup(Target = nameof(WriteSpan_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()
@@ -59,47 +60,47 @@ public class WriteSpan
 
 
 
-    [GlobalSetup(Target = nameof(WriteSpan_Interop))]
-    public void GlobalSetup_Interop()
-    {
-        NativeLibraryResolver.Configure(NativeSource.SourceGear);
-        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
-        _db2.Execute("PRAGMA journal_mode = WAL;");
-        _db2.Execute("PRAGMA synchronous = OFF;");
-    }
+    // [GlobalSetup(Target = nameof(WriteSpan_Interop))]
+    // public void GlobalSetup_Interop()
+    // {
+    //     NativeLibraryResolver.Configure(NativeSource.SourceGear);
+    //     var option = new SqliteConnectionOptions
+    //     {
+    //         DataSource = DbFile,
+    //         AdditionalFlags = OpenFlagsDefaults.Coordinated,
+    //         ConcurrencyMode = SqliteConcurrencyMode.Native
+    //     };
+    //     _db2 = new CiccioSoft.Sqlite.SqliteConnection(option);
+    //     _db2.Open();
+    //     _db2.Execute("PRAGMA journal_mode = WAL;");
+    //     _db2.Execute("PRAGMA synchronous = OFF;");
+    // }
 
-    [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
-    public void GlobalCleanup_Interop() => _db2?.Dispose();
+    // [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
+    // public void GlobalCleanup_Interop() => _db2.Dispose();
 
-    [IterationSetup(Target = nameof(WriteSpan_Interop))]
-    public void IterationSetup_Interop()
-    {
-        if (_db2 != null)
-        {
-            _db2.Execute("DROP TABLE IF EXISTS Users;");
-            _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-        }
-    }
+    // [IterationSetup(Target = nameof(WriteSpan_Interop))]
+    // public void IterationSetup_Interop()
+    // {
+    //     _db2.Execute("DROP TABLE IF EXISTS Users;");
+    //     _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+    // }
 
-    [Benchmark]
-    public void WriteSpan_Interop()
-    {
-        if (_db2 != null)
-        {
-
-            _db2.Execute("BEGIN;");
-            using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
-            {
-                for (int i = 0; i < RowCount; i++)
-                {
-                    stmt.Reset();
-                    stmt.BindLong(1, i);
-                    stmt.BindText(2, TestString);
-                    stmt.BindDouble(3, i * 1.1);
-                    stmt.Step();
-                }
-                _db2.Execute("COMMIT;");
-            }
-        }
-    }
+    // [Benchmark]
+    // public void WriteSpan_Interop()
+    // {
+    //     _db2.Execute("BEGIN;");
+    //     using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+    //     {
+    //         for (int i = 0; i < RowCount; i++)
+    //         {
+    //             stmt.Reset();
+    //             stmt.BindLong(1, i);
+    //             stmt.BindText(2, TestString);
+    //             stmt.BindDouble(3, i * 1.1);
+    //             stmt.Step();
+    //         }
+    //         _db2.Execute("COMMIT;");
+    //     }
+    // }
 }

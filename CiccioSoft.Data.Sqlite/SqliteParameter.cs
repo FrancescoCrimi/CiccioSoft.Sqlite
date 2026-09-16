@@ -9,9 +9,9 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using CiccioSoft.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using System.Collections.Generic;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
