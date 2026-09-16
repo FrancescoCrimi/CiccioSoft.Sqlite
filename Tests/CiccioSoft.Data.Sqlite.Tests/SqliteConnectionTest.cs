@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using CiccioSoft.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
-using static CiccioSoft.Sqlite.NativeMethods;
+using static CiccioSoft.Sqlite.Native.Interop.NativeMethods;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;

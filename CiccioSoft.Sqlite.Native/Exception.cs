@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using CiccioSoft.Sqlite.Native.Interop;
 
 namespace CiccioSoft.Sqlite.Native;
 

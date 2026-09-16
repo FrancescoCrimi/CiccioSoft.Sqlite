@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Sqlite;
 using Xunit;
 using System.Linq;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Sqlite.Tests;
 

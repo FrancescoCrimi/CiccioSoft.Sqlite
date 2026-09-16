@@ -5,8 +5,9 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 [Flags]
 public enum OpenFlags

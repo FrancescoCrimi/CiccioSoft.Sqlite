@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using CiccioSoft.Sqlite.Native.Interop;
 
 namespace CiccioSoft.Sqlite.Native;
 

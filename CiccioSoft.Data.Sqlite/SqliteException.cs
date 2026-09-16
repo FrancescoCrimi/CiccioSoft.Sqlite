@@ -7,6 +7,7 @@
 using System;
 using System.Data.Common;
 using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 

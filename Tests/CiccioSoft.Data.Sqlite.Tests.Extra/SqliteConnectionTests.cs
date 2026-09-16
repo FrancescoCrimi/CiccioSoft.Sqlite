@@ -8,6 +8,7 @@ using CiccioSoft.Sqlite;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 

@@ -8,9 +8,9 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Sqlite
+namespace CiccioSoft.Sqlite.Native.Interop
 {
-    internal partial struct sqlite3_value
+    internal partial struct sqlite3_blob
     {
     }
 }

@@ -14,7 +14,7 @@
     <None Include="sqlite3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <PackageReference Include="SourceGear.sqlite3" Version="3.50.4.5" />
+    <PackageReference Include="SourceGear.sqlite3" Version="3.53.4" />
     <InternalsVisibleTo Include="CiccioSoft.Sqlite.Tests" />
   </ItemGroup>
 
