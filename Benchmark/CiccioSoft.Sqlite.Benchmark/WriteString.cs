@@ -6,6 +6,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Benchmark;

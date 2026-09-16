@@ -19,7 +19,7 @@ public class ReadString
     // public const string DbFile = ":memory:";
 
     private sqlite3 _db1;
-    private CiccioSoft.Sqlite.Connection _db2;
+    private Connection _db2;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
@@ -77,8 +77,8 @@ public class ReadString
     [GlobalSetup(Target = nameof(ReadString_Interop))]
     public void Setup_Interop()
     {
-        Sqlite.NativeLibraryResolver.Configure(Sqlite.NativeSource.SourceGear);
-        _db2 = CiccioSoft.Sqlite.Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
+        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
         _db2.Execute("PRAGMA synchronous = OFF;");
         _db2.Execute("DROP TABLE IF EXISTS Users;");
         _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");

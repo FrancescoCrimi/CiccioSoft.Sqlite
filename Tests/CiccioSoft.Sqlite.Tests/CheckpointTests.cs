@@ -6,6 +6,7 @@
 
 using System;
 using System.Threading.Tasks;
+using CiccioSoft.Sqlite.Native;
 using CiccioSoft.Sqlite.Tests.Infrastructure;
 using Xunit;
 

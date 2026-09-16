@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Sqlite;
 using Xunit;
-using static CiccioSoft.Sqlite.NativeMethods;
+using static CiccioSoft.Sqlite.Native.Interop.NativeMethods;
 
 namespace CiccioSoft.Data.Sqlite;
 

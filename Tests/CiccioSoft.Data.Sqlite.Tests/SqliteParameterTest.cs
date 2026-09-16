@@ -9,6 +9,7 @@ using CiccioSoft.Sqlite;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Data.Sqlite.TestUtilities;
 using Xunit;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 

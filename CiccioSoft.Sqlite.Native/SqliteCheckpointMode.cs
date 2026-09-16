@@ -4,7 +4,9 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native.Interop;
+
+namespace CiccioSoft.Sqlite.Native;
 
 /// <summary>
 /// Mappatura 1:1 sui quattro valori nativi <c>SQLITE_CHECKPOINT_*</c> (Tier 0 §21).

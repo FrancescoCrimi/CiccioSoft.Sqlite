@@ -6,10 +6,8 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -18,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -1083,7 +1081,7 @@ public sealed class SqliteDataReader : DbDataReader
                 out isAutoIncrement);
             return true;
         }
-        catch (CiccioSoft.Sqlite.Exception)
+        catch (CiccioSoft.Sqlite.Native.Exception)
         {
             isNotNull = false;
             isPrimaryKey = false;

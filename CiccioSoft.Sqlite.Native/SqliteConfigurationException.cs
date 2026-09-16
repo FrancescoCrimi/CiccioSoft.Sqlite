@@ -6,7 +6,7 @@
 
 using System;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 /// <summary>
 /// Segnala una configurazione non valida rilevata prima di qualunque interazione con

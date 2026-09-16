@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Sqlite;
 
@@ -114,7 +115,7 @@ internal sealed class SqliteConnectionPool
     private static SqliteErrorCategory ClassifyObservedError(System.Exception? observedError) => observedError switch
     {
         null => SqliteErrorCategory.None,
-        Exception ee => SqliteErrorClassifier.Classify(ee.ResultCode),
+        Native.Exception ee => SqliteErrorClassifier.Classify(ee.ResultCode),
         // Un'eccezione non riconosciuta (non EngineException) durante l'uso di una
         // connessione rentata lascia lo stato nativo incerto: trattarla come Fatal
         // (poisoning) è la scelta prudente — assumere "nessun problema" per omissione

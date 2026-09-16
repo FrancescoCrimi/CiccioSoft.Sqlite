@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Sqlite;
 
@@ -18,7 +19,7 @@ internal sealed class CachedStatement
 
 internal sealed class StatementCache
 {
-    private readonly Connection _owner;                                  // Invariante I11
+    private readonly Native.Connection _owner;                                  // Invariante I11
     private readonly int _capacity;
 
     // Chiave composita (Sql, Flags): due Prepare con lo stesso testo SQL ma PrepareFlags
@@ -28,7 +29,7 @@ internal sealed class StatementCache
     private readonly Dictionary<(string Sql, PrepareFlags Flags), LinkedListNode<CachedStatement>> _index = new();
     private readonly LinkedList<CachedStatement> _lru = new();        // testa = più recente
 
-    public StatementCache(Connection owner, int capacity)
+    public StatementCache(Native.Connection owner, int capacity)
     {
         _owner = owner;
         _capacity = capacity;

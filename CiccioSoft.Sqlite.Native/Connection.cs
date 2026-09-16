@@ -10,8 +10,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 public sealed unsafe class ConnectionSafeHandle : SafeHandle
 {
@@ -179,7 +180,7 @@ public sealed unsafe class Connection : IDisposable
     // esiste alcuno stato interno da marcare.
 
 
-    public Native.Transaction BeginTransaction(Sqlite.TransactionMode mode = TransactionMode.Deferred)
+    public Native.Transaction BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
     {
         ThrowIfInvalid();
 

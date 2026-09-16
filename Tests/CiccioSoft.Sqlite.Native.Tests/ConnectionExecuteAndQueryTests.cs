@@ -5,11 +5,10 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Text;
-using CiccioSoft.Sqlite.Tests.Infrastructure;
+using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
-namespace CiccioSoft.Sqlite.Tests;
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 public sealed class ConnectionExecuteAndQueryTests
 {

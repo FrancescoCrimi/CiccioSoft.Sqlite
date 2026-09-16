@@ -6,7 +6,7 @@
 
 using System;
 
-namespace CiccioSoft.Sqlite;
+namespace CiccioSoft.Sqlite.Native;
 
 public static class SqliteErrorClassifier
 {

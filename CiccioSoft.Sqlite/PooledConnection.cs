@@ -4,6 +4,8 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+using CiccioSoft.Sqlite.Native;
+
 namespace CiccioSoft.Sqlite;
 
 /// <summary>
@@ -21,10 +23,10 @@ namespace CiccioSoft.Sqlite;
 /// </remarks>
 internal sealed class PooledConnection
 {
-    public Connection Connection { get; }
+    public Native.Connection Connection { get; }
     public StatementCache Cache { get; }
 
-    public PooledConnection(Connection connection, int statementCacheCapacity)
+    public PooledConnection(Native.Connection connection, int statementCacheCapacity)
     {
         Connection = connection;
         Cache = new StatementCache(connection, statementCacheCapacity);   // Invariante I11

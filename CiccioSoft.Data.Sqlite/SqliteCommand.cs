@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,7 +14,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -425,19 +424,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 return operation();
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when (_timeoutTriggered && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_timeoutTriggered && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Exception ex)
+            catch (CiccioSoft.Sqlite.Native.Exception ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.PrimaryResultCode, ex.ErrorMessage), ex);
@@ -465,19 +464,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 operation();
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when (_timeoutTriggered && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_timeoutTriggered && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.PrimaryResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.PrimaryResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Exception ex)
+            catch (CiccioSoft.Sqlite.Native.Exception ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.PrimaryResultCode, ex.ErrorMessage), ex);

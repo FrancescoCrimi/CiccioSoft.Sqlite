@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using CiccioSoft.Sqlite.Native.Interop;
 
 namespace CiccioSoft.Sqlite;
 

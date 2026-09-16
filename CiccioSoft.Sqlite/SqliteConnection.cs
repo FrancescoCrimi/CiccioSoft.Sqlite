@@ -7,6 +7,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Sqlite;
 
@@ -28,7 +29,7 @@ public sealed class SqliteConnection : IDisposable
     private SqliteConnectionPool? _pool;               // null in Native
     private SingleWriterCoordinator? _coordinator;     // null in Native e in ReadOnly (§11)
     private PooledConnection? _pooled;                 // valorizzato solo in Coordinated/ReadOnly
-    private Connection? _native;                       // valorizzato solo in Native
+    private Native.Connection? _native;                       // valorizzato solo in Native
     private bool _opened;
     private bool _disposed;
 
@@ -45,7 +46,7 @@ public sealed class SqliteConnection : IDisposable
     /// aperta direttamente in Native. Non pubblica: il consumatore non deve mai vedere
     /// l'handle nativo (Tier 0 §8), solo la superficie idiomatica di questa classe.
     /// </summary>
-    private Connection ActiveConnection => _native ?? _pooled?.Connection
+    private Native.Connection ActiveConnection => _native ?? _pooled?.Connection
         ?? throw new InvalidOperationException("La connessione non è aperta. Chiamare Open()/OpenAsync() prima.");
 
     // ------------------------------------------------------------------
@@ -89,7 +90,7 @@ public sealed class SqliteConnection : IDisposable
         if (_options.AdditionalFlags is { } extra)
             flags |= extra;
 
-        _native = Connection.Open(_options.DataSource, flags, _options.Vfs);
+        _native = Native.Connection.Open(_options.DataSource, flags, _options.Vfs);
     }
 
     private async Task OpenPooledAsync(bool withCoordinator, CancellationToken ct)
@@ -105,7 +106,7 @@ public sealed class SqliteConnection : IDisposable
         }
 
         PooledConnection OpenOne() => new(
-            Connection.Open(_options.DataSource, profile, _options.Vfs),
+            Native.Connection.Open(_options.DataSource, profile, _options.Vfs),
             _options.StatementCacheCapacity);
 
         if (kind == IdentityKind.PrivateMemory)
@@ -339,7 +340,7 @@ public sealed class SqliteConnection : IDisposable
     /// A version string in the form <c>major.minor.patch</c> (for example, <c>3.46.0</c>).
     /// </returns>
     public static string? LibVersion()
-        => Connection.LibVersion();
+        => Native.Connection.LibVersion();
 
     /// <summary>
     /// Returns the SQLite library version number used by the native runtime.
@@ -348,7 +349,7 @@ public sealed class SqliteConnection : IDisposable
     /// An integer representation of the version in the format <c>MMmmpp</c> (major, minor, patch).
     /// </returns>
     public static int LibVersionNumber()
-        => Connection.LibVersionNumber();
+        => Native.Connection.LibVersionNumber();
 
     /// <summary>
     /// Retrieves metadata information about a specific column in a table.

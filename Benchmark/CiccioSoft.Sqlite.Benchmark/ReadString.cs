@@ -77,7 +77,7 @@ public class ReadString
     [GlobalSetup(Target = nameof(ReadString_Interop))]
     public void Setup_Interop()
     {
-        Sqlite.NativeLibraryResolver.Configure(Sqlite.NativeSource.SourceGear);
+       CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
         var option = new SqliteConnectionOptions
         {
             DataSource = DbFile,

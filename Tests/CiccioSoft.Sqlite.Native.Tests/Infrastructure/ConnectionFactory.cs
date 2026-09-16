@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Sqlite.Tests.Infrastructure;
+namespace CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 
 /// <summary>
 /// Factory helpers for enterprise-grade, isolated in-memory connections.
@@ -14,7 +14,7 @@ internal static class ConnectionFactory
     /// <summary>
     /// Opens a private in-memory database (not shared across connections).
     /// </summary>
-    public static CiccioSoft.Sqlite.Connection OpenMemory()
+    public static Connection OpenMemory()
     {
         var connection = Connection.Open(":memory:", OpenFlags.ReadWrite | OpenFlags.Create);
         return connection;
