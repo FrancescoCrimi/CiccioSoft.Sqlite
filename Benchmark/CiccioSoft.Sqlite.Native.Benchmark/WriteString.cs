@@ -16,8 +16,8 @@ public class WriteString
     private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
     private const string TestString = "User_Performance_Test_String_12345";
 
-    private sqlite3? _db1;
-    private Connection? _db2;
+    private sqlite3 _db1;
+    private Connection _db2;
 
     [GlobalSetup(Target = nameof(WriteString_SQLitePCL))]
     public void GlobalSetup_SQLitePCL()

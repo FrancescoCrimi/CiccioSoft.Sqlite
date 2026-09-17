@@ -18,8 +18,8 @@ public class ReadSpan
     public const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\read.db";
     // public const string DbFile = ":memory:";
 
-    private sqlite3? _db1;
-    // private CiccioSoft.Sqlite.Connection? _db2;
+    private sqlite3 _db1;
+    // private CiccioSoft.Sqlite.Connection _db2;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
