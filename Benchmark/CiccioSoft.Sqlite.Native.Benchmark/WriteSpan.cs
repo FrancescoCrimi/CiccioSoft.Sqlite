@@ -16,33 +16,33 @@ public class WriteSpan
     private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
     private static ReadOnlySpan<byte> TestString => "User_Performance_Test_String_12345"u8;
 
-    private sqlite3 _db1;
-    private Connection _db2;
+    private sqlite3 _dbPCLRaw;
+    private Connection _dbCiccioSoft;
 
-    [GlobalSetup(Target = nameof(WriteSpan_SQLitePCL))]
-    public void GlobalSetup_SQLitePCL()
+    [GlobalSetup(Target = nameof(WriteSpan_PCLRaw))]
+    public void GlobalSetup_PCLRaw()
     {
         Batteries_V2.Init();
-        raw.sqlite3_open(DbFile, out _db1); // Usiamo :memory: per non subire l'I/O del disco
-        raw.sqlite3_exec(_db1, "PRAGMA journal_mode = WAL;");
-        raw.sqlite3_exec(_db1, "PRAGMA synchronous = OFF;");
+        raw.sqlite3_open(DbFile, out _dbPCLRaw); // Usiamo :memory: per non subire l'I/O del disco
+        raw.sqlite3_exec(_dbPCLRaw, "PRAGMA journal_mode = WAL;");
+        raw.sqlite3_exec(_dbPCLRaw, "PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(WriteSpan_SQLitePCL))]
-    public void GlobalCleanup_SQLitePCL() => raw.sqlite3_close(_db1);
+    [GlobalCleanup(Target = nameof(WriteSpan_PCLRaw))]
+    public void GlobalCleanup_PCLRaw() => raw.sqlite3_close(_dbPCLRaw);
 
-    [IterationSetup(Target = nameof(WriteSpan_SQLitePCL))]
-    public void IterationSetup_SQLitePCL()
+    [IterationSetup(Target = nameof(WriteSpan_PCLRaw))]
+    public void IterationSetup_PCLRaw()
     {
-        raw.sqlite3_exec(_db1, "DROP TABLE IF EXISTS Users;");
-        raw.sqlite3_exec(_db1, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        raw.sqlite3_exec(_dbPCLRaw, "DROP TABLE IF EXISTS Users;");
+        raw.sqlite3_exec(_dbPCLRaw, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
     }
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public void WriteSpan_SQLitePCL()
+    public void WriteSpan_PCLRaw()
     {
-        raw.sqlite3_exec(_db1, "BEGIN;");
-        raw.sqlite3_prepare_v2(_db1, "INSERT INTO Users VALUES (?, ?, ?);", out sqlite3_stmt stmtRaw);
+        raw.sqlite3_exec(_dbPCLRaw, "BEGIN;");
+        raw.sqlite3_prepare_v2(_dbPCLRaw, "INSERT INTO Users VALUES (?, ?, ?);", out sqlite3_stmt stmtRaw);
         using (stmtRaw)
         {
             for (int i = 0; i < RowCount; i++)
@@ -54,45 +54,51 @@ public class WriteSpan
                 raw.sqlite3_step(stmtRaw);
             }
         }
-        raw.sqlite3_exec(_db1, "COMMIT;");
+        raw.sqlite3_exec(_dbPCLRaw, "COMMIT;");
     }
 
 
 
-    [GlobalSetup(Target = nameof(WriteSpan_Interop))]
-    public void GlobalSetup_Interop()
+    [GlobalSetup(Target = nameof(WriteSpan_CiccioSoft))]
+    public void GlobalSetup_CiccioSoft()
     {
         NativeLibraryResolver.Configure(NativeSource.SourceGear);
-        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
-        _db2.Execute("PRAGMA journal_mode = WAL;");
-        _db2.Execute("PRAGMA synchronous = OFF;");
+        _dbCiccioSoft = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
+        _dbCiccioSoft.Execute("PRAGMA journal_mode = WAL;");
+        _dbCiccioSoft.Execute("PRAGMA synchronous = OFF;");
     }
 
-    [GlobalCleanup(Target = nameof(WriteSpan_Interop))]
-    public void GlobalCleanup_Interop() => _db2.Dispose();
+    [GlobalCleanup(Target = nameof(WriteSpan_CiccioSoft))]
+    public void GlobalCleanup_CiccioSoft() => _dbCiccioSoft?.Dispose();
 
-    [IterationSetup(Target = nameof(WriteSpan_Interop))]
-    public void IterationSetup_Interop()
+    [IterationSetup(Target = nameof(WriteSpan_CiccioSoft))]
+    public void IterationSetup_CiccioSoft()
     {
-        _db2.Execute("DROP TABLE IF EXISTS Users;");
-        _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        if (_dbCiccioSoft != null)
+        {
+            _dbCiccioSoft.Execute("DROP TABLE IF EXISTS Users;");
+            _dbCiccioSoft.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        }
     }
 
     [Benchmark]
-    public void WriteSpan_Interop()
+    public void WriteSpan_CiccioSoft()
     {
-        _db2.Execute("BEGIN;");
-        using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+        if (_dbCiccioSoft != null)
         {
-            for (int i = 0; i < RowCount; i++)
+            _dbCiccioSoft.Execute("BEGIN;");
+            using (var stmt = _dbCiccioSoft.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
             {
-                stmt.Reset();
-                stmt.BindLong(1, i);
-                stmt.BindText(2, TestString);
-                stmt.BindDouble(3, i * 1.1);
-                stmt.Step();
+                for (int i = 0; i < RowCount; i++)
+                {
+                    stmt.Reset();
+                    stmt.BindLong(1, i);
+                    stmt.BindText(2, TestString);
+                    stmt.BindDouble(3, i * 1.1);
+                    stmt.Step();
+                }
+                _dbCiccioSoft.Execute("COMMIT;");
             }
-            _db2.Execute("COMMIT;");
         }
     }
 }

@@ -21,6 +21,7 @@ class Program
         BenchmarkRunner.Run<ReadSpan>(config);
         BenchmarkRunner.Run<WriteString>(config);
         BenchmarkRunner.Run<WriteSpan>(config);
+        // BenchmarkRunner.Run<SqliteBenchmark>();
     }
 }
 

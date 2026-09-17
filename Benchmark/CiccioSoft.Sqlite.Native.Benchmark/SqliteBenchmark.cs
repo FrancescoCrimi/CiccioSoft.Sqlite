@@ -2,7 +2,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Order;
-using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Native.Benchmark;
@@ -12,10 +11,12 @@ namespace CiccioSoft.Sqlite.Native.Benchmark;
 [RankColumn] // Aggiunge una colonna con la classifica (1°, 2°, ecc.)
 public class SqliteBenchmark
 {
-    private string _dbPath = Path.Combine(Path.GetTempPath(), "benchmark_test.db");
+    private string _dbPCLRaw = Path.Combine(Path.GetTempPath(), "benchmark_pclraw.db");
+    private string _dbCiccioSoft = Path.Combine(Path.GetTempPath(), "benchmark_ciccioSoft.db");
 
     // Definiamo i due scaglioni di record richiesti dai tuoi test
-    [Params(100000, 1000000)]
+    // [Params(100000, 1000000)]
+    [Params(10000)]
     public int N;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
@@ -24,35 +25,43 @@ public class SqliteBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        // Pulizia del file database prima di OGNI singola iterazione per evitare letture sporche
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
+        if (File.Exists(_dbPCLRaw)) File.Delete(_dbPCLRaw);
+        if (File.Exists(_dbCiccioSoft)) File.Delete(_dbCiccioSoft);
 
-        // Inizializza il motore nativo di SQLitePCLRaw solo una volta all'avvio del programma
         SQLitePCL.Batteries_V2.Init();
-
-        // Inizializza CicioSoft.Sqlite
         NativeLibraryResolver.Configure(NativeSource.SourceGear);
     }
 
     [GlobalCleanup]
     public void GlobalCleanup()
     {
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
+        if (File.Exists(_dbPCLRaw)) File.Delete(_dbPCLRaw);
+        if (File.Exists(_dbCiccioSoft)) File.Delete(_dbCiccioSoft);
     }
 
-    [IterationSetup]
-    public void IterationSetup()
+    [IterationSetup(Target = nameof(PCLRaw_ReadWrite))]
+    public void IterationSetup_PCLRaw()
     {
-        var rc = raw.sqlite3_open(_dbPath, out var db);
+        var rc = raw.sqlite3_open(_dbPCLRaw, out var db);
         raw.sqlite3_exec(db, "DROP TABLE IF EXISTS Users;");
         raw.sqlite3_exec(db, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
         raw.sqlite3_close(db);
     }
 
-    [Benchmark(Baseline = true)] // Imposta Microsoft come termine di paragone (1.00)
-    public void SqlitePCLRaw_ReadWrite()
+    [IterationSetup(Target = nameof(CiccioSoft_ReadWrite))]
+    public void IterationSetup_CiccioSoft()
     {
-        var rc = raw.sqlite3_open(_dbPath, out var db);
+        using (var connection = Connection.Open(_dbCiccioSoft, OpenFlags.ReadWrite | OpenFlags.Create))
+        {
+            connection.Execute("DROP TABLE IF EXISTS Users;");
+            connection.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        }
+    }
+
+    [Benchmark(Baseline = true)] // Imposta Microsoft come termine di paragone (1.00)
+    public void PCLRaw_ReadWrite()
+    {
+        var rc = raw.sqlite3_open(_dbPCLRaw, out var db);
 
         // Avvio transazione per SQLitePCLRaw
         raw.sqlite3_exec(db, "BEGIN TRANSACTION;");
@@ -89,34 +98,35 @@ public class SqliteBenchmark
     }
 
     [Benchmark]
-    public void CiccioSoftSqlite_ReadWrite()
+    public void CiccioSoft_ReadWrite()
     {
-        using var connection = Connection.Open(_dbPath, OpenFlags.ReadWrite | OpenFlags.Create);
-
-        connection.Execute("BEGIN TRANSACTION;");
-        using (var stmt = connection.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+        using (var connection = Connection.Open(_dbCiccioSoft, OpenFlags.ReadWrite | OpenFlags.Create))
         {
-            for (int i = 0; i < N; i++)
+            connection.Execute("BEGIN TRANSACTION;");
+            using (var stmt = connection.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
             {
-                stmt.Reset();
-                stmt.BindLong(1, i);
-                stmt.BindText(2, "TestStringaBreve");
-                stmt.BindDouble(3, i * 1.1);
-                stmt.Step();
+                for (int i = 0; i < N; i++)
+                {
+                    stmt.Reset();
+                    stmt.BindLong(1, i);
+                    stmt.BindText(2, "TestStringaBreve");
+                    stmt.BindDouble(3, i * 1.1);
+                    stmt.Step();
+                }
             }
-        }
-        connection.Execute("COMMIT;");
+            connection.Execute("COMMIT;");
 
-        using (var stmt = connection.Prepare("SELECT Id, Name, Score FROM Users;"))
-        {
-            while (stmt.Step())
+            using (var stmt = connection.Prepare("SELECT Id, Name, Score FROM Users;"))
             {
-                long id = stmt.GetLong(0);
-                string name = stmt.GetText(1);
-                double score = stmt.GetDouble(2);
-                _consumer.Consume(id);
-                _consumer.Consume(name);
-                _consumer.Consume(score);
+                while (stmt.Step())
+                {
+                    long id = stmt.GetLong(0);
+                    string name = stmt.GetText(1)!;
+                    double score = stmt.GetDouble(2);
+                    _consumer.Consume(id);
+                    _consumer.Consume(name);
+                    _consumer.Consume(score);
+                }
             }
         }
     }

@@ -18,8 +18,8 @@ public class ReadString
     public const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\read.db";
     // public const string DbFile = ":memory:";
 
-    private sqlite3 _db1;
-    private Connection _db2;
+    private sqlite3 _dbPCLRaw;
+    private Connection _dbCiccioSoft;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
     private readonly Consumer _consumer = new Consumer();
@@ -28,16 +28,16 @@ public class ReadString
     // BENCHMARK DI LETTURA (SELECT)
     // ==========================================
 
-    [GlobalSetup(Target = nameof(ReadString_SQLitePCL))]
-    public void Setup_SQLitePCL()
+    [GlobalSetup(Target = nameof(ReadString_PCLRaw))]
+    public void Setup_PCLRaw()
     {
         Batteries_V2.Init();
-        raw.sqlite3_open(DbFile, out _db1);
-        raw.sqlite3_exec(_db1, "PRAGMA synchronous = OFF;");
-        raw.sqlite3_exec(_db1, "DROP TABLE IF EXISTS Users;");
-        raw.sqlite3_exec(_db1, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-        raw.sqlite3_exec(_db1, "BEGIN;");
-        raw.sqlite3_prepare_v2(_db1, "INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
+        raw.sqlite3_open(DbFile, out _dbPCLRaw);
+        raw.sqlite3_exec(_dbPCLRaw, "PRAGMA synchronous = OFF;");
+        raw.sqlite3_exec(_dbPCLRaw, "DROP TABLE IF EXISTS Users;");
+        raw.sqlite3_exec(_dbPCLRaw, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        raw.sqlite3_exec(_dbPCLRaw, "BEGIN;");
+        raw.sqlite3_prepare_v2(_dbPCLRaw, "INSERT INTO Users VALUES (?, ?, ?);", out var stmt);
         using (stmt)
         {
             for (int i = 0; i < RowCount; i++)
@@ -49,16 +49,16 @@ public class ReadString
                 raw.sqlite3_step(stmt);
             }
         }
-        raw.sqlite3_exec(_db1, "COMMIT;");
+        raw.sqlite3_exec(_dbPCLRaw, "COMMIT;");
     }
 
-    [GlobalCleanup(Target = nameof(ReadString_SQLitePCL))]
-    public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
+    [GlobalCleanup(Target = nameof(ReadString_PCLRaw))]
+    public void Cleanup_PCLRaw() => raw.sqlite3_close_v2(_dbPCLRaw);
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public unsafe void ReadString_SQLitePCL()
+    public void ReadString_PCLRaw()
     {
-        raw.sqlite3_prepare_v2(_db1, "SELECT Id, Name, Score FROM Users;", out var stmtRaw);
+        raw.sqlite3_prepare_v2(_dbPCLRaw, "SELECT Id, Name, Score FROM Users;", out var stmtRaw);
         while (raw.sqlite3_step(stmtRaw) == SQLitePCL.raw.SQLITE_ROW)
         {
             long id = raw.sqlite3_column_int64(stmtRaw, 0);
@@ -74,16 +74,16 @@ public class ReadString
 
 
 
-    [GlobalSetup(Target = nameof(ReadString_Interop))]
-    public void Setup_Interop()
+    [GlobalSetup(Target = nameof(ReadString_CiccioSoft))]
+    public void Setup_CiccioSoft()
     {
         NativeLibraryResolver.Configure(NativeSource.SourceGear);
-        _db2 = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
-        _db2.Execute("PRAGMA synchronous = OFF;");
-        _db2.Execute("DROP TABLE IF EXISTS Users;");
-        _db2.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
-        _db2.Execute("BEGIN;");
-        using (var stmt = _db2.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
+        _dbCiccioSoft = Connection.Open(DbFile, OpenFlags.ReadWrite | OpenFlags.Create);
+        _dbCiccioSoft.Execute("PRAGMA synchronous = OFF;");
+        _dbCiccioSoft.Execute("DROP TABLE IF EXISTS Users;");
+        _dbCiccioSoft.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        _dbCiccioSoft.Execute("BEGIN;");
+        using (var stmt = _dbCiccioSoft.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
         {
             for (int i = 0; i < RowCount; i++)
             {
@@ -94,25 +94,28 @@ public class ReadString
                 stmt.Step();
             }
         }
-        _db2.Execute("COMMIT;");
+        _dbCiccioSoft.Execute("COMMIT;");
     }
 
-    [GlobalCleanup(Target = nameof(ReadString_Interop))]
-    public void Cleanup_Interop() => _db2.Dispose();
+    [GlobalCleanup(Target = nameof(ReadString_CiccioSoft))]
+    public void Cleanup_CiccioSoft() => _dbCiccioSoft?.Dispose();
 
     [Benchmark]
-    public void ReadString_Interop()
+    public void ReadString_CiccioSoft()
     {
-        using (var stmt = _db2.Prepare("SELECT Id, Name, Score FROM Users;"))
+        if (_dbCiccioSoft != null)
         {
-            while (stmt.Step())
+            using (var stmt = _dbCiccioSoft.Prepare("SELECT Id, Name, Score FROM Users;"))
             {
-                long id = stmt.GetLong(0);
-                string name = stmt.GetText(1);
-                double score = stmt.GetDouble(2);
-                _consumer.Consume(id);
-                _consumer.Consume(name);
-                _consumer.Consume(score);
+                while (stmt.Step())
+                {
+                    long id = stmt.GetLong(0);
+                    string name = stmt.GetText(1)!;
+                    double score = stmt.GetDouble(2);
+                    _consumer.Consume(id);
+                    _consumer.Consume(name);
+                    _consumer.Consume(score);
+                }
             }
         }
     }
