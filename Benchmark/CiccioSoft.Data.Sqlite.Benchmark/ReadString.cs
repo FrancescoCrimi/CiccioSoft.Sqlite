@@ -84,7 +84,7 @@ public class ReadString
     }
 
     [Benchmark(Baseline = true)] // Imposta Microsoft come punto di riferimento
-    public unsafe void ReadString_Microsoft()
+    public void ReadString_Microsoft()
     {
         using var _db1 = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
         _db1.Open();

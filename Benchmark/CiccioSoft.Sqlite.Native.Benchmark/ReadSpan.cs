@@ -57,7 +57,7 @@ public class ReadSpan
     public void Cleanup_SQLitePCL() => raw.sqlite3_close_v2(_db1);
 
     [Benchmark(Baseline = true)] // Imposta SQLitePCLRaw come punto di riferimento
-    public unsafe void ReadSpan_SQLitePCL()
+    public void ReadSpan_SQLitePCL()
     {
         raw.sqlite3_prepare_v2(_db1, "SELECT Id, Name, Score FROM Users;", out var stmtRaw);
         using (stmtRaw)
