@@ -31,15 +31,13 @@ public sealed class Statement : IDisposable
         _transaction = transaction;
     }
 
+    #region public
+
     public bool IsReadOnly => _native.IsReadOnly();
-
-    public int ColumnCount => ExecuteWithSessionGate(_native.ColumnCount);
-
-    public int ParameterCount => ExecuteWithSessionGate(_native.ParameterCount);
-
-    public string? Sql => ExecuteWithSessionGate(_native.GetSql);
-
-    public string? ExpandedSql => ExecuteWithSessionGate(_native.GetExpandedSql);
+    public int ColumnCount => _native.ColumnCount();
+    public int ParameterCount => _native.ParameterCount();
+    public string? Sql => _native.GetSql();
+    public string? ExpandedSql => _native.GetExpandedSql();
 
     public bool Step(CancellationToken cancellationToken = default)
     {
@@ -79,7 +77,7 @@ public sealed class Statement : IDisposable
     public void Reset()
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
+        // _session.Gate.Wait();
         try
         {
             _native.Reset();
@@ -87,107 +85,72 @@ public sealed class Statement : IDisposable
         finally
         {
             _session.Gate.Release();
-            if (_transaction is null)
-                ReleaseOperationWriterLease();
+            // if (_transaction is null)
+            //     ReleaseOperationWriterLease();
         }
     }
 
     public void ClearBindings()
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
-        try
-        {
-            _native.ClearBindings();
-        }
-        finally
-        {
-            _session.Gate.Release();
-        }
+        // _session.Gate.Wait();
+        // try
+        // {
+        _native.ClearBindings();
+        // }
+        // finally
+        // {
+        //     _session.Gate.Release();
+        // }
     }
 
-    public string? GetParameterName(int index) => ExecuteWithSessionGate(() => _native.GetParameterNameString(index));
-
-    public int GetParameterIndex(string parameterName) => ExecuteWithSessionGate(() => _native.GetParameterIndex(parameterName));
-
-    public void BindNull(int index) => ExecuteWithSessionGate(() => _native.BindNull(index));
-
-    public void BindInt(int index, int value) => ExecuteWithSessionGate(() => _native.BindInt(index, value));
-
-    public void BindLong(int index, long value) => ExecuteWithSessionGate(() => _native.BindLong(index, value));
-
-    public void BindDouble(int index, double value) => ExecuteWithSessionGate(() => _native.BindDouble(index, value));
-
-    public void BindText(int index, string? value) => ExecuteWithSessionGate(() => _native.BindText(index, value!));
+    public string? GetParameterName(int index) => _native.GetParameterNameString(index);
+    public int GetParameterIndex(string parameterName) => _native.GetParameterIndex(parameterName);
+    public void BindNull(int index) => _native.BindNull(index);
+    public void BindInt(int index, int value) => _native.BindInt(index, value);
+    public void BindLong(int index, long value) => _native.BindLong(index, value);
+    public void BindDouble(int index, double value) => _native.BindDouble(index, value);
+    public void BindText(int index, string? value) => _native.BindText(index, value!);
 
     public void BindText(int index, ReadOnlySpan<byte> value)
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
-        try { _native.BindText(index, value); }
-        finally { _session.Gate.Release(); }
+        _native.BindText(index, value);
     }
 
     public void BindBlob(int index, ReadOnlySpan<byte> value)
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
-        try { _native.BindBlob(index, value); }
-        finally { _session.Gate.Release(); }
+        _native.BindBlob(index, value);
     }
 
-    public string? GetColumnName(int index) => ExecuteWithSessionGate(() => _native.GetColumnName(index));
-
-    public string? GetColumnDeclaredType(int index) => ExecuteWithSessionGate(() => _native.GetColumnDeclType(index));
-
-    public string? GetColumnDatabaseName(int index) => ExecuteWithSessionGate(() => _native.GetColumnDatabaseName(index));
-
-    public string? GetColumnTableName(int index) => ExecuteWithSessionGate(() => _native.GetColumnTableName(index));
-
-    public string? GetColumnOriginName(int index) => ExecuteWithSessionGate(() => _native.GetColumnOriginName(index));
-
-    public SqliteType GetColumnType(int index) => ExecuteWithSessionGate(() => _native.GetColumnType(index));
-
-    public int GetInt(int index) => ExecuteWithSessionGate(() => _native.GetInt(index));
-
-    public long GetLong(int index) => ExecuteWithSessionGate(() => _native.GetLong(index));
-
-    public double GetDouble(int index) => ExecuteWithSessionGate(() => _native.GetDouble(index));
-
-    public string? GetText(int index) => ExecuteWithSessionGate(() => _native.GetText(index));
+    public string? GetColumnName(int index) => _native.GetColumnName(index);
+    public string? GetColumnDeclaredType(int index) => _native.GetColumnDeclType(index);
+    public string? GetColumnDatabaseName(int index) => _native.GetColumnDatabaseName(index);
+    public string? GetColumnTableName(int index) => _native.GetColumnTableName(index);
+    public string? GetColumnOriginName(int index) => _native.GetColumnOriginName(index);
+    public SqliteType GetColumnType(int index) => _native.GetColumnType(index);
+    public int GetInt(int index) => _native.GetInt(index);
+    public long GetLong(int index) => _native.GetLong(index);
+    public double GetDouble(int index) => _native.GetDouble(index);
+    public string? GetText(int index) => _native.GetText(index);
 
     public ReadOnlySpan<byte> GetTextBytes(int index)
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
-        try { return _native.GetTextAsSpan(index); }
-        finally { _session.Gate.Release(); }
+        return _native.GetTextAsSpan(index);
     }
 
     public ReadOnlySpan<byte> GetBlob(int index)
     {
         EnsureNotDisposed();
-        _session.Gate.Wait();
-        try { return _native.GetBlob(index); }
-        finally { _session.Gate.Release(); }
+        return _native.GetBlob(index);
     }
 
-    public void Dispose()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
+    #endregion
 
-        try
-        {
-            _session.Gate.Wait();
-            try { _native.Dispose(); }
-            finally { _session.Gate.Release(); }
-        }
-        finally
-        {
-            ReleaseOperationWriterLease();
-        }
-    }
+
+    #region private
 
     private void EnsureOperationWriterOwnership(CancellationToken cancellationToken)
     {
@@ -223,4 +186,30 @@ public sealed class Statement : IDisposable
         if (Volatile.Read(ref _disposed) != 0)
             throw new ObjectDisposedException(nameof(Statement));
     }
+
+    #endregion
+
+
+    #region disposable
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        try
+        {
+            // _session.Gate.Wait();
+            // try { 
+            _native.Dispose();
+            //      }
+            // finally { /*_session.Gate.Release();*/ }
+        }
+        finally
+        {
+            ReleaseOperationWriterLease();
+        }
+    }
+
+    #endregion
 }

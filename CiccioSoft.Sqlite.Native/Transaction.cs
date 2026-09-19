@@ -17,6 +17,8 @@ public sealed class Transaction : IDisposable
     private readonly object _syncRoot = new();
     private LogicalTransactionState _state;
 
+    #region ctor
+
     internal Transaction(Connection connection, TransactionMode mode)
     {
         ArgumentNullException.ThrowIfNull(connection);
@@ -25,43 +27,10 @@ public sealed class Transaction : IDisposable
         _state = LogicalTransactionState.Initial;
     }
 
-    public TransactionMode Mode { get; }
+    #endregion
 
-    public LogicalTransactionState State
-    {
-        get
-        {
-            lock (_syncRoot)
-            {
-                return _state;
-            }
-        }
-    }
 
-    internal bool IsRegisteredActive
-    {
-        get
-        {
-            lock (_syncRoot)
-            {
-                return _state is LogicalTransactionState.Initial or LogicalTransactionState.Active or LogicalTransactionState.Committing or LogicalTransactionState.RollingBack;
-            }
-        }
-    }
-
-    internal void MarkFailed()
-    {
-        Fail();
-    }
-
-    internal void Activate()
-    {
-        lock (_syncRoot)
-        {
-            EnsureState(LogicalTransactionState.Initial, nameof(Activate));
-            _state = LogicalTransactionState.Active;
-        }
-    }
+    #region public
 
     public void Commit()
     {
@@ -103,13 +72,53 @@ public sealed class Transaction : IDisposable
         }
     }
 
-    public void Dispose()
+    public TransactionMode Mode { get; }
+
+    public LogicalTransactionState State
     {
-        if (State == LogicalTransactionState.Active)
+        get
         {
-            Rollback();
+            lock (_syncRoot)
+            {
+                return _state;
+            }
         }
     }
+
+    #endregion
+
+
+    #region internal
+
+    internal bool IsRegisteredActive
+    {
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _state is LogicalTransactionState.Initial or LogicalTransactionState.Active or LogicalTransactionState.Committing or LogicalTransactionState.RollingBack;
+            }
+        }
+    }
+
+    internal void MarkFailed()
+    {
+        Fail();
+    }
+
+    internal void Activate()
+    {
+        lock (_syncRoot)
+        {
+            EnsureState(LogicalTransactionState.Initial, nameof(Activate));
+            _state = LogicalTransactionState.Active;
+        }
+    }
+
+    #endregion
+
+
+    #region private
 
     private void Complete()
     {
@@ -142,4 +151,19 @@ public sealed class Transaction : IDisposable
         // _connection.Execute(sql, $"Transaction.{operation}");
         _connection.Execute(sql);
     }
+
+    #endregion
+
+
+    #region disposable
+
+    public void Dispose()
+    {
+        if (State == LogicalTransactionState.Active)
+        {
+            Rollback();
+        }
+    }
+
+    #endregion
 }

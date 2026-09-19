@@ -21,6 +21,8 @@ public class SqliteTransaction : DbTransaction
     private readonly bool _useReadUncommitted;
     private bool _completed;
 
+    #region ctor
+
     internal SqliteTransaction(SqliteConnection connection, IsolationLevel isolationLevel)
     {
         IsolationLevel = NormalizeIsolationLevel(isolationLevel);
@@ -41,6 +43,11 @@ public class SqliteTransaction : DbTransaction
             throw;
         }
     }
+
+    #endregion
+
+
+    #region DbTransaction
 
     public override IsolationLevel IsolationLevel { get; }
 
@@ -104,22 +111,10 @@ public class SqliteTransaction : DbTransaction
         return Task.CompletedTask;
     }
 
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing && !_completed && _connection.State == ConnectionState.Open)
-        {
-            try { Rollback(); } catch { }
-        }
+    #endregion
 
-        if (disposing)
-        {
-            _connection.ClearActiveTransaction();
-            // _writerGate?.Dispose();
-            _connection.DisposeWriterGate();
-        }
 
-        base.Dispose(disposing);
-    }
+    #region private
 
     private void EnsureActive()
     {
@@ -178,4 +173,28 @@ public class SqliteTransaction : DbTransaction
         => useReadUncommitted
             ? "PRAGMA read_uncommitted=1; BEGIN;"
             : "PRAGMA read_uncommitted=0; BEGIN IMMEDIATE;";
+
+    #endregion
+
+
+    #region disposable
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && !_completed && _connection.State == ConnectionState.Open)
+        {
+            try { Rollback(); } catch { }
+        }
+
+        if (disposing)
+        {
+            _connection.ClearActiveTransaction();
+            // _writerGate?.Dispose();
+            _connection.DisposeWriterGate();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    #endregion
 }

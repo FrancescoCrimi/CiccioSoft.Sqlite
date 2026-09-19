@@ -43,16 +43,13 @@ public sealed unsafe class Connection : IDisposable
     private readonly object _transactionSyncRoot = new();
     private Transaction? _rootTransaction;
 
+    #region Ctor and factory
+
     private Connection(ConnectionSafeHandle handle)
     {
         ArgumentNullException.ThrowIfNull(handle);
         _handle = handle;
     }
-
-    /// <summary>
-    /// Gets the native connection safe handle owned by this physical connection.
-    /// </summary>
-    internal ConnectionSafeHandle Handle => _handle;
 
     /// <summary>
     /// Opening A New Database Connection with explicit <c>sqlite3_open_v2</c> flags.
@@ -104,45 +101,10 @@ public sealed unsafe class Connection : IDisposable
         }
     }
 
-    /// <summary>
-    /// Begins a new root transaction on this logical connection.
-    /// </summary>
-    /// <param name="mode">The SQLite transaction mode to request.</param>
-    /// <returns>The active root transaction.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when a root transaction is already active.</exception>
-    public Transaction BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
-    {
-        ThrowIfInvalid();
+    #endregion
 
-        if (!Enum.IsDefined(mode))
-            throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.");
 
-        Transaction transaction;
-
-        lock (_transactionSyncRoot)
-        {
-            if (_rootTransaction?.IsRegisteredActive == true)
-            {
-                throw new InvalidOperationException("A root transaction is already active for this connection.");
-            }
-
-            transaction = new Transaction(this, mode);
-            _rootTransaction = transaction;
-        }
-
-        try
-        {
-            Execute(GetBeginSql(mode));
-            transaction.Activate();
-            return transaction;
-        }
-        catch
-        {
-            transaction.MarkFailed();
-            ClearRootTransaction(transaction);
-            throw;
-        }
-    }
+    #region wrapper method to sqlite
 
     /// <summary>
     /// One-Step Query Execution Interface.
@@ -199,7 +161,7 @@ public sealed unsafe class Connection : IDisposable
         return PrepareCore(sql, prepareFlags);
     }
 
-    public Statement PrepareCore(ReadOnlySpan<byte> sql, PrepareFlags prepareFlags = PrepareFlags.None)
+    private Statement PrepareCore(ReadOnlySpan<byte> sql, PrepareFlags prepareFlags = PrepareFlags.None)
     {
         fixed (byte* pBuf = sql)
         {
@@ -480,6 +442,75 @@ public sealed unsafe class Connection : IDisposable
         return NativeMethods.sqlite3_libversion_number();
     }
 
+    #endregion
+
+
+    #region other public method
+
+    public Backup InitBackup(Connection destination,
+                             string destinationDatabaseName = "main",
+                             string sourceDatabaseName = "main")
+    {
+        ThrowIfInvalid();
+        ArgumentNullException.ThrowIfNull(destination);
+        return Backup.InitBackup(destination, this, destinationDatabaseName, sourceDatabaseName);
+    }
+
+    public Blob OpenBlob(string tableName,
+                         string columnName,
+                         long rowId,
+                         bool readWrite = false,
+                         string databaseName = "main")
+    {
+        ThrowIfInvalid();
+        return Blob.Open(this, tableName, columnName, rowId, readWrite, databaseName);
+    }
+
+    /// <summary>
+    /// Gets the native connection safe handle owned by this physical connection.
+    /// </summary>
+    internal ConnectionSafeHandle Handle => _handle;
+
+    /// <summary>
+    /// Begins a new root transaction on this logical connection.
+    /// </summary>
+    /// <param name="mode">The SQLite transaction mode to request.</param>
+    /// <returns>The active root transaction.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when a root transaction is already active.</exception>
+    public Transaction BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
+    {
+        ThrowIfInvalid();
+
+        if (!Enum.IsDefined(mode))
+            throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.");
+
+        Transaction transaction;
+
+        lock (_transactionSyncRoot)
+        {
+            if (_rootTransaction?.IsRegisteredActive == true)
+            {
+                throw new InvalidOperationException("A root transaction is already active for this connection.");
+            }
+
+            transaction = new Transaction(this, mode);
+            _rootTransaction = transaction;
+        }
+
+        try
+        {
+            Execute(GetBeginSql(mode));
+            transaction.Activate();
+            return transaction;
+        }
+        catch
+        {
+            transaction.MarkFailed();
+            ClearRootTransaction(transaction);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Retrieves metadata information about a specific column in a table.
     /// </summary>
@@ -581,24 +612,8 @@ public sealed unsafe class Connection : IDisposable
         }
     }
 
-    public Backup InitBackup(Connection destination,
-                             string destinationDatabaseName = "main",
-                             string sourceDatabaseName = "main")
-    {
-        ThrowIfInvalid();
-        ArgumentNullException.ThrowIfNull(destination);
-        return Backup.InitBackup(destination, this, destinationDatabaseName, sourceDatabaseName);
-    }
+    #endregion
 
-    public Blob OpenBlob(string tableName,
-                         string columnName,
-                         long rowId,
-                         bool readWrite = false,
-                         string databaseName = "main")
-    {
-        ThrowIfInvalid();
-        return Blob.Open(this, tableName, columnName, rowId, readWrite, databaseName);
-    }
 
     #region Private Methods
 
@@ -647,6 +662,9 @@ public sealed unsafe class Connection : IDisposable
 
     #endregion
 
+
+    #region disposable
+
     public void Dispose()
     {
         lock (_transactionSyncRoot)
@@ -660,4 +678,6 @@ public sealed unsafe class Connection : IDisposable
 
         _handle.Dispose();
     }
+
+    #endregion
 }

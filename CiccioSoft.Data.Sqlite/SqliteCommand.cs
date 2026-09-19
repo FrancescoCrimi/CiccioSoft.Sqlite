@@ -32,6 +32,8 @@ public sealed class SqliteCommand : DbCommand
     private CachedStatement? _cachedStatement;
     private bool _prepared;
 
+    #region Ctor
+
     public SqliteCommand() { }
 
     public SqliteCommand(string? commandText, SqliteConnection? connection)
@@ -49,6 +51,11 @@ public sealed class SqliteCommand : DbCommand
     public SqliteCommand(string? commandText, SqliteConnection? connection, SqliteTransaction? transaction)
         : this(commandText, connection)
         => Transaction = transaction;
+
+    #endregion
+
+
+    #region DbCommand
 
     private CommandType _commandType = CommandType.Text;
 
@@ -184,23 +191,6 @@ public sealed class SqliteCommand : DbCommand
     /// </summary>
     /// <value>A value indicating how the results are applied to the row being updated.</value>
     public override UpdateRowSource UpdatedRowSource { get; set; }
-
-    /// <summary>
-    ///     Releases any resources used by the connection and closes it.
-    /// </summary>
-    /// <param name="disposing">
-    ///     <see langword="true" /> to release managed and unmanaged resources;
-    ///     <see langword="false" /> to release only unmanaged resources.
-    /// </param>
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            InvalidateStatementCache();
-        }
-
-        base.Dispose(disposing);
-    }
 
     /// <summary>
     ///     Creates a new parameter.
@@ -380,7 +370,10 @@ public sealed class SqliteCommand : DbCommand
         _connection.GetSession().Native.Interrupt();
     }
 
+    #endregion
 
+
+    #region internal
 
     internal CommandExecutionScope CreateExecutionScope(SqliteSession session, CancellationToken cancellationToken)
         => new(this, session, cancellationToken);
@@ -572,6 +565,11 @@ public sealed class SqliteCommand : DbCommand
             stmt.Dispose();
         }
     }
+
+    #endregion
+
+
+    #region private
 
     private void BindParameters(NativeStatement stmt, bool throwOnMissingParameter)
     {
@@ -992,4 +990,28 @@ public sealed class SqliteCommand : DbCommand
             _cached.Release();
         }
     }
+
+    #endregion
+
+
+    #region disposable
+
+    /// <summary>
+    ///     Releases any resources used by the connection and closes it.
+    /// </summary>
+    /// <param name="disposing">
+    ///     <see langword="true" /> to release managed and unmanaged resources;
+    ///     <see langword="false" /> to release only unmanaged resources.
+    /// </param>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            InvalidateStatementCache();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    #endregion
 }

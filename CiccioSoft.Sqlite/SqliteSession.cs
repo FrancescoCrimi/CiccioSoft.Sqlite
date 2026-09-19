@@ -57,6 +57,9 @@ public sealed class SqliteSession : IDisposable
 
     internal void Invalidate() => Dispose();
 
+
+    #region disposable
+
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -67,4 +70,6 @@ public sealed class SqliteSession : IDisposable
         Native.Dispose();
         GC.SuppressFinalize(this);
     }
+
+    #endregion
 }

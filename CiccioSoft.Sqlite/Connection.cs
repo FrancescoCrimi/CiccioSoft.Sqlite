@@ -27,12 +27,19 @@ public sealed class Connection : IDisposable
     private Transaction? _transaction;
     private int _disposed;
 
+    #region Ctor
+
     private Connection(string poolKey, SqliteSession session, bool pooled)
     {
         _poolKey = poolKey;
         _session = session;
         _pooled = pooled;
     }
+
+    #endregion
+
+
+    #region public
 
     public static Connection Open(
         string dataSource,
@@ -122,6 +129,11 @@ public sealed class Connection : IDisposable
         }
     }
 
+    #endregion
+
+
+    #region internal 
+
     internal Statement PrepareControlStatement(string sql)
     {
         EnsureNotDisposed();
@@ -148,6 +160,39 @@ public sealed class Connection : IDisposable
     }
 
     internal Transaction? CurrentTransaction => _transaction;
+
+    internal SqliteSession GetSession() { EnsureNotDisposed(); return _session!; }
+
+    #endregion
+
+
+    #region private
+
+    private Statement PrepareCore(string sql, PrepareFlags prepareFlags, Transaction? transaction)
+    {
+        SqliteSession session = _session!;
+        session.Gate.Wait();
+        try
+        {
+            Native.Statement nativeStatement = session.Native.Prepare(sql, prepareFlags);
+            return new Statement(this, session, nativeStatement, transaction);
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
+    }
+
+    private void EnsureNotDisposed()
+    {
+        if (Volatile.Read(ref _disposed) != 0 || _session is null)
+            throw new ObjectDisposedException(nameof(Connection));
+    }
+
+    #endregion
+
+
+    #region dispsable
 
     public void Dispose()
     {
@@ -180,26 +225,5 @@ public sealed class Connection : IDisposable
         }
     }
 
-    internal SqliteSession GetSession() { EnsureNotDisposed(); return _session!; }
-
-    private Statement PrepareCore(string sql, PrepareFlags prepareFlags, Transaction? transaction)
-    {
-        SqliteSession session = _session!;
-        session.Gate.Wait();
-        try
-        {
-            Native.Statement nativeStatement = session.Native.Prepare(sql, prepareFlags);
-            return new Statement(this, session, nativeStatement, transaction);
-        }
-        finally
-        {
-            session.Gate.Release();
-        }
-    }
-
-    private void EnsureNotDisposed()
-    {
-        if (Volatile.Read(ref _disposed) != 0 || _session is null)
-            throw new ObjectDisposedException(nameof(Connection));
-    }
+    #endregion
 }

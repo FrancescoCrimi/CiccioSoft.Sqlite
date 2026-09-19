@@ -37,6 +37,9 @@ public sealed class SqliteConnection : DbConnection
     private string _dataSource = string.Empty;
     private string _writerKey = string.Empty;
     private int? _defaultTimeout;
+    private IDisposable? _writerGate;
+
+    #region Ctor
 
     public SqliteConnection() { }
 
@@ -45,25 +48,10 @@ public sealed class SqliteConnection : DbConnection
         ConnectionString = connectionString;
     }
 
-    /// <summary>
-    ///     Gets the underlying low-level SQLite interop object for advanced/native operations.
-    /// </summary>
-    public NativeConnection Interop
-    {
-        get
-        {
-            EnsureOpen();
-            return _session!.Native;
-        }
-    }
+    #endregion
 
-    // ToDo: Change Handle with Interop and remove Handle
-    /// <summary>
-    ///     Gets a handle to underlying database connection.
-    /// </summary>
-    /// <value>A handle to underlying database connection.</value>
-    public NativeConnection? Handle
-        => _session?.Native;
+
+    #region DbConnection
 
     [DefaultValue("")]
     [SettingsBindableAttribute(true)]
@@ -99,7 +87,6 @@ public sealed class SqliteConnection : DbConnection
         get => _defaultTimeout ?? _settings.DefaultTimeout;
         set => _defaultTimeout = value;
     }
-
 
     public override string ServerVersion
     {
@@ -216,60 +203,6 @@ public sealed class SqliteConnection : DbConnection
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Executes <c>PRAGMA wal_checkpoint(PASSIVE)</c> on the current connection.
-    /// </summary>
-    public void Checkpoint()
-        => Checkpoint(SqliteWalCheckpointMode.Passive);
-
-    /// <summary>
-    /// Executes a WAL checkpoint using the requested mode.
-    /// </summary>
-    public void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
-    {
-        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
-        AcquireWriterGate();
-        ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
-        DisposeWriterGate();
-    }
-
-    /// <summary>
-    /// Asynchronously executes <c>PRAGMA wal_checkpoint(PASSIVE)</c>.
-    /// </summary>
-    public Task CheckpointAsync(CancellationToken cancellationToken = default)
-        => CheckpointAsync(SqliteWalCheckpointMode.Passive, cancellationToken);
-
-    /// <summary>
-    /// Asynchronously executes a WAL checkpoint using the requested mode.
-    /// </summary>
-    public Task CheckpointAsync(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Checkpoint(mode, cancellationToken);
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Executes <c>PRAGMA optimize</c> for lightweight planner/statistics maintenance.
-    /// </summary>
-    public void Optimize(CancellationToken cancellationToken = default)
-    {
-        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
-        AcquireWriterGate();
-        ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
-        DisposeWriterGate();
-    }
-
-    /// <summary>
-    /// Asynchronously executes <c>PRAGMA optimize</c>.
-    /// </summary>
-    public Task OptimizeAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Optimize(cancellationToken);
-        return Task.CompletedTask;
-    }
-
     public override DataTable GetSchema()
     {
         return GetSchema(DbMetaDataCollectionNames.MetaDataCollections);
@@ -352,12 +285,152 @@ public sealed class SqliteConnection : DbConnection
     protected override DbCommand CreateDbCommand()
         => CreateCommand();
 
-    protected override void Dispose(bool disposing)
+    #endregion
+
+
+    #region other public
+
+    /// <summary>
+    ///     Gets the underlying low-level SQLite interop object for advanced/native operations.
+    /// </summary>
+    public NativeConnection Interop
     {
-        if (disposing)
-            Close();
-        base.Dispose(disposing);
+        get
+        {
+            EnsureOpen();
+            return _session!.Native;
+        }
     }
+
+    // ToDo: Change Handle with Interop and remove Handle
+    /// <summary>
+    ///     Gets a handle to underlying database connection.
+    /// </summary>
+    /// <value>A handle to underlying database connection.</value>
+    public NativeConnection? Handle
+        => _session?.Native;
+
+    /// <summary>
+    ///     Backup of the connected database.
+    /// </summary>
+    /// <param name="destination">The destination of the backup.</param>
+    public void BackupDatabase(SqliteConnection destination)
+        => BackupDatabase(destination, Database, Database);
+
+    /// <summary>
+    ///     Backup of the connected database.
+    /// </summary>
+    /// <param name="destination">The destination of the backup.</param>
+    /// <param name="destinationName">The name of the destination database.</param>
+    /// <param name="sourceName">The name of the source database.</param>
+    public void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
+    {
+        if (State != ConnectionState.Open)
+        {
+            throw new InvalidOperationException(Resources.CallRequiresOpenConnection(nameof(BackupDatabase)));
+        }
+
+        if (destination == null)
+        {
+            throw new ArgumentNullException(nameof(destination));
+        }
+
+        var close = false;
+        if (destination.State != ConnectionState.Open)
+        {
+            destination.Open();
+            close = true;
+        }
+
+        try
+        {
+            // using var backup = Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
+            using var backup = Interop.InitBackup(destination.Interop, destinationName, sourceName);
+
+            var result = backup.Step(-1);
+            if (result != ResultCode.Done)
+                throw new SqliteException($"SQLite backup failed with result {result}.");
+        }
+
+        // Intercetta ArgumentNullException
+        catch (ArgumentNullException anex)
+        {
+            throw new SqliteException(anex.Message);
+        }
+
+        // Intercetta eventuali SqliteInteropException
+        catch (CiccioSoft.Sqlite.Native.Exception siex)
+        {
+            throw new SqliteException(siex.Message, siex);
+        }
+
+        finally
+        {
+            if (close)
+            {
+                destination.Close();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes <c>PRAGMA wal_checkpoint(PASSIVE)</c> on the current connection.
+    /// </summary>
+    public void Checkpoint()
+        => Checkpoint(SqliteWalCheckpointMode.Passive);
+
+    /// <summary>
+    /// Executes a WAL checkpoint using the requested mode.
+    /// </summary>
+    public void Checkpoint(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    {
+        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        AcquireWriterGate();
+        ExecuteSessionPragma($"PRAGMA wal_checkpoint({ToCheckpointPragma(mode)});", cancellationToken);
+        DisposeWriterGate();
+    }
+
+    /// <summary>
+    /// Asynchronously executes <c>PRAGMA wal_checkpoint(PASSIVE)</c>.
+    /// </summary>
+    public Task CheckpointAsync(CancellationToken cancellationToken = default)
+        => CheckpointAsync(SqliteWalCheckpointMode.Passive, cancellationToken);
+
+    /// <summary>
+    /// Asynchronously executes a WAL checkpoint using the requested mode.
+    /// </summary>
+    public Task CheckpointAsync(SqliteWalCheckpointMode mode, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Checkpoint(mode, cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Executes <c>PRAGMA optimize</c> for lightweight planner/statistics maintenance.
+    /// </summary>
+    public void Optimize(CancellationToken cancellationToken = default)
+    {
+        // using IDisposable writerGate = AcquireWriterGate(cancellationToken);
+        AcquireWriterGate();
+        ExecuteSessionPragma("PRAGMA optimize;", cancellationToken);
+        DisposeWriterGate();
+    }
+
+    /// <summary>
+    /// Asynchronously executes <c>PRAGMA optimize</c>.
+    /// </summary>
+    public Task OptimizeAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Optimize(cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    #endregion
+
+
+    #region internal
 
     internal SqliteSession GetSession()
     {
@@ -391,7 +464,6 @@ public sealed class SqliteConnection : DbConnection
         }
     }
 
-
     internal bool HasActiveTransaction()
     {
         lock (_syncRoot)
@@ -400,7 +472,6 @@ public sealed class SqliteConnection : DbConnection
         }
     }
 
-    private IDisposable? _writerGate;
     internal void AcquireWriterGate(CancellationToken cancellationToken = default)
     {
         if (_writerGate == null)
@@ -420,6 +491,29 @@ public sealed class SqliteConnection : DbConnection
     }
 
     internal bool HasWriteLock => _writerGate != null;
+
+    /// <summary>
+    ///     Gets or sets the transaction currently being used by the connection, or null if none.
+    /// </summary>
+    /// <value>The transaction currently being used by the connection.</value>
+    internal SqliteTransaction? Transaction
+    {
+        get
+        {
+            if (_activeTransaction != null && GetSession().Native.GetAutoCommit())
+            {
+                ClearActiveTransaction();
+            }
+
+            return _activeTransaction;
+        }
+        set => _activeTransaction = value;
+    }
+
+    #endregion
+
+
+    #region private
 
     private static string ResolveWriterKey(string connectionString, string dataSource)
     {
@@ -606,84 +700,17 @@ public sealed class SqliteConnection : DbConnection
             : Path.Combine(AppContext.BaseDirectory, dataSource);
     }
 
-    /// <summary>
-    ///     Backup of the connected database.
-    /// </summary>
-    /// <param name="destination">The destination of the backup.</param>
-    public void BackupDatabase(SqliteConnection destination)
-        => BackupDatabase(destination, Database, Database);
+    #endregion
 
-    /// <summary>
-    ///     Backup of the connected database.
-    /// </summary>
-    /// <param name="destination">The destination of the backup.</param>
-    /// <param name="destinationName">The name of the destination database.</param>
-    /// <param name="sourceName">The name of the source database.</param>
-    public void BackupDatabase(SqliteConnection destination, string destinationName, string sourceName)
+
+    #region disposable
+
+    protected override void Dispose(bool disposing)
     {
-        if (State != ConnectionState.Open)
-        {
-            throw new InvalidOperationException(Resources.CallRequiresOpenConnection(nameof(BackupDatabase)));
-        }
-
-        if (destination == null)
-        {
-            throw new ArgumentNullException(nameof(destination));
-        }
-
-        var close = false;
-        if (destination.State != ConnectionState.Open)
-        {
-            destination.Open();
-            close = true;
-        }
-
-        try
-        {
-            // using var backup = Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
-            using var backup = Interop.InitBackup(destination.Interop, destinationName, sourceName);
-
-            var result = backup.Step(-1);
-            if (result != ResultCode.Done)
-                throw new SqliteException($"SQLite backup failed with result {result}.");
-        }
-
-        // Intercetta ArgumentNullException
-        catch (ArgumentNullException anex)
-        {
-            throw new SqliteException(anex.Message);
-        }
-
-        // Intercetta eventuali SqliteInteropException
-        catch (CiccioSoft.Sqlite.Native.Exception siex)
-        {
-            throw new SqliteException(siex.Message, siex);
-        }
-
-        finally
-        {
-            if (close)
-            {
-                destination.Close();
-            }
-        }
+        if (disposing)
+            Close();
+        base.Dispose(disposing);
     }
 
-    /// <summary>
-    ///     Gets or sets the transaction currently being used by the connection, or null if none.
-    /// </summary>
-    /// <value>The transaction currently being used by the connection.</value>
-    internal SqliteTransaction? Transaction
-    {
-        get
-        {
-            if (_activeTransaction != null && GetSession().Native.GetAutoCommit())
-            {
-                ClearActiveTransaction();
-            }
-
-            return _activeTransaction;
-        }
-        set => _activeTransaction = value;
-    }
+    #endregion
 }

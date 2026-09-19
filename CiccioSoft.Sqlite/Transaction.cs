@@ -21,22 +21,20 @@ public sealed class Transaction : IDisposable
     private int _completed;
     private int _disposed;
 
+    #region ctor
+
     internal Transaction(Connection connection, SqliteSession session)
     {
         _connection = connection;
         _session = session;
     }
 
+    #endregion
+
+
+    #region public
+
     public bool IsActive => Volatile.Read(ref _completed) == 0 && Volatile.Read(ref _disposed) == 0;
-
-    internal void Begin() => ExecuteControlStatement("BEGIN");
-
-    internal Task BeginAsync(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        Begin();
-        return Task.CompletedTask;
-    }
 
     public void Commit()
     {
@@ -72,6 +70,20 @@ public sealed class Transaction : IDisposable
         return Task.CompletedTask;
     }
 
+    #endregion
+
+
+    #region internal
+
+    internal void Begin() => ExecuteControlStatement("BEGIN");
+
+    internal Task BeginAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Begin();
+        return Task.CompletedTask;
+    }
+
     internal void EnsureWriterOwnership(CancellationToken cancellationToken = default)
     {
         EnsureActive();
@@ -88,28 +100,10 @@ public sealed class Transaction : IDisposable
         _writerLease = await _connection.AcquireWriteLeaseAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public void Dispose()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+    #endregion
 
-        try
-        {
-            if (Volatile.Read(ref _completed) == 0)
-            {
-                try
-                {
-                    ExecuteControlStatement("ROLLBACK");
-                }
-                catch
-                {
-                }
-            }
-        }
-        finally
-        {
-            Complete();
-        }
-    }
+
+    #region private
 
     private void ExecuteControlStatement(string sql)
     {
@@ -136,4 +130,34 @@ public sealed class Transaction : IDisposable
         if (Volatile.Read(ref _completed) != 0)
             throw new InvalidOperationException("The transaction has already completed.");
     }
+
+    #endregion
+
+
+    #region disposable
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+
+        try
+        {
+            if (Volatile.Read(ref _completed) == 0)
+            {
+                try
+                {
+                    ExecuteControlStatement("ROLLBACK");
+                }
+                catch
+                {
+                }
+            }
+        }
+        finally
+        {
+            Complete();
+        }
+    }
+
+    #endregion
 }

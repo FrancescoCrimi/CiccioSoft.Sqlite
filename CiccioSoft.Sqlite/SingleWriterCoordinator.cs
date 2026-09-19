@@ -46,7 +46,9 @@ public static class SingleWriterCoordinator
     /// <summary>
     /// Acquires writer ownership for the specified writer key.
     /// </summary>
-    public static IDisposable Acquire(string writerKey, CancellationToken cancellationToken = default)
+    public static IDisposable Acquire(
+        string writerKey,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(writerKey);
 

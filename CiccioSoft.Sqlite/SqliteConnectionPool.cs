@@ -19,6 +19,8 @@ namespace CiccioSoft.Sqlite;
 /// </summary>
 public static class SqliteConnectionPool
 {
+    #region private classes
+
     private sealed class PoolRetiredException : Exception
     {
         public static readonly PoolRetiredException Instance = new();
@@ -62,8 +64,14 @@ public static class SqliteConnectionPool
         public bool Retired;
     }
 
+    #endregion
+
+
     private static readonly ConcurrentDictionary<string, PoolState> Pools =
         new(StringComparer.Ordinal);
+
+
+    #region public method
 
     public static SqliteSession Rent(
         string connectionString,
@@ -330,6 +338,11 @@ public static class SqliteConnectionPool
         }
     }
 
+    #endregion
+
+
+    #region private method
+
     private static Waiter CreateWaiterLocked(
         PoolState state,
         CancellationToken cancellationToken)
@@ -550,4 +563,6 @@ public static class SqliteConnectionPool
     {
         return waiter.Task.GetAwaiter().GetResult();
     }
+
+    #endregion
 }

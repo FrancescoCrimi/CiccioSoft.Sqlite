@@ -43,6 +43,7 @@ public sealed class SqliteDataReader : DbDataReader
     private bool _closed;
     private int _recordsAffected = -1; // -1 for unknown
 
+    #region Ctor and factory
 
     private SqliteDataReader(
         SqliteCommand command,
@@ -84,8 +85,10 @@ public sealed class SqliteDataReader : DbDataReader
         return reader;
     }
 
+    #endregion
 
-    private NativeStatement Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
+
+    #region DbDataReader
 
     public override object this[int ordinal] => GetValue(ordinal);
 
@@ -253,59 +256,6 @@ public sealed class SqliteDataReader : DbDataReader
                 throw new InvalidCastException();
         }
     }
-
-    /// <summary>
-    ///     Gets the value of the specified column as a <see cref="DateTimeOffset" />.
-    /// </summary>
-    /// <param name="ordinal">The zero-based column ordinal.</param>
-    /// <returns>The value of the column.</returns>
-    public DateTimeOffset GetDateTimeOffset(int ordinal)
-    {
-        EnsureHasRow();
-        ValidateOrdinal(ordinal);
-
-        switch (Stmt.GetColumnType(ordinal))
-        {
-            case SqliteType.Real:
-            case SqliteType.Integer:
-                {
-                    var value = JulianDayToDateTime(GetDouble(ordinal));
-                    return new DateTimeOffset(value, TimeSpan.Zero);
-                }
-
-            default:
-                {
-                    var value = GetString(ordinal);
-                    return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-                }
-        }
-    }
-
-    /// <summary>
-    ///     Gets the value of the specified column as a <see cref="TimeSpan" />.
-    /// </summary>
-    /// <param name="ordinal">The zero-based column ordinal.</param>
-    /// <returns>The value of the column.</returns>
-    public TimeSpan GetTimeSpan(int ordinal)
-    {
-        EnsureHasRow();
-        ValidateOrdinal(ordinal);
-
-        switch (Stmt.GetColumnType(ordinal))
-        {
-            case SqliteType.Real:
-            case SqliteType.Integer:
-                return TimeSpan.FromDays(GetDouble(ordinal));
-            default:
-                return TimeSpan.Parse(GetString(ordinal));
-        }
-    }
-    // => throw new NotImplementedException("Not Implemented");
-    // => _closed
-    //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
-    //     : _record == null
-    //         ? throw new InvalidOperationException(Resources.NoData)
-    //         : _record.GetTimeSpan(ordinal);
 
     public override decimal GetDecimal(int ordinal)
     {
@@ -638,38 +588,6 @@ public sealed class SqliteDataReader : DbDataReader
         return NextResultCore(initialResult: false);
     }
 
-    private bool NextResultCore(bool initialResult)
-    {
-        if (!initialResult && _behavior.HasFlag(System.Data.CommandBehavior.SingleResult))
-        {
-            return false;
-        }
-
-        while (true)
-        {
-            AddChangesFromCurrentStatement();
-            _command.ReleaseStatement(_stmt);
-            _stmt = null;
-            _prefetched = false;
-            _readStarted = false;
-            _hasRow = false;
-
-            NativeStatement? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState, throwOnMissingParameter: true));
-            if (next is null)
-            {
-                return false;
-            }
-
-            _stmt = next;
-            if (Stmt.ColumnCount() > 0)
-            {
-                return true;
-            }
-
-            ExecuteCurrentStatementToEnd();
-        }
-    }
-
     public override DataTable GetSchemaTable()
     {
         EnsureOpen();
@@ -873,12 +791,145 @@ public sealed class SqliteDataReader : DbDataReader
         return Task.CompletedTask;
     }
 
+    #endregion
+
+
+    #region public
+
     public bool IsDBNull(string name) => IsDBNull(GetOrdinal(name));
 
-    protected override void Dispose(bool disposing)
+    /// <summary>
+    ///     Gets the value of the specified column as a <see cref="DateTimeOffset" />.
+    /// </summary>
+    /// <param name="ordinal">The zero-based column ordinal.</param>
+    /// <returns>The value of the column.</returns>
+    public DateTimeOffset GetDateTimeOffset(int ordinal)
     {
-        if (disposing) Close();
-        base.Dispose(disposing);
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        switch (Stmt.GetColumnType(ordinal))
+        {
+            case SqliteType.Real:
+            case SqliteType.Integer:
+                {
+                    var value = JulianDayToDateTime(GetDouble(ordinal));
+                    return new DateTimeOffset(value, TimeSpan.Zero);
+                }
+
+            default:
+                {
+                    var value = GetString(ordinal);
+                    return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+                }
+        }
+    }
+
+    /// <summary>
+    ///     Gets the value of the specified column as a <see cref="TimeSpan" />.
+    /// </summary>
+    /// <param name="ordinal">The zero-based column ordinal.</param>
+    /// <returns>The value of the column.</returns>
+    public TimeSpan GetTimeSpan(int ordinal)
+    {
+        EnsureHasRow();
+        ValidateOrdinal(ordinal);
+
+        switch (Stmt.GetColumnType(ordinal))
+        {
+            case SqliteType.Real:
+            case SqliteType.Integer:
+                return TimeSpan.FromDays(GetDouble(ordinal));
+            default:
+                return TimeSpan.Parse(GetString(ordinal));
+        }
+    }
+    // => throw new NotImplementedException("Not Implemented");
+    // => _closed
+    //     ? throw new InvalidOperationException(Resources.DataReaderClosed(nameof(GetTimeSpan)))
+    //     : _record == null
+    //         ? throw new InvalidOperationException(Resources.NoData)
+    //         : _record.GetTimeSpan(ordinal);
+
+
+    #endregion
+
+
+    #region internal
+
+    internal static SqliteType Sqlite3AffinityType(string dataTypeName)
+    {
+        if (dataTypeName == null) return SqliteType.Blob;
+
+        const StringComparison sc = StringComparison.OrdinalIgnoreCase;
+
+        return dataTypeName switch
+        {
+            var s when s.Contains("INT", sc) => SqliteType.Integer,
+            var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteType.Text,
+            var s when s.Contains("BLOB", sc) => SqliteType.Blob,
+            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteType.Real,
+            _ => SqliteType.Text
+        };
+    }
+
+    #endregion
+
+
+    #region private
+
+    private NativeStatement Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
+
+    private bool NextResultCore(bool initialResult)
+    {
+        if (!initialResult && _behavior.HasFlag(System.Data.CommandBehavior.SingleResult))
+        {
+            return false;
+        }
+
+        while (true)
+        {
+            AddChangesFromCurrentStatement();
+            _command.ReleaseStatement(_stmt);
+            _stmt = null;
+            _prefetched = false;
+            _readStarted = false;
+            _hasRow = false;
+
+            NativeStatement? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState, throwOnMissingParameter: true));
+            if (next is null)
+            {
+                return false;
+            }
+
+            _stmt = next;
+            if (Stmt.ColumnCount() > 0)
+            {
+                return true;
+            }
+
+            ExecuteCurrentStatementToEnd();
+        }
+    }
+
+    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)]
+    private static Type GetFieldType(string type)
+    {
+        switch (type)
+        {
+            case "integer":
+                return typeof(long);
+
+            case "real":
+                return typeof(double);
+
+            case "text":
+                return typeof(string);
+
+            default:
+                // Debug.Assert(type is "blob" or null, "Unexpected column type: " + type);
+                return typeof(byte[]);
+        }
     }
 
     private void EnsureOpen([CallerMemberName] string? operation = null)
@@ -1176,47 +1227,16 @@ public sealed class SqliteDataReader : DbDataReader
         return typeof(string);
     }
 
+    #endregion
 
 
+    #region disposable
 
-
-
-
-    internal static SqliteType Sqlite3AffinityType(string dataTypeName)
+    protected override void Dispose(bool disposing)
     {
-        if (dataTypeName == null) return SqliteType.Blob;
-
-        const StringComparison sc = StringComparison.OrdinalIgnoreCase;
-
-        return dataTypeName switch
-        {
-            var s when s.Contains("INT", sc) => SqliteType.Integer,
-            var s when s.Contains("CHAR", sc) || s.Contains("CLOB", sc) || s.Contains("TEXT", sc) => SqliteType.Text,
-            var s when s.Contains("BLOB", sc) => SqliteType.Blob,
-            var s when s.Contains("REAL", sc) || s.Contains("FLOA", sc) || s.Contains("DOUB", sc) => SqliteType.Real,
-            _ => SqliteType.Text
-        };
+        if (disposing) Close();
+        base.Dispose(disposing);
     }
 
-
-    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields)]
-    private static Type GetFieldType(string type)
-    {
-        switch (type)
-        {
-            case "integer":
-                return typeof(long);
-
-            case "real":
-                return typeof(double);
-
-            case "text":
-                return typeof(string);
-
-            default:
-                // Debug.Assert(type is "blob" or null, "Unexpected column type: " + type);
-                return typeof(byte[]);
-        }
-    }
-
+    #endregion
 }

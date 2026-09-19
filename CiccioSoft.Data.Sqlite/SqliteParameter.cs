@@ -29,6 +29,8 @@ public sealed class SqliteParameter : DbParameter
     private string _sourceColumn = string.Empty;
     private ParameterDirection _direction = ParameterDirection.Input;
 
+    #region Ctor
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="SqliteParameter" /> class.
     /// </summary>
@@ -78,6 +80,11 @@ public sealed class SqliteParameter : DbParameter
     public SqliteParameter(string? name, SqliteType type, int size, string? sourceColumn)
         : this(name, type, size)
         => SourceColumn = sourceColumn;
+
+    #endregion
+
+
+    #region DbParameter
 
     private DbType? _dbType;
 
@@ -215,6 +222,9 @@ public sealed class SqliteParameter : DbParameter
     public override void ResetDbType()
         => ResetSqliteType();
     // => DbType = DbType.Object;
+
+    #endregion
+
 
     /// <summary>
     ///     Resets the <see cref="SqliteType" /> property to its original value.
