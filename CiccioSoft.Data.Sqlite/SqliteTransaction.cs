@@ -20,6 +20,7 @@ public class SqliteTransaction : DbTransaction
     // private readonly IDisposable? _writerGate;
     private readonly bool _useReadUncommitted;
     private bool _completed;
+    // private CiccioSoft.Sqlite.Transaction _transaction;
 
     #region ctor
 
@@ -31,6 +32,9 @@ public class SqliteTransaction : DbTransaction
         /* Disabilito acquisizione lock wal */
         // _writerGate = connection.AcquireWriterGate();
         _useReadUncommitted = isolationLevel == IsolationLevel.ReadUncommitted;
+
+
+        // _transaction = connection.Interop
 
         try
         {
@@ -173,6 +177,8 @@ public class SqliteTransaction : DbTransaction
         => useReadUncommitted
             ? "PRAGMA read_uncommitted=1; BEGIN;"
             : "PRAGMA read_uncommitted=0; BEGIN IMMEDIATE;";
+            // ? "PRAGMA read_uncommitted=1;"
+            // : "PRAGMA read_uncommitted=0;";
 
     #endregion
 

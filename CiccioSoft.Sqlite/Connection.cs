@@ -99,7 +99,7 @@ public sealed class Connection : IDisposable
         Transaction transaction = new(this, _session!);
         try
         {
-            transaction.Begin();
+            transaction.BeginTransaction();
             _transaction = transaction;
             return transaction;
         }
@@ -119,7 +119,7 @@ public sealed class Connection : IDisposable
         Transaction transaction = new(this, _session!);
         try
         {
-            await transaction.BeginAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             _transaction = transaction; return transaction;
         }
         catch

@@ -7,6 +7,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CiccioSoft.Sqlite.Native;
+using NativeTransaction = CiccioSoft.Sqlite.Native.Transaction;
 
 namespace CiccioSoft.Sqlite;
 
@@ -20,6 +22,7 @@ public sealed class Transaction : IDisposable
     private IDisposable? _writerLease;
     private int _completed;
     private int _disposed;
+    private NativeTransaction? _nativeTransaction;
 
     #region ctor
 
@@ -39,7 +42,8 @@ public sealed class Transaction : IDisposable
     public void Commit()
     {
         EnsureActive();
-        ExecuteControlStatement("COMMIT");
+        // ExecuteControlStatement("COMMIT");
+        _nativeTransaction?.Commit();
         Complete();
     }
 
@@ -48,7 +52,8 @@ public sealed class Transaction : IDisposable
         EnsureActive();
         try
         {
-            ExecuteControlStatement("ROLLBACK");
+            // ExecuteControlStatement("ROLLBACK");
+            _nativeTransaction?.Rollback();
         }
         finally
         {
@@ -75,12 +80,16 @@ public sealed class Transaction : IDisposable
 
     #region internal
 
-    internal void Begin() => ExecuteControlStatement("BEGIN");
+    internal void BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
+    {
+        // ExecuteControlStatement("BEGIN");
+        _nativeTransaction = _session.Native.BeginTransaction(mode);
+    }
 
-    internal Task BeginAsync(CancellationToken cancellationToken)
+    internal Task BeginTransactionAsync(CancellationToken cancellationToken, TransactionMode mode = TransactionMode.Deferred)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        Begin();
+        BeginTransaction(mode);
         return Task.CompletedTask;
     }
 
@@ -105,14 +114,14 @@ public sealed class Transaction : IDisposable
 
     #region private
 
-    private void ExecuteControlStatement(string sql)
-    {
-        // BEGIN/COMMIT/ROLLBACK are represented by runtime Statements too.
-        // They are prepared without transaction affinity to avoid recursive
-        // transaction writer-ownership acquisition.
-        using Statement statement = _connection.PrepareControlStatement(sql);
-        statement.Step();
-    }
+    // private void ExecuteControlStatement(string sql)
+    // {
+    //     // BEGIN/COMMIT/ROLLBACK are represented by runtime Statements too.
+    //     // They are prepared without transaction affinity to avoid recursive
+    //     // transaction writer-ownership acquisition.
+    //     using Statement statement = _connection.PrepareControlStatement(sql);
+    //     statement.Step();
+    // }
 
     private void Complete()
     {
@@ -146,7 +155,9 @@ public sealed class Transaction : IDisposable
             {
                 try
                 {
-                    ExecuteControlStatement("ROLLBACK");
+                    // ExecuteControlStatement("ROLLBACK");
+                    _nativeTransaction?.Rollback();
+                    _nativeTransaction?.Dispose();
                 }
                 catch
                 {

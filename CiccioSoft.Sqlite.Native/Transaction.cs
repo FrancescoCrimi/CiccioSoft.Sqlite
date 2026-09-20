@@ -42,7 +42,7 @@ public sealed class Transaction : IDisposable
 
         try
         {
-            Execute("COMMIT;", nameof(Commit));
+            _connection.Execute("COMMIT;");
             Complete();
         }
         catch
@@ -62,7 +62,7 @@ public sealed class Transaction : IDisposable
 
         try
         {
-            Execute("ROLLBACK;", nameof(Rollback));
+            _connection.Execute("ROLLBACK;");
             Complete();
         }
         catch
@@ -90,6 +90,25 @@ public sealed class Transaction : IDisposable
 
     #region internal
 
+    internal void Activate()
+    {
+        try
+        {
+            _connection.Execute(GetBeginSql(Mode));
+            lock (_syncRoot)
+            {
+                EnsureState(LogicalTransactionState.Initial, nameof(Activate));
+                _state = LogicalTransactionState.Active;
+            }
+        }
+        catch
+        {
+            MarkFailed();
+            Complete();
+            throw;
+        }
+    }
+
     internal bool IsRegisteredActive
     {
         get
@@ -106,19 +125,21 @@ public sealed class Transaction : IDisposable
         Fail();
     }
 
-    internal void Activate()
-    {
-        lock (_syncRoot)
-        {
-            EnsureState(LogicalTransactionState.Initial, nameof(Activate));
-            _state = LogicalTransactionState.Active;
-        }
-    }
-
     #endregion
 
 
     #region private
+
+    private static string GetBeginSql(TransactionMode mode)
+    {
+        return mode switch
+        {
+            TransactionMode.Deferred => "BEGIN DEFERRED;",
+            TransactionMode.Immediate => "BEGIN IMMEDIATE;",
+            TransactionMode.Exclusive => "BEGIN EXCLUSIVE;",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.")
+        };
+    }
 
     private void Complete()
     {
@@ -144,12 +165,6 @@ public sealed class Transaction : IDisposable
         {
             throw new InvalidOperationException($"Transaction.{operation} is invalid while the transaction is in the {_state} state.");
         }
-    }
-
-    private void Execute(string sql, string operation)
-    {
-        // _connection.Execute(sql, $"Transaction.{operation}");
-        _connection.Execute(sql);
     }
 
     #endregion

@@ -497,18 +497,8 @@ public sealed unsafe class Connection : IDisposable
             _rootTransaction = transaction;
         }
 
-        try
-        {
-            Execute(GetBeginSql(mode));
-            transaction.Activate();
-            return transaction;
-        }
-        catch
-        {
-            transaction.MarkFailed();
-            ClearRootTransaction(transaction);
-            throw;
-        }
+        transaction.Activate();
+        return transaction;
     }
 
     /// <summary>
@@ -615,8 +605,7 @@ public sealed unsafe class Connection : IDisposable
     #endregion
 
 
-    #region Private Methods
-
+    #region internal
 
     internal void ClearRootTransaction(Transaction transaction)
     {
@@ -637,6 +626,11 @@ public sealed unsafe class Connection : IDisposable
             throw new ObjectDisposedException(nameof(Connection));
     }
 
+    #endregion
+
+
+    #region Private Methods
+
     private void CheckResult(ResultCode result, [CallerMemberName] string caller = "")
     {
         if (result == ResultCode.OK)
@@ -647,17 +641,6 @@ public sealed unsafe class Connection : IDisposable
     private void ThrowException(ResultCode result, [CallerMemberName] string caller = "")
     {
         throw Exception.CreateException(_handle, result, $"{nameof(Connection)}.{caller}");
-    }
-
-    private static string GetBeginSql(TransactionMode mode)
-    {
-        return mode switch
-        {
-            TransactionMode.Deferred => "BEGIN DEFERRED;",
-            TransactionMode.Immediate => "BEGIN IMMEDIATE;",
-            TransactionMode.Exclusive => "BEGIN EXCLUSIVE;",
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.")
-        };
     }
 
     #endregion
