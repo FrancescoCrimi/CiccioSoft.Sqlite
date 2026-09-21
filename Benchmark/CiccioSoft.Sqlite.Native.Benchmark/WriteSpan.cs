@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using SQLitePCL;
 
@@ -12,12 +13,14 @@ namespace CiccioSoft.Sqlite.Native.Benchmark;
 
 public class WriteSpan
 {
-    private const string DbFile = @"C:\Users\franc\Dev\CiccioSoft.Sqlite\write.db";
+    // public const string DbFile = ":memory:";
+    private readonly string DbFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "write.db");
     private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
     private static ReadOnlySpan<byte> TestString => "User_Performance_Test_String_12345"u8;
 
     private sqlite3 _dbPCLRaw;
     private Connection _dbCiccioSoft;
+
 
     [GlobalSetup(Target = nameof(WriteSpan_PCLRaw))]
     public void GlobalSetup_PCLRaw()
@@ -43,20 +46,16 @@ public class WriteSpan
     {
         raw.sqlite3_exec(_dbPCLRaw, "BEGIN;");
         raw.sqlite3_prepare_v2(_dbPCLRaw, "INSERT INTO Users VALUES (?, ?, ?);", out sqlite3_stmt stmtRaw);
-        using (stmtRaw)
+        for (int i = 0; i < RowCount; i++)
         {
-            for (int i = 0; i < RowCount; i++)
-            {
-                raw.sqlite3_reset(stmtRaw);
-                raw.sqlite3_bind_int64(stmtRaw, 1, i);
-                raw.sqlite3_bind_text(stmtRaw, 2, TestString);
-                raw.sqlite3_bind_double(stmtRaw, 3, i * 1.1);
-                raw.sqlite3_step(stmtRaw);
-            }
+            raw.sqlite3_reset(stmtRaw);
+            raw.sqlite3_bind_int64(stmtRaw, 1, i);
+            raw.sqlite3_bind_text(stmtRaw, 2, TestString);
+            raw.sqlite3_bind_double(stmtRaw, 3, i * 1.1);
+            raw.sqlite3_step(stmtRaw);
         }
         raw.sqlite3_exec(_dbPCLRaw, "COMMIT;");
     }
-
 
 
     [GlobalSetup(Target = nameof(WriteSpan_CiccioSoft))]

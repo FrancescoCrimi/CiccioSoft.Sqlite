@@ -29,10 +29,10 @@ public class MyBenchmarkDotNetConfig : ManualConfig
 {
     public MyBenchmarkDotNetConfig()
     {
-        AddLogger(ConsoleLogger.Default);                               // Mantiene l'output su console
-        AddColumnProvider(DefaultColumnProviders.Instance);             // Mantiene le colonne standard
-        AddExporter(BenchmarkDotNet.Exporters.MarkdownExporter.GitHub); // Esporta solo in Markdown
-        WithBuildTimeout(TimeSpan.FromMinutes(15));                     // Manteniamo il timeout alto per il tuo Pentium
+        AddLogger(ConsoleLogger.Default);                                 // Mantiene l'output su console
+        AddColumnProvider(DefaultColumnProviders.Instance);               // Mantiene le colonne standard
+        AddExporter(BenchmarkDotNet.Exporters.MarkdownExporter.GitHub);   // Esporta solo in Markdown
+        WithBuildTimeout(TimeSpan.FromMinutes(15));                       // Manteniamo il timeout alto per il tuo Pentium
         AddDiagnoser(BenchmarkDotNet.Diagnosers.MemoryDiagnoser.Default);
     }
 }

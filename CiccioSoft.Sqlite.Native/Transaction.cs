@@ -13,11 +13,18 @@ public sealed class Transaction : IDisposable
     private bool disposedValue;
     private readonly Connection _connection;
 
-    public Transaction(Connection connection)
+    internal Transaction(Connection connection, TransactionMode mode = TransactionMode.Deferred)
     {
         ArgumentNullException.ThrowIfNull(connection);
         _connection = connection;
     }
+
+    internal void BeginTransaction()
+    {
+
+    }
+
+    #region public
 
     public void Commit()
     {
@@ -42,6 +49,11 @@ public sealed class Transaction : IDisposable
     		
     	}
     }
+
+    #endregion
+
+
+    #region disposable
 
     private void Dispose(bool disposing)
     {
@@ -71,4 +83,6 @@ public sealed class Transaction : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    #endregion
 }

@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 
 namespace CiccioSoft.Data.Sqlite.Benchmark;
@@ -15,18 +16,20 @@ namespace CiccioSoft.Data.Sqlite.Benchmark;
 
 public class WriteString
 {
-    private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
-    private const string connectionString = @"Data Source=C:\Users\franc\Dev\CiccioSoft.Sqlite\write.db";
     // private const string connectionString = ":memory:";
+    private static readonly string DbFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "write.db");
+    private static readonly string connectionString = $@"Data Source={DbFile}";
+    private const int RowCount = 100_000; // Ridotto a 100k perché BenchmarkDotNet esegue i test molte volte
     private const string TestString = "User_Performance_Test_String_12345";
+
+
+    #region Microsoft.Data.Sqlite
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
     }
-
-    #region Microsoft.Data.Sqlite
 
     [IterationSetup(Target = nameof(WriteString_Microsoft))]
     public void IterationSetup_Microsoft()

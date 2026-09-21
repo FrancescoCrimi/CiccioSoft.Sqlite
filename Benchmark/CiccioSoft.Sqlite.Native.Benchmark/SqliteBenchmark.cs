@@ -1,3 +1,10 @@
+// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
@@ -11,8 +18,8 @@ namespace CiccioSoft.Sqlite.Native.Benchmark;
 [RankColumn] // Aggiunge una colonna con la classifica (1°, 2°, ecc.)
 public class SqliteBenchmark
 {
-    private string _dbPCLRaw = Path.Combine(Path.GetTempPath(), "benchmark_pclraw.db");
-    private string _dbCiccioSoft = Path.Combine(Path.GetTempPath(), "benchmark_ciccioSoft.db");
+    private string _dbPCLRaw = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "benchmark_pclraw.db");
+    private string _dbCiccioSoft = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "benchmark_ciccioSoft.db");
 
     // Definiamo i due scaglioni di record richiesti dai tuoi test
     // [Params(100000, 1000000)]

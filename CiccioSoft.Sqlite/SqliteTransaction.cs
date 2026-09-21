@@ -78,6 +78,9 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
         }
     }
 
+
+    #region Prepare and Execute
+
     // ------------------------------------------------------------------
     // Esecuzione — passa sempre da qui per la classificazione read/write e l'eventuale
     // upgrade lazy del lease in modalità Deferred (Tier 0 §13, §17).
@@ -118,6 +121,11 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
         // residua della transazione, non il singolo comando).
         _lease = await _coordinator.AcquireWriterLeaseAsync(ct).ConfigureAwait(false);
     }
+
+    #endregion
+
+
+    #region Savepoint
 
     // ------------------------------------------------------------------
     // Savepoint (Tier 0 §16, Invariante I4) — concetto nativo di Livello 2: funziona
@@ -176,9 +184,10 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
 
     private static string EscapeIdentifier(string identifier) => identifier.Replace("\"", "\"\"");
 
-    // ------------------------------------------------------------------
-    // Commit / Rollback
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Commit / Rollback
 
     public void Commit() => CommitAsync(CancellationToken.None).GetAwaiter().GetResult();
 
@@ -205,6 +214,11 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
         Complete();
     }
 
+    #endregion
+
+
+    #region private
+
     private void Complete()
     {
         Interlocked.Exchange(ref _completed, 1);
@@ -219,6 +233,11 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
             throw new ObjectDisposedException(nameof(SqliteTransaction),
                 "La transazione è già stata completata (Commit/Rollback/Dispose).");
     }
+
+    #endregion
+
+
+    #region disposable
 
     // ------------------------------------------------------------------
     // Dispose — rete di sicurezza: ROLLBACK se né Commit né Rollback sono stati chiamati
@@ -258,4 +277,6 @@ public sealed class SqliteTransaction : IAsyncDisposable, IDisposable
             _lease = null;
         }
     }
+
+    #endregion
 }

@@ -29,7 +29,7 @@ public sealed class SqliteConnection : IDisposable
     private SqliteConnectionPool? _pool;               // null in Native
     private SingleWriterCoordinator? _coordinator;     // null in Native e in ReadOnly (§11)
     private PooledConnection? _pooled;                 // valorizzato solo in Coordinated/ReadOnly
-    private Native.Connection? _native;                       // valorizzato solo in Native
+    private Native.Connection? _native;                // valorizzato solo in Native
     private bool _opened;
     private bool _disposed;
 
@@ -49,9 +49,8 @@ public sealed class SqliteConnection : IDisposable
     private Native.Connection ActiveConnection => _native ?? _pooled?.Connection
         ?? throw new InvalidOperationException("La connessione non è aperta. Chiamare Open()/OpenAsync() prima.");
 
-    // ------------------------------------------------------------------
-    // Apertura
-    // ------------------------------------------------------------------
+
+    #region Apertura
 
     public void Open() => OpenAsync(CancellationToken.None).GetAwaiter().GetResult();
 
@@ -135,9 +134,10 @@ public sealed class SqliteConnection : IDisposable
         _pooled = await _pool.RentAsync(ct).ConfigureAwait(false);
     }
 
-    // ------------------------------------------------------------------
-    // Risoluzione identità (Tier 0 §10) e profilo (Tier 0 §20)
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Risoluzione identità (Tier 0 §10) e profilo (Tier 0 §20)
 
     private enum IdentityKind { File, SharedMemory, PrivateMemory }
 
@@ -185,9 +185,10 @@ public sealed class SqliteConnection : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Valore di IdentityKind non riconosciuto."),
         };
 
-    // ------------------------------------------------------------------
-    // Superficie pubblica (Livello 2) — identica in ogni modalità, Invariante I26
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Superficie pubblica (Livello 2) — identica in ogni modalità, Invariante I26
 
     /// <summary>
     /// Compila uno statement. In Coordinated/ReadOnly passa attraverso la
@@ -389,9 +390,10 @@ public sealed class SqliteConnection : IDisposable
                                                 out isAutoIncrement);
     }
 
-    // ------------------------------------------------------------------
-    // Livello 3 — primitiva di scrittura coordinata (Tier 0 §12, §17)
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Livello 3 — primitiva di scrittura coordinata (Tier 0 §12, §17)
 
     /// <summary>Il coordinatore associato a questa connessione, o <c>null</c> in Native/ReadOnly (§11). Uso interno di <see cref="SqliteTransaction"/>.</summary>
     internal SingleWriterCoordinator? Coordinator => _coordinator;
@@ -411,9 +413,10 @@ public sealed class SqliteConnection : IDisposable
     private static async Task<WriterLease?> AcquireCoreAsync(SingleWriterCoordinator coordinator, CancellationToken ct)
         => await coordinator.AcquireWriterLeaseAsync(ct).ConfigureAwait(false);
 
-    // ------------------------------------------------------------------
-    // Transazioni (Tier 0 §16)
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Transazioni (Tier 0 §16)
 
     public SqliteTransaction BeginTransaction(
         SqliteTransactionMode mode = SqliteTransactionMode.Immediate, bool allowDirtyReads = false) =>
@@ -440,9 +443,10 @@ public sealed class SqliteConnection : IDisposable
         return tx;
     }
 
-    // ------------------------------------------------------------------
-    // Checkpoint WAL (Tier 0 §21, Invariante I16)
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Checkpoint WAL (Tier 0 §21, Invariante I16)
 
     /// <summary>
     /// Esegue un checkpoint WAL — solo in modalità Coordinated (Tier 0 §21).
@@ -495,9 +499,32 @@ public sealed class SqliteConnection : IDisposable
         return coordinator.EnqueueAsync(() => Task.FromResult(ActiveConnection.WalCheckpointCore(mode)), ct);
     }
 
-    // ------------------------------------------------------------------
-    // Chiusura
-    // ------------------------------------------------------------------
+    #endregion
+
+
+    #region Other
+
+    public Backup InitBackup(SqliteConnection destination,
+                             string destinationDatabaseName = "main",
+                             string sourceDatabaseName = "main")
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        return ActiveConnection.InitBackup(destination.ActiveConnection, destinationDatabaseName, sourceDatabaseName);
+    }
+
+    public Blob OpenBlob(string tableName,
+                         string columnName,
+                         long rowId,
+                         bool readWrite = false,
+                         string databaseName = "main")
+    {
+        return ActiveConnection.OpenBlob(tableName, columnName, rowId, readWrite, databaseName);
+    }
+
+    #endregion
+
+
+    #region Disposable Chiusura
 
     public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
 
@@ -518,20 +545,5 @@ public sealed class SqliteConnection : IDisposable
         }
     }
 
-    public Backup InitBackup(SqliteConnection destination,
-                             string destinationDatabaseName = "main",
-                             string sourceDatabaseName = "main")
-    {
-        ArgumentNullException.ThrowIfNull(destination);
-        return ActiveConnection.InitBackup(destination.ActiveConnection, destinationDatabaseName, sourceDatabaseName);
-    }
-
-    public Blob OpenBlob(string tableName,
-                         string columnName,
-                         long rowId,
-                         bool readWrite = false,
-                         string databaseName = "main")
-    {
-        return ActiveConnection.OpenBlob(tableName, columnName, rowId, readWrite, databaseName);
-    }
+    #endregion
 }

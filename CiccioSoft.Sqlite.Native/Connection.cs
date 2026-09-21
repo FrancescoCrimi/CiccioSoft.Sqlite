@@ -43,6 +43,8 @@ public sealed unsafe class Connection : IDisposable
     private readonly object _transactionSyncRoot = new();
     private Native.Transaction? _rootTransaction;
 
+    #region Ctor and factory
+
     // Fix here
     // public ConnectionPhysicalState State { get; internal set; } = ConnectionPhysicalState.Created;
     public ConnectionPhysicalState State { get; set; } = ConnectionPhysicalState.Created;
@@ -57,11 +59,6 @@ public sealed unsafe class Connection : IDisposable
         ArgumentNullException.ThrowIfNull(handle);
         _handle = handle;
     }
-
-    /// <summary>
-    /// Gets the native connection safe handle owned by this physical connection.
-    /// </summary>
-    internal ConnectionSafeHandle Handle => _handle;
 
     /// <summary>
     /// Opening A New Database Connection with explicit <c>sqlite3_open_v2</c> flags.
@@ -123,96 +120,8 @@ public sealed unsafe class Connection : IDisposable
         }
     }
 
+    #endregion
 
-    private void Configure()
-    {
-        State = ConnectionPhysicalState.Configuring;
-
-        // Nessuna chiamata separata a sqlite3_extended_result_codes qui: la modalità
-        // estesa è già attiva fin da Open(), perché ogni SqliteOpenFlagsDefaults (§6.3)
-        // include SqliteOpenFlags.ExResCode — chiude la lacuna per cui un errore durante
-        // l'apertura stessa non era coperto da granularità estesa (Tier 0 §17.6).
-
-        // Execute("PRAGMA journal_mode=WAL;");
-        // var mode = Execute("PRAGMA journal_mode;");
-        // if (!string.Equals(mode, "wal", StringComparison.OrdinalIgnoreCase))
-        // {
-        //     State = ConnectionPhysicalState.Closed;
-        //     _handle.Dispose();
-        //     throw new SqliteConfigurationException(
-        //         $"Richiesto journal_mode=WAL ma il motore nativo ha applicato '{mode}': " +
-        //         "verificare che il file non sia su un filesystem che non supporta il " +
-        //         "memory-mapping richiesto da WAL (Tier 0 §12).");
-        // }
-
-        Execute("PRAGMA busy_timeout=5000;");
-
-        State = ConnectionPhysicalState.Idle;
-    }
-
-    // ResetInvariantiPrimaDiRientrareNelPool(): Tier 0 §12, "Leased -> Idle"
-    public void ResetInvariantsBeforeReturningToPool()
-    {
-        ThrowIfInvalid();
-
-        if (!GetAutoCommit())
-        {
-            Execute("ROLLBACK;");   // rollback difensivo, Invariante I7
-        }
-
-        // Reset esplicito di ogni PRAGMA di sessione non-default che una transazione
-        // precedente potrebbe aver lasciato attiva. Storicamente, questo passo mancava
-        // per read_uncommitted: la connessione tornava Idle con read_uncommitted ancora
-        // a 1, propagando silenziosamente lo stato nella transazione successiva e causando
-        // fallimenti di test intermittenti (violazione di I7, ora coperta dal test §19.5).
-        Execute("PRAGMA read_uncommitted=0;");
-
-        // Chi possiede la StatementCache (PooledConnection, §9.2) decide se e quando
-        // svuotarla: questo metodo si limita allo stato della connessione fisica nuda.
-    }
-
-    // MarkPoisoned() non vive più qui dalla revisione a tre livelli (Tier 0 v6.0.0):
-    // il poisoning è per costruzione un concetto di Livello 3 (esiste solo dove esiste
-    // un Pool da cui evitare il riuso di una connessione compromessa). Vedi
-    // PooledConnection.MarkPoisoned() (§9.2), che imposta State tramite il setter
-    // internal sopra e svuota la Cache che possiede (Invariante I14). Una connessione
-    // Native che incontra un errore fatale si limita a propagare l'eccezione: non
-    // esiste alcuno stato interno da marcare.
-
-
-    public Native.Transaction BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
-    {
-        ThrowIfInvalid();
-
-        if (!Enum.IsDefined(mode))
-            throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.");
-
-        Native.Transaction transaction;
-
-        lock (_transactionSyncRoot)
-        {
-            if (_rootTransaction is not null)
-            {
-                throw new InvalidOperationException("A root transaction is already active for this connection.");
-            }
-
-            transaction = new Native.Transaction(this);
-            _rootTransaction = transaction;
-        }
-
-        try
-        {
-            Execute(GetBeginSql(mode));
-            // transaction.Activate();
-            return transaction;
-        }
-        catch
-        {
-            // transaction.MarkFailed();
-            // ClearRootTransaction(transaction);
-            throw;
-        }
-    }
 
     #region method aka Sqlite function
 
@@ -704,6 +613,76 @@ public sealed unsafe class Connection : IDisposable
     #endregion
 
 
+    #region other public method
+
+    /// <summary>
+    /// Gets the native connection safe handle owned by this physical connection.
+    /// </summary>
+    internal ConnectionSafeHandle Handle => _handle;
+
+    // ResetInvariantiPrimaDiRientrareNelPool(): Tier 0 §12, "Leased -> Idle"
+    public void ResetInvariantsBeforeReturningToPool()
+    {
+        ThrowIfInvalid();
+
+        if (!GetAutoCommit())
+        {
+            Execute("ROLLBACK;");   // rollback difensivo, Invariante I7
+        }
+
+        // Reset esplicito di ogni PRAGMA di sessione non-default che una transazione
+        // precedente potrebbe aver lasciato attiva. Storicamente, questo passo mancava
+        // per read_uncommitted: la connessione tornava Idle con read_uncommitted ancora
+        // a 1, propagando silenziosamente lo stato nella transazione successiva e causando
+        // fallimenti di test intermittenti (violazione di I7, ora coperta dal test §19.5).
+        Execute("PRAGMA read_uncommitted=0;");
+
+        // Chi possiede la StatementCache (PooledConnection, §9.2) decide se e quando
+        // svuotarla: questo metodo si limita allo stato della connessione fisica nuda.
+    }
+
+    // MarkPoisoned() non vive più qui dalla revisione a tre livelli (Tier 0 v6.0.0):
+    // il poisoning è per costruzione un concetto di Livello 3 (esiste solo dove esiste
+    // un Pool da cui evitare il riuso di una connessione compromessa). Vedi
+    // PooledConnection.MarkPoisoned() (§9.2), che imposta State tramite il setter
+    // internal sopra e svuota la Cache che possiede (Invariante I14). Una connessione
+    // Native che incontra un errore fatale si limita a propagare l'eccezione: non
+    // esiste alcuno stato interno da marcare.
+
+    public Native.Transaction BeginTransaction(TransactionMode mode = TransactionMode.Deferred)
+    {
+        ThrowIfInvalid();
+
+        if (!Enum.IsDefined(mode))
+            throw new ArgumentOutOfRangeException(nameof(mode), mode, "The transaction mode is not supported.");
+
+        Native.Transaction transaction;
+
+        lock (_transactionSyncRoot)
+        {
+            if (_rootTransaction is not null)
+            {
+                throw new InvalidOperationException("A root transaction is already active for this connection.");
+            }
+
+            transaction = new Native.Transaction(this);
+            _rootTransaction = transaction;
+        }
+
+        try
+        {
+            Execute(GetBeginSql(mode));
+            // transaction.Activate();
+            return transaction;
+        }
+        catch
+        {
+            // transaction.MarkFailed();
+            // ClearRootTransaction(transaction);
+            throw;
+        }
+    }
+
     public Backup InitBackup(Connection destination,
                              string destinationDatabaseName = "main",
                              string sourceDatabaseName = "main")
@@ -723,7 +702,36 @@ public sealed unsafe class Connection : IDisposable
         return Blob.Open(this, tableName, columnName, rowId, readWrite, databaseName);
     }
 
+    #endregion
+
+
     #region Private Methods
+
+    private void Configure()
+    {
+        State = ConnectionPhysicalState.Configuring;
+
+        // Nessuna chiamata separata a sqlite3_extended_result_codes qui: la modalità
+        // estesa è già attiva fin da Open(), perché ogni SqliteOpenFlagsDefaults (§6.3)
+        // include SqliteOpenFlags.ExResCode — chiude la lacuna per cui un errore durante
+        // l'apertura stessa non era coperto da granularità estesa (Tier 0 §17.6).
+
+        // Execute("PRAGMA journal_mode=WAL;");
+        // var mode = Execute("PRAGMA journal_mode;");
+        // if (!string.Equals(mode, "wal", StringComparison.OrdinalIgnoreCase))
+        // {
+        //     State = ConnectionPhysicalState.Closed;
+        //     _handle.Dispose();
+        //     throw new SqliteConfigurationException(
+        //         $"Richiesto journal_mode=WAL ma il motore nativo ha applicato '{mode}': " +
+        //         "verificare che il file non sia su un filesystem che non supporta il " +
+        //         "memory-mapping richiesto da WAL (Tier 0 §12).");
+        // }
+
+        Execute("PRAGMA busy_timeout=5000;");
+
+        State = ConnectionPhysicalState.Idle;
+    }
 
     private void ThrowIfInvalid()
     {
@@ -756,5 +764,10 @@ public sealed unsafe class Connection : IDisposable
 
     #endregion
 
+
+    #region disposable
+
     public void Dispose() => _handle.Dispose();
+
+    #endregion
 }

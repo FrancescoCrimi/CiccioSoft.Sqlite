@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 
@@ -16,9 +17,10 @@ namespace CiccioSoft.Data.Sqlite.Benchmark;
 
 public class ReadString
 {
-    private const int RowCount = 100_000;
-    private const string connectionString = @"Data Source=C:\Users\franc\Dev\CiccioSoft.Sqlite\read.db";
     // private const string connectionString = ":memory:";
+    private static readonly string DbFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "read.db");
+    private static readonly string connectionString = $@"Data Source={DbFile}";
+    private const int RowCount = 100_000;
     private const string TestString = "User_Performance_Test_String_12345";
 
     private readonly Consumer _consumer = new Consumer();

@@ -44,6 +44,9 @@ public sealed unsafe class Statement : IDisposable
     }
 
 
+
+    #region Public Statement Wrapper 
+
     #region Evaluate An SQL Statement
 
     /// <summary>
@@ -613,6 +616,23 @@ public sealed unsafe class Statement : IDisposable
 
     #endregion
 
+    #endregion
+
+
+    #region Other Public
+
+
+    // Impostato SOLO da StatementCache.GetOrPrepare quando prende possesso di questo
+    // statement (§11): un consumatore che chiama Dispose() su uno statement condiviso
+    // dalla cache non deve mai finalizzarlo — la cache resta l'unica proprietaria del
+    // suo ciclo di vita nativo fino a eviction o poisoning (Invariante I11, I13, I14).
+    // Questo rende Dispose() sicuro da chiamare SEMPRE, in ogni modalità operativa
+    // (Invariante I26 — stesso comportamento osservabile della stessa chiamata pubblica,
+    // indipendentemente da cosa succede internamente).
+    public bool IsOwnedByCache { get; set; }
+
+    #endregion
+
 
     #region Private Methods
 
@@ -645,14 +665,7 @@ public sealed unsafe class Statement : IDisposable
     #endregion
 
 
-    // Impostato SOLO da StatementCache.GetOrPrepare quando prende possesso di questo
-    // statement (§11): un consumatore che chiama Dispose() su uno statement condiviso
-    // dalla cache non deve mai finalizzarlo — la cache resta l'unica proprietaria del
-    // suo ciclo di vita nativo fino a eviction o poisoning (Invariante I11, I13, I14).
-    // Questo rende Dispose() sicuro da chiamare SEMPRE, in ogni modalità operativa
-    // (Invariante I26 — stesso comportamento osservabile della stessa chiamata pubblica,
-    // indipendentemente da cosa succede internamente).
-    public bool IsOwnedByCache { get; set; }
+    #region disposable
 
     /// <summary>
     /// Se lo statement è di proprietà della StatementCache (§11), questa chiamata non ha
@@ -673,4 +686,6 @@ public sealed unsafe class Statement : IDisposable
     // Percorso di finalizzazione reale, usato SOLO da StatementCache (eviction LRU,
     // Invariante I13; svuotamento per poisoning, Invariante I14) — mai dal consumatore.
     public void DisposeCore() => _handle.Dispose();
+
+    #endregion
 }
