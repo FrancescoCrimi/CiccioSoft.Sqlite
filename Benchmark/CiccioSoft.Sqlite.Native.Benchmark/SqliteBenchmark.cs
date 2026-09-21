@@ -1,8 +1,14 @@
+// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Order;
-using CiccioSoft.Sqlite.Native;
 using SQLitePCL;
 
 namespace CiccioSoft.Sqlite.Native.Benchmark;
@@ -12,10 +18,12 @@ namespace CiccioSoft.Sqlite.Native.Benchmark;
 [RankColumn] // Aggiunge una colonna con la classifica (1°, 2°, ecc.)
 public class SqliteBenchmark
 {
-    private string _dbPath = Path.Combine(Path.GetTempPath(), "benchmark_test.db");
+    private string _dbPCLRaw = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "benchmark_pclraw.db");
+    private string _dbCiccioSoft = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "benchmark_ciccioSoft.db");
 
     // Definiamo i due scaglioni di record richiesti dai tuoi test
-    [Params(100000, 1000000)]
+    // [Params(100000, 1000000)]
+    [Params(100000)]
     public int N;
 
     // Il Consumer dice a BenchmarkDotNet di consumare il valore per evitare ottimizzazioni aggressive del JIT/AOT
@@ -24,38 +32,45 @@ public class SqliteBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        // Pulizia del file database prima di OGNI singola iterazione per evitare letture sporche
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
-
-        // Inizializza il motore nativo di SQLitePCLRaw solo una volta all'avvio del programma
+        if (File.Exists(_dbPCLRaw)) File.Delete(_dbPCLRaw);
+        if (File.Exists(_dbCiccioSoft)) File.Delete(_dbCiccioSoft);
         SQLitePCL.Batteries_V2.Init();
-
-        // Inizializza CicioSoft.Sqlite
         NativeLibraryResolver.Configure(NativeSource.SourceGear);
     }
 
     [GlobalCleanup]
     public void GlobalCleanup()
     {
-        if (File.Exists(_dbPath)) File.Delete(_dbPath);
+        if (File.Exists(_dbPCLRaw)) File.Delete(_dbPCLRaw);
+        if (File.Exists(_dbCiccioSoft)) File.Delete(_dbCiccioSoft);
     }
 
-    [IterationSetup]
-    public void IterationSetup()
+    [IterationSetup(Target = nameof(PCLRaw_ReadWrite))]
+    public void IterationSetup_PCLRaw()
     {
-        var rc = raw.sqlite3_open(_dbPath, out var db);
+        var rc = raw.sqlite3_open(_dbPCLRaw, out var db);
         raw.sqlite3_exec(db, "DROP TABLE IF EXISTS Users;");
         raw.sqlite3_exec(db, "CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
         raw.sqlite3_close(db);
     }
 
-    [Benchmark(Baseline = true)] // Imposta Microsoft come termine di paragone (1.00)
-    public void SqlitePCLRaw_ReadWrite()
+    [IterationSetup(Target = nameof(CiccioSoft_ReadWrite))]
+    public void IterationSetup_CiccioSoft()
     {
-        var rc = raw.sqlite3_open(_dbPath, out var db);
+        using (var connection = Connection.Open(_dbCiccioSoft, OpenFlags.ReadWrite | OpenFlags.Create))
+        {
+            connection.Execute("DROP TABLE IF EXISTS Users;");
+            connection.Execute("CREATE TABLE Users (Id INTEGER, Name TEXT, Score REAL);");
+        }
+    }
+
+    [Benchmark(Baseline = true)] // Imposta Microsoft come termine di paragone (1.00)
+    public void PCLRaw_ReadWrite()
+    {
+        var rc = raw.sqlite3_open(_dbPCLRaw, out var db);
 
         // Avvio transazione per SQLitePCLRaw
-        raw.sqlite3_exec(db, "BEGIN TRANSACTION;");
+        raw.sqlite3_exec(db, "BEGIN;");
 
         // Esempio Scrittura massiva standard
         raw.sqlite3_prepare_v2(db, "INSERT INTO Users (Id, Name, Score) VALUES (?, ?, ?);", out var stmtInsert);
@@ -89,11 +104,11 @@ public class SqliteBenchmark
     }
 
     [Benchmark]
-    public void CiccioSoftSqlite_ReadWrite()
+    public void CiccioSoft_ReadWrite()
     {
-        using var connection = Connection.Open(_dbPath, OpenFlags.ReadWrite | OpenFlags.Create);
+        using var connection = Connection.Open(_dbCiccioSoft, OpenFlags.ReadWrite | OpenFlags.Create);
 
-        connection.Execute("BEGIN TRANSACTION;");
+        connection.Execute("BEGIN;");
         using (var stmt = connection.Prepare("INSERT INTO Users VALUES (?, ?, ?);"))
         {
             for (int i = 0; i < N; i++)

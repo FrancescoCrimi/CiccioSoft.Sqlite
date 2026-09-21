@@ -16,12 +16,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        // var config = new MyBenchmarkDotNetConfig();
-        // BenchmarkRunner.Run<ReadString>(config);
-        // BenchmarkRunner.Run<ReadSpan>(config);
-        // BenchmarkRunner.Run<WriteString>(config);
-        // BenchmarkRunner.Run<WriteSpan>(config);
-        BenchmarkRunner.Run<SqliteBenchmark>();
+        var config = new MyBenchmarkDotNetConfig();
+        BenchmarkRunner.Run<ReadString>(config);
+        BenchmarkRunner.Run<ReadSpan>(config);
+        BenchmarkRunner.Run<WriteString>(config);
+        BenchmarkRunner.Run<WriteSpan>(config);
+        // BenchmarkRunner.Run<SqliteBenchmark>();
     }
 }
 
