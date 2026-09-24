@@ -233,7 +233,7 @@ public class Example
         ConsoleOutput.Message("Reopen: riutilizzare lo stesso handle blob senza riaprirlo");
         //--------------------------------------------------------------------------------//
         using (var idsStmt = db.Prepare("SELECT id FROM Users"))
-        using (var blob = db.OpenBlob("Users", "Photo", rowId: 1, readWrite: false))
+        using (var blob = db.BlobOpen("Users", "Photo", rowId: 1, readWrite: false))
         {
             bool first = true;
             while (idsStmt.Step())
@@ -268,7 +268,7 @@ public class Example
         ConsoleOutput.Message("Esecuzione Backup...");
         using (var backupDb = Connection.Open(_backupDbPath, OpenFlags.ReadWrite | OpenFlags.Create))
         {
-            var backup = db.InitBackup(backupDb);
+            var backup = db.BackupInit(backupDb);
             ResultCode rc;
             do
             {

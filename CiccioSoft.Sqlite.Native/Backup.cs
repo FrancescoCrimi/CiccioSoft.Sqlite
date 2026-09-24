@@ -10,9 +10,12 @@ using CiccioSoft.Sqlite.Native.Interop;
 
 namespace CiccioSoft.Sqlite.Native;
 
-public sealed unsafe class BackupSafeHandle : SafeHandle
+public sealed unsafe class Backup : SafeHandle
 {
-    internal BackupSafeHandle(sqlite3_backup* sqlite3_backup)
+
+    #region Ctor and safehandle
+
+    internal Backup(sqlite3_backup* sqlite3_backup)
         : base((nint)sqlite3_backup, true)
     {
     }
@@ -24,79 +27,35 @@ public sealed unsafe class BackupSafeHandle : SafeHandle
         _ = NativeMethods.sqlite3_backup_finish((sqlite3_backup*)handle);
         return true;
     }
-}
 
-public sealed unsafe class Backup : IDisposable
-{
-    private readonly BackupSafeHandle _handle;
+    private sqlite3_backup* Sqlite3BackupHandle => (sqlite3_backup*)DangerousGetHandle();
 
-    private Backup(BackupSafeHandle handle)
-    {
-        ArgumentNullException.ThrowIfNull(handle);
-        _handle = handle;
-    }
+    #endregion
 
-    internal static Backup InitBackup(Connection destination,
-                                    Connection source,
-                                    string destinationDatabaseName = "main",
-                                    string sourceDatabaseName = "main")
-    {
-        ArgumentNullException.ThrowIfNull(destination);
-        if (destination.Handle.IsClosed || destination.Handle.IsInvalid)
-            throw new ObjectDisposedException(nameof(Connection));
 
-        ArgumentNullException.ThrowIfNull(source);
-        if (source.Handle.IsClosed || source.Handle.IsInvalid)
-            throw new ObjectDisposedException(nameof(Connection));
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDatabaseName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(sourceDatabaseName);
-
-        using var destinationNameBuffer = new Utf8CStringBuffer(destinationDatabaseName, stackalloc byte[512]);
-        using var sourceNameBuffer = new Utf8CStringBuffer(sourceDatabaseName, stackalloc byte[512]);
-
-        fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
-        {
-            sqlite3_backup* backupHandle = NativeMethods.sqlite3_backup_init((sqlite3*)destination.Handle.DangerousGetHandle(),
-                                                                             pDest,
-                                                                             (sqlite3*)source.Handle.DangerousGetHandle(),
-                                                                             pSource);
-            GC.KeepAlive(destination.Handle);
-            GC.KeepAlive(source.Handle);
-
-            if ((nint)backupHandle == nint.Zero)
-            {
-                var result = (ResultCode)NativeMethods.sqlite3_errcode((sqlite3*)destination.Handle.DangerousGetHandle());
-                GC.KeepAlive(destination.Handle);   // ridondante qui (destination.Handle è riusato subito sotto),
-                                                    // presente per uniformità con l'invariante del progetto
-                throw Exception.CreateException(destination.Handle, result, $"{nameof(Backup)}.Init");
-            }
-
-            return new Backup(new BackupSafeHandle(backupHandle));
-        }
-    }
+    #region Backup
 
     public ResultCode Step(int pages = -1)
     {
-        ThrowIfInvalid();
-        var rtn = (ResultCode)NativeMethods.sqlite3_backup_step((sqlite3_backup*)_handle.DangerousGetHandle(), pages);
-        GC.KeepAlive(_handle);
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+
+        ResultCode rtn = (ResultCode)NativeMethods.sqlite3_backup_step(Sqlite3BackupHandle, pages);
         return rtn;
     }
 
     public int Remaining()
     {
-        ThrowIfInvalid();
-        var rtn = NativeMethods.sqlite3_backup_remaining((sqlite3_backup*)_handle.DangerousGetHandle());
-        GC.KeepAlive(_handle);
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+
+        int rtn = NativeMethods.sqlite3_backup_remaining(Sqlite3BackupHandle);
         return rtn;
     }
 
     public int PageCount()
     {
-        ThrowIfInvalid();
-        var rtn = NativeMethods.sqlite3_backup_pagecount((sqlite3_backup*)_handle.DangerousGetHandle());
-        GC.KeepAlive(_handle);
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+
+        int rtn = NativeMethods.sqlite3_backup_pagecount(Sqlite3BackupHandle);
         return rtn;
     }
 
@@ -105,11 +64,5 @@ public sealed unsafe class Backup : IDisposable
         Dispose();
     }
 
-    private void ThrowIfInvalid()
-    {
-        if (_handle is not { IsClosed: false, IsInvalid: false })
-            throw new ObjectDisposedException(nameof(Backup));
-    }
-
-    public void Dispose() => _handle.Dispose();
+    #endregion
 }

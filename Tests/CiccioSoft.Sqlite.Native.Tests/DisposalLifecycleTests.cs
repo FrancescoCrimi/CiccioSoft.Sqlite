@@ -35,7 +35,7 @@ public sealed class DisposalLifecycleTests
         Assert.Throws<ObjectDisposedException>(() => connection.Limit(LimitCategory.Attached, -1));
         Assert.Throws<ObjectDisposedException>(() => connection.TransactionState());
         Assert.Throws<ObjectDisposedException>(() => connection.DbReadOnly());
-        Assert.Throws<ObjectDisposedException>(() => connection.ExtendedErrCode());
+        Assert.Throws<ObjectDisposedException>(() => connection.ExtendedErrorCode());
         Assert.Throws<ObjectDisposedException>(() => connection.GetLastErrorOffset());
         Assert.Throws<ObjectDisposedException>(() => connection.BusyTimeout(1000));
         Assert.Throws<ObjectDisposedException>(() => connection.Interrupt());
@@ -91,7 +91,7 @@ public sealed class DisposalLifecycleTests
         connection.Execute("INSERT INTO files (payload) VALUES (zeroblob(8));");
         long rowId = connection.LastInsertRowId();
 
-        var blob = connection.OpenBlob("files", "payload", rowId, readWrite: true);
+        var blob = connection.BlobOpen("files", "payload", rowId, readWrite: true);
         blob.Dispose();
 
         byte[] buffer = new byte[4];
@@ -110,7 +110,7 @@ public sealed class DisposalLifecycleTests
         source.Execute("CREATE TABLE t (id INTEGER);");
         using var destination = destDb.Open();
 
-        var backup = source.InitBackup(destination);
+        var backup = source.BackupInit(destination);
         backup.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() => backup.Step());
@@ -128,7 +128,7 @@ public sealed class DisposalLifecycleTests
         connection.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() =>
-            connection.OpenBlob("files", "payload", rowId));
+            connection.BlobOpen("files", "payload", rowId));
     }
 
     [Fact]
@@ -141,9 +141,9 @@ public sealed class DisposalLifecycleTests
         disposed.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() =>
-            live.InitBackup(disposed));
+            live.BackupInit(disposed));
         Assert.Throws<ObjectDisposedException>(() =>
-            disposed.InitBackup(live));
+            disposed.BackupInit(live));
     }
 
     [Fact]

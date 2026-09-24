@@ -176,7 +176,7 @@ public sealed class ConnectionExecuteAndQueryTests
             connection.Execute("INSERT INTO t VALUES (1);"));
 
         Assert.Equal(ResultCode.Constraint, ex.BaseResultCode);
-        Assert.Equal(ResultCode.Constraint, (ResultCode)((int)connection.ExtendedErrCode() & 0xFF));
+        Assert.Equal(ResultCode.Constraint, (ResultCode)((int)connection.ExtendedErrorCode() & 0xFF));
     }
 
     [Fact]
