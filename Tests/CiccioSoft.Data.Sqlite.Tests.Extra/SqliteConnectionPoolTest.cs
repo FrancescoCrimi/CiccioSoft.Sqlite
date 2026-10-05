@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using CiccioSoft.Sqlite.Native;
+using CiccioSoft.Sqlite;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;

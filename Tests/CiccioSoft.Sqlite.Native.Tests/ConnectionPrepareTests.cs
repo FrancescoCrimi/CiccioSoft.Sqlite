@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -15,12 +14,12 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void Prepare_ValidSelect_ReturnsStatement()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER, name TEXT);");
         connection.Execute("INSERT INTO t VALUES (1, 'x');");
 
         using var stmt = connection.Prepare("SELECT id, name FROM t WHERE id = ?;");
-        Assert.Equal(1, stmt.ParameterCount());
+        Assert.Equal(1, stmt.BindParameterCount());
         Assert.Equal(2, stmt.ColumnCount());
         Assert.True(stmt.IsReadOnly());
     }
@@ -28,7 +27,7 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void Prepare_InvalidSql_ThrowsEngineException()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
 
         var ex = Assert.Throws<Native.Exception>(() =>
             connection.Prepare("SELEC * FROM nowhere;"));
@@ -40,18 +39,18 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void Prepare_WithPersistentFlag_Succeeds()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         using var stmt = connection.Prepare("SELECT 1;", PrepareFlags.Persistent);
 
         Assert.True(stmt.Step());
-        Assert.Equal(1, stmt.GetInt(0));
+        Assert.Equal(1, stmt.ColumnInt(0));
         Assert.False(stmt.Step());
     }
 
     [Fact]
     public void Prepare_BatchWithOffset_EnumeratesMultipleStatements()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         const string batch = "CREATE TABLE t (id INTEGER); INSERT INTO t VALUES (7); SELECT id FROM t;";
 
         int offset = 0;
@@ -70,7 +69,7 @@ public sealed class ConnectionPrepareTests
                 if (stmt.IsReadOnly() && stmt.ColumnCount() > 0)
                 {
                     Assert.True(stmt.Step());
-                    selected = stmt.GetInt(0);
+                    selected = stmt.ColumnInt(0);
                 }
                 else
                 {
@@ -90,7 +89,7 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void Prepare_OffsetPastEnd_ThrowsArgumentOutOfRange()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             connection.Prepare("SELECT 1;", sqlByteOffset: 10_000, out _, PrepareFlags.None));
@@ -99,7 +98,7 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void Prepare_OnlyWhitespaceRemaining_ReturnsNull()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         const string sql = "SELECT 1;   \n\t  ";
 
         using var first = connection.Prepare(sql, 0, out int next, PrepareFlags.None);
@@ -113,7 +112,7 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void GetTableColumnMetadata_ReturnsDeclaredAttributes()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("""
             CREATE TABLE products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,7 +153,7 @@ public sealed class ConnectionPrepareTests
     [Fact]
     public void GetTableColumnMetadata_UnknownColumn_ThrowsEngineException()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
         var ex = Assert.Throws<Native.Exception>(() =>
@@ -175,7 +174,7 @@ public sealed class ConnectionPrepareTests
     [InlineData("t", null)]
     public void GetTableColumnMetadata_NullArgs_ThrowArgumentNull(string? table, string? column)
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
         Assert.ThrowsAny<ArgumentException>(() =>
@@ -194,7 +193,7 @@ public sealed class ConnectionPrepareTests
     [InlineData("t", "")]
     public void GetTableColumnMetadata_EmptyArgs_ThrowArgumentException(string table, string column)
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
         Assert.Throws<ArgumentException>(() =>

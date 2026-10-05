@@ -21,6 +21,7 @@
 
   <Folder Name="/Tests/">
     <Project Path="Tests/CiccioSoft.Sqlite.Native.Tests/CiccioSoft.Sqlite.Native.Tests.csproj" />
+    <Project Path="Tests/CiccioSoft.Sqlite.Tests/CiccioSoft.Sqlite.Tests.csproj" />
     <Project Path="Tests/CiccioSoft.Data.Sqlite.Tests/CiccioSoft.Data.Sqlite.Tests.csproj" />
     <Project Path="Tests/CiccioSoft.Data.Sqlite.Tests.Extra/CiccioSoft.Data.Sqlite.Tests.Extra.csproj" />
   </Folder>

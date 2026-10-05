@@ -8,7 +8,7 @@ using System.Data.Common;
 using CiccioSoft.Data.Sqlite.Properties;
 using CiccioSoft.Data.Sqlite.TestUtilities;
 using Xunit;
-using CiccioSoft.Sqlite.Native;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 

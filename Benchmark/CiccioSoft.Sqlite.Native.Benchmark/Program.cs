@@ -18,10 +18,11 @@ class Program
     {
         var config = new MyBenchmarkDotNetConfig();
         BenchmarkRunner.Run<ReadString>(config);
-        BenchmarkRunner.Run<ReadSpan>(config);
+        // BenchmarkRunner.Run<ReadSpan>(config);
         BenchmarkRunner.Run<WriteString>(config);
-        BenchmarkRunner.Run<WriteSpan>(config);
+        // BenchmarkRunner.Run<WriteSpan>(config);
         // BenchmarkRunner.Run<SqliteBenchmark>();
+        // BenchmarkRunner.Run<Utf8StringConversionBenchmark>();
     }
 }
 

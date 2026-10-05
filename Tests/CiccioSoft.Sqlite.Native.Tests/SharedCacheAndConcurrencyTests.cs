@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -21,20 +20,20 @@ public sealed class SharedCacheAndConcurrencyTests
     {
         string name = $"shared-{Guid.NewGuid():N}";
 
-        using var writer = ConnectionFactory.OpenSharedMemory(name);
+        using var writer = TestDatabase.OpenSharedMemory(name);
         writer.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY, v TEXT);");
         writer.Execute("INSERT INTO t (v) VALUES ('visible');");
 
-        using var reader = ConnectionFactory.OpenSharedMemory(name);
+        using var reader = TestDatabase.OpenSharedMemory(name);
         using var stmt = reader.Prepare("SELECT v FROM t WHERE id = 1;");
         Assert.True(stmt.Step());
-        Assert.Equal("visible", stmt.GetText(0));
+        Assert.Equal("visible", stmt.ColumnText(0));
     }
 
     [Fact]
     public void FileWal_SecondConnectionReadsCommittedData()
     {
-        using var temp = new TempDatabase("wal");
+        using var temp = new TestDatabase("wal");
 
         using (var writer = temp.Open())
         {
@@ -47,14 +46,14 @@ public sealed class SharedCacheAndConcurrencyTests
         using var reader = temp.Open();
         using var stmt = reader.Prepare("SELECT v FROM t WHERE id = 1;");
         Assert.True(stmt.Step());
-        Assert.Equal(42, stmt.GetInt(0));
+        Assert.Equal(42, stmt.ColumnInt(0));
     }
 
     [Fact]
     public void IndependentMemoryDatabases_DoNotShareState()
     {
-        using var a = ConnectionFactory.OpenMemory();
-        using var b = ConnectionFactory.OpenMemory();
+        using var a = TestDatabase.OpenMemory();
+        using var b = TestDatabase.OpenMemory();
 
         a.Execute("CREATE TABLE t (id INTEGER);");
         a.Execute("INSERT INTO t VALUES (1);");
@@ -62,6 +61,6 @@ public sealed class SharedCacheAndConcurrencyTests
         var ex = Assert.Throws<Native.Exception>(() =>
             b.Execute("SELECT * FROM t;"));
 
-        Assert.Equal(Native.ResultCode.Error, ex.BaseResultCode);
+        Assert.Equal(ResultCode.Error, ex.BaseResultCode);
     }
 }

@@ -28,7 +28,7 @@ public sealed unsafe class Backup : SafeHandle
         return true;
     }
 
-    private sqlite3_backup* Sqlite3BackupHandle => (sqlite3_backup*)DangerousGetHandle();
+    private sqlite3_backup* _sqlite3_backup => (sqlite3_backup*)DangerousGetHandle();
 
     #endregion
 
@@ -39,7 +39,7 @@ public sealed unsafe class Backup : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        ResultCode rtn = (ResultCode)NativeMethods.sqlite3_backup_step(Sqlite3BackupHandle, pages);
+        ResultCode rtn = (ResultCode)NativeMethods.sqlite3_backup_step(_sqlite3_backup, pages);
         return rtn;
     }
 
@@ -47,7 +47,7 @@ public sealed unsafe class Backup : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_backup_remaining(Sqlite3BackupHandle);
+        int rtn = NativeMethods.sqlite3_backup_remaining(_sqlite3_backup);
         return rtn;
     }
 
@@ -55,7 +55,7 @@ public sealed unsafe class Backup : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_backup_pagecount(Sqlite3BackupHandle);
+        int rtn = NativeMethods.sqlite3_backup_pagecount(_sqlite3_backup);
         return rtn;
     }
 

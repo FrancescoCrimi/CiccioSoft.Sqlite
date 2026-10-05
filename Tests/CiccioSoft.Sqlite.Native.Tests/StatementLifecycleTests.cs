@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -15,7 +14,7 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void Step_IteratesAllRows_ThenReturnsFalse()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
         connection.Execute("INSERT INTO t VALUES (1), (2), (3);");
 
@@ -31,7 +30,7 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void Reset_AllowsReexecutionWithSameBindings()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
         connection.Execute("INSERT INTO t VALUES (10);");
 
@@ -39,33 +38,33 @@ public sealed class StatementLifecycleTests
         stmt.BindInt(1, 10);
 
         Assert.True(stmt.Step());
-        Assert.Equal(10, stmt.GetInt(0));
+        Assert.Equal(10, stmt.ColumnInt(0));
         Assert.False(stmt.Step());
 
         stmt.Reset();
         Assert.True(stmt.Step());
-        Assert.Equal(10, stmt.GetInt(0));
+        Assert.Equal(10, stmt.ColumnInt(0));
     }
 
     [Fact]
     public void ClearBindings_ResetsParametersToNull()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         using var stmt = connection.Prepare("SELECT ? IS NULL;");
         stmt.BindInt(1, 5);
         Assert.True(stmt.Step());
-        Assert.Equal(0, stmt.GetInt(0));
+        Assert.Equal(0, stmt.ColumnInt(0));
 
         stmt.Reset();
         stmt.ClearBindings();
         Assert.True(stmt.Step());
-        Assert.Equal(1, stmt.GetInt(0));
+        Assert.Equal(1, stmt.ColumnInt(0));
     }
 
     [Fact]
     public void IsReadOnly_TrueForSelect_FalseForInsert()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
         using (var select = connection.Prepare("SELECT id FROM t;"))
@@ -78,7 +77,7 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void IsBusy_TrueWhileOnRow_FalseAfterDoneOrReset()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
         connection.Execute("INSERT INTO t VALUES (1);");
 
@@ -98,22 +97,22 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void GetSql_ReturnsOriginalSql()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         const string sql = "SELECT ? AS value;";
         using var stmt = connection.Prepare(sql);
 
-        Assert.Equal(sql, stmt.GetSql());
+        Assert.Equal(sql, stmt.Sql());
     }
 
     [Fact]
     public void GetExpandedSql_SubstitutesBoundParameters()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         using var stmt = connection.Prepare("SELECT ?1, ?2;");
         stmt.BindInt(1, 11);
         stmt.BindText(2, "expanded");
 
-        string? expanded = stmt.GetExpandedSql();
+        string? expanded = stmt.ExpandedSql();
 
         Assert.NotNull(expanded);
         Assert.Contains("11", expanded, StringComparison.Ordinal);
@@ -123,7 +122,7 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void Step_ConstraintViolation_ThrowsEngineException()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY);");
         connection.Execute("INSERT INTO t VALUES (1);");
 
@@ -137,7 +136,7 @@ public sealed class StatementLifecycleTests
     [Fact]
     public void DoubleDispose_IsIdempotent()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         var stmt = connection.Prepare("SELECT 1;");
         stmt.Dispose();
         stmt.Dispose();

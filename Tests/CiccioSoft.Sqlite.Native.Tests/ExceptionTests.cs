@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -15,7 +14,7 @@ public sealed class ExceptionTests
     [Fact]
     public void ConstraintFailure_ExposesBaseAndExtendedCodes()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY, email TEXT UNIQUE);");
         connection.Execute("INSERT INTO t VALUES (1, 'a@x.com');");
 
@@ -37,7 +36,7 @@ public sealed class ExceptionTests
     [Fact]
     public void SyntaxError_MessageIncludesOperationAndNativeText()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
 
         var ex = Assert.Throws<Native.Exception>(() =>
             connection.Prepare("NOT VALID SQL !!!"));
@@ -66,7 +65,7 @@ public sealed class ExceptionTests
     [Fact]
     public void BaseResultCode_IsLowestEightBitsOfExtendedCode()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY);");
         connection.Execute("INSERT INTO t VALUES (1);");
 

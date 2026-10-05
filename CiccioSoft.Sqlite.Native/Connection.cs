@@ -40,7 +40,7 @@ public sealed unsafe class Connection : SafeHandle
         return true;
     }
 
-    private sqlite3* Sqlite3Handle => (sqlite3*)DangerousGetHandle();
+    private sqlite3* _sqlite3 => (sqlite3*)DangerousGetHandle();
 
     #endregion
 
@@ -64,42 +64,36 @@ public sealed unsafe class Connection : SafeHandle
                 "The path contains characters that are invalid for the current operating system.",
                 nameof(filename));
 
-        vfs = vfs is "" ? null : vfs;
-
         using var filenameBuffer = new Utf8CStringBuffer(filename, stackalloc byte[512]);
         using var vfsBuffer = new Utf8CStringBuffer(vfs!, stackalloc byte[512]);
 
-        return Open(filenameBuffer.AsSpan(), flags, vfsBuffer.AsSpan());
-    }
-
-    public static Connection Open(ReadOnlySpan<byte> filename, OpenFlags flags, ReadOnlySpan<byte> vfs)
-    {
         flags |= OpenFlags.Uri;
         flags |= OpenFlags.Exrescode;
 
-        fixed (byte* pFilename = filename, pVfs = vfs)
+
+        sqlite3* psqlite3 = default;
+        ResultCode result;
+        fixed (byte* pFilename = filenameBuffer, pVfs = vfsBuffer)
         {
-            sqlite3* psqlite3 = default;
-            var result = (ResultCode)NativeMethods.sqlite3_open_v2(
+            result = (ResultCode)NativeMethods.sqlite3_open_v2(
                 pFilename,
                 &psqlite3,
                 (int)flags,
                 pVfs);
-            var connection = new Connection(psqlite3);
-
-            if (result != ResultCode.OK)
-            {
-                var exception = Exception.ReturnException(
-                    result,
-                    connection.ErrorMessage(),
-                    $"{nameof(Connection)}.{nameof(Open)}");
-
-                connection.Dispose();
-                throw exception;
-            }
-
-            return connection;
         }
+
+        var connection = new Connection(psqlite3);
+        if (result != ResultCode.OK)
+        {
+            var exception = Exception.ReturnException(
+                result,
+                connection.ErrorMessage(),
+                $"{nameof(Connection)}.{nameof(Open)}");
+
+            connection.Dispose();
+            throw exception;
+        }
+        return connection;
     }
 
     #endregion
@@ -118,30 +112,22 @@ public sealed unsafe class Connection : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
         using var utf8Buffer = new Utf8CStringBuffer(sql, stackalloc byte[1024]);
-        ExecuteCore(utf8Buffer.AsSpan());
-    }
 
-    public void Execute(ReadOnlySpan<byte> sql)
-    {
-        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-        ExecuteCore(sql);
-    }
-
-    private void ExecuteCore(ReadOnlySpan<byte> sql)
-    {
-        fixed (byte* pBuf = sql)
+        int result;
+        fixed (byte* pBuf = utf8Buffer)
         {
-            int result = NativeMethods.sqlite3_exec(
-                 Sqlite3Handle,
-                 pBuf,
-                 null,
-                 null,
-                 null);
-            if ((ResultCode)result == ResultCode.OK)
-                return;
-            else
-                ThrowException((ResultCode)result, ErrorMessage());
+            result = NativeMethods.sqlite3_exec(
+                _sqlite3,
+                pBuf,
+                null,
+                null,
+                null);
         }
+
+        if ((ResultCode)result == ResultCode.OK)
+            return;
+        else
+            ThrowException((ResultCode)result, ErrorMessage());
     }
 
     #endregion
@@ -161,39 +147,29 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         using var utf8Buffer = new Utf8CStringBuffer(sql, stackalloc byte[1024]);
-        return PrepareCore(utf8Buffer.AsSpan(), prepareFlags);
-    }
 
-    public Statement Prepare(ReadOnlySpan<byte> sql, PrepareFlags prepareFlags = PrepareFlags.None)
-    {
-        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-        return PrepareCore(sql, prepareFlags);
-    }
-
-    public Statement PrepareCore(ReadOnlySpan<byte> sql, PrepareFlags prepareFlags = PrepareFlags.None)
-    {
-        fixed (byte* pBuf = sql)
+        sqlite3_stmt* pStmt = default;
+        ResultCode result;
+        fixed (byte* pBuf = utf8Buffer)
         {
-            sqlite3_stmt* pStmt = default;
-
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_prepare_v3(
-                 Sqlite3Handle,
-                 pBuf,
-                 sql.Length,                  // Lunghezza esatta dei dati
-                 (uint)prepareFlags,
-                 &pStmt,
-                 null);
-
-            var statement = new Statement(pStmt, this);
-
-            if (result != ResultCode.OK)
-            {
-                statement.Dispose();
-                ThrowException(result, ErrorMessage());
-            }
-
-            return statement;
+            result = (ResultCode)NativeMethods.sqlite3_prepare_v3(
+                _sqlite3,
+                pBuf,
+                utf8Buffer.Length,                  // Lunghezza esatta dei dati
+                (uint)prepareFlags,
+                &pStmt,
+                null);
         }
+
+        var statement = new Statement(pStmt, this);
+
+        if (result != ResultCode.OK)
+        {
+            statement.Dispose();
+            ThrowException(result, ErrorMessage());
+        }
+
+        return statement;
     }
 
     /// <summary>
@@ -219,41 +195,43 @@ public sealed unsafe class Connection : SafeHandle
         if ((uint)sqlByteOffset > (uint)dataLength)
             throw new ArgumentOutOfRangeException(nameof(sqlByteOffset));
 
+        sqlite3_stmt* pStmt = default;
+        byte* pTail = null;
+        byte* pStart;
+        int remainingLength;
+        ResultCode result;
         fixed (byte* pBuf = utf8Buffer)
         {
-            byte* pStart = pBuf + sqlByteOffset;
-            int remainingLength = dataLength - sqlByteOffset;
+            pStart = pBuf + sqlByteOffset;
+            remainingLength = dataLength - sqlByteOffset;
 
-            sqlite3_stmt* pStmt = default;
-            byte* pTail = null;
-
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_prepare_v3(
-                   Sqlite3Handle,
-                   pStart,
-                   remainingLength,
-                   (uint)prepareFlags,
-                   &pStmt,
-                   &pTail);
-
-            var statement = new Statement(pStmt, this);
-
-            if (result != ResultCode.OK)
-            {
-                statement.Dispose();
-                ThrowException(result, ErrorMessage());
-            }
-
-            int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
-            nextSqlByteOffset = sqlByteOffset + consumedBytes;
-
-            // Todo: fixa qui e fixa in SqliteCommand PrepareAndBindNext e PrepareAndEnumerateStatements
-            if ((nint)pStmt == nint.Zero)
-            {
-                return null;
-            }
-
-            return statement;
+            result = (ResultCode)NativeMethods.sqlite3_prepare_v3(
+                _sqlite3,
+                pStart,
+                remainingLength,
+                (uint)prepareFlags,
+                &pStmt,
+                &pTail);
         }
+
+        int consumedBytes = pTail is null ? remainingLength : (int)(pTail - pStart);
+        nextSqlByteOffset = sqlByteOffset + consumedBytes;
+
+        var statement = new Statement(pStmt, this);
+
+        if (result != ResultCode.OK)
+        {
+            statement.Dispose();
+            ThrowException(result, ErrorMessage());
+        }
+
+        // Todo: fixa qui e fixa in SqliteCommand PrepareAndBindNext e PrepareAndEnumerateStatements
+        if ((nint)pStmt == nint.Zero)
+        {
+            return null;
+        }
+
+        return statement;
     }
 
     #endregion
@@ -269,7 +247,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        long rtn = NativeMethods.sqlite3_last_insert_rowid(Sqlite3Handle);
+        long rtn = NativeMethods.sqlite3_last_insert_rowid(_sqlite3);
         return rtn;
     }
 
@@ -282,7 +260,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_changes(Sqlite3Handle);
+        int rtn = NativeMethods.sqlite3_changes(_sqlite3);
         return rtn;
     }
 
@@ -293,7 +271,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        long rtn = NativeMethods.sqlite3_total_changes64(Sqlite3Handle);
+        long rtn = NativeMethods.sqlite3_total_changes64(_sqlite3);
         return rtn;
     }
 
@@ -304,7 +282,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_get_autocommit(Sqlite3Handle);
+        int rtn = NativeMethods.sqlite3_get_autocommit(_sqlite3);
         return rtn != 0;
     }
 
@@ -319,7 +297,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_limit(Sqlite3Handle, (int)id, newVal);
+        int rtn = NativeMethods.sqlite3_limit(_sqlite3, (int)id, newVal);
         return rtn;
     }
 
@@ -333,7 +311,6 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int result;
 
         // if (schemaName is null)
         // {
@@ -345,9 +322,11 @@ public sealed unsafe class Connection : SafeHandle
         // {
 
         using var utf8Buffer = new Utf8CStringBuffer(schemaName!, stackalloc byte[512]);
+
+        int result;
         fixed (byte* pSchema = utf8Buffer)
         {
-            result = NativeMethods.sqlite3_txn_state(Sqlite3Handle, pSchema);
+            result = NativeMethods.sqlite3_txn_state(_sqlite3, pSchema);
         }
 
         // Se il risultato è -1, lo schema specificato non esiste
@@ -375,7 +354,7 @@ public sealed unsafe class Connection : SafeHandle
         int result;
         fixed (byte* pSchema = utf8Buffer)
         {
-            result = NativeMethods.sqlite3_db_readonly(Sqlite3Handle, pSchema);
+            result = NativeMethods.sqlite3_db_readonly(_sqlite3, pSchema);
         }
         return result switch
         {
@@ -390,7 +369,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rc = NativeMethods.sqlite3_errcode(Sqlite3Handle);
+        int rc = NativeMethods.sqlite3_errcode(_sqlite3);
         return (ResultCode)rc;
     }
 
@@ -401,7 +380,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rc = NativeMethods.sqlite3_extended_errcode(Sqlite3Handle);
+        int rc = NativeMethods.sqlite3_extended_errcode(_sqlite3);
         return (ResultCode)rc;
     }
 
@@ -413,7 +392,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        byte* pByte = NativeMethods.sqlite3_errmsg(Sqlite3Handle);
+        byte* pByte = NativeMethods.sqlite3_errmsg(_sqlite3);
         return Marshal.PtrToStringUTF8((nint)pByte) ?? "Unreadable SQLite error";
     }
 
@@ -432,11 +411,11 @@ public sealed unsafe class Connection : SafeHandle
     /// Returns the byte offset in SQL text where the latest parse error was detected.
     /// </summary>
     /// <returns>The zero-based offset, or -1 if unavailable.</returns>
-    public int GetLastErrorOffset()
+    public int ErrorOffset()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_error_offset(Sqlite3Handle);
+        int rtn = NativeMethods.sqlite3_error_offset(_sqlite3);
         return rtn;
     }
 
@@ -448,7 +427,7 @@ public sealed unsafe class Connection : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int result = NativeMethods.sqlite3_busy_timeout(Sqlite3Handle, milliseconds);
+        int result = NativeMethods.sqlite3_busy_timeout(_sqlite3, milliseconds);
         if ((ResultCode)result != ResultCode.OK)
             ThrowException((ResultCode)result, ErrorMessage());
     }
@@ -459,7 +438,7 @@ public sealed unsafe class Connection : SafeHandle
     public void Interrupt()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-        NativeMethods.sqlite3_interrupt(Sqlite3Handle);
+        NativeMethods.sqlite3_interrupt(_sqlite3);
     }
 
     /// <summary>
@@ -500,24 +479,24 @@ public sealed unsafe class Connection : SafeHandle
         using var destinationNameBuffer = new Utf8CStringBuffer(destinationDatabaseName, stackalloc byte[512]);
         using var sourceNameBuffer = new Utf8CStringBuffer(sourceDatabaseName, stackalloc byte[512]);
 
+        sqlite3_backup* pBackup;
         fixed (byte* pDest = destinationNameBuffer, pSource = sourceNameBuffer)
         {
-
-            sqlite3_backup* pBackup = NativeMethods.sqlite3_backup_init(
-                destination.Sqlite3Handle,
+            pBackup = NativeMethods.sqlite3_backup_init(
+                destination._sqlite3,
                 pDest,
-                Sqlite3Handle,
+                _sqlite3,
                 pSource);
-
-            if ((nint)pBackup == nint.Zero)
-            {
-                var result = destination.ErrorCode();
-                var errormessage = destination.ErrorMessage();
-                ThrowException(result, errormessage);
-            }
-
-            return new Backup(pBackup);
         }
+
+        if ((nint)pBackup == nint.Zero)
+        {
+            var result = destination.ErrorCode();
+            var errormessage = destination.ErrorMessage();
+            ThrowException(result, errormessage);
+        }
+
+        return new Backup(pBackup);
     }
 
     /// <summary>
@@ -547,29 +526,30 @@ public sealed unsafe class Connection : SafeHandle
         using var tableBuffer = new Utf8CStringBuffer(tableName, stackalloc byte[256]);
         using var columnBuffer = new Utf8CStringBuffer(columnName, stackalloc byte[256]);
 
+        sqlite3_blob* pBlob = default;
+        ResultCode result;
         fixed (byte* pDb = dbBuffer, pTable = tableBuffer, pColumn = columnBuffer)
         {
-            sqlite3_blob* pBlob = default;
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_open(
-                Sqlite3Handle,
-                pDb,
-                pTable,
-                pColumn,
-                rowId,
-                readWrite ? 1 : 0,
-                &pBlob);
-
-            var blob = new Blob(pBlob, this);
-
-            if (result != ResultCode.OK)
-            {
-                blob.Dispose();
-                var errormessage = ErrorMessage();
-                Exception.ThrowException(result, errormessage, $"{nameof(Blob)}.Open on {tableName}.{columnName} (rowid {rowId})");
-            }
-
-            return blob;
+            result = (ResultCode)NativeMethods.sqlite3_blob_open(
+               _sqlite3,
+               pDb,
+               pTable,
+               pColumn,
+               rowId,
+               readWrite ? 1 : 0,
+               &pBlob);
         }
+
+        var blob = new Blob(pBlob, this);
+
+        if (result != ResultCode.OK)
+        {
+            blob.Dispose();
+            var errormessage = ErrorMessage();
+            Exception.ThrowException(result, errormessage, $"{nameof(Blob)}.Open on {tableName}.{columnName} (rowid {rowId})");
+        }
+
+        return blob;
     }
 
     #endregion
@@ -642,25 +622,26 @@ public sealed unsafe class Connection : SafeHandle
             Encoding.UTF8.GetBytes(columnName, columnNameBuffer);
             columnNameBuffer[^1] = 0;
 
+            ResultCode rc;
             fixed (byte* pTableName = tableNameBuffer)
             fixed (byte* pColumnName = columnNameBuffer)
             {
-                ResultCode rc = (ResultCode)NativeMethods.sqlite3_table_column_metadata(
-                    Sqlite3Handle,
-                    null,
-                    pTableName,
-                    pColumnName,
-                    &pDataType,
-                    &pCollSeq,
-                    &notNull,
-                    &primaryKey,
-                    &autoInc);
+                rc = (ResultCode)NativeMethods.sqlite3_table_column_metadata(
+                   _sqlite3,
+                   null,
+                   pTableName,
+                   pColumnName,
+                   &pDataType,
+                   &pCollSeq,
+                   &notNull,
+                   &primaryKey,
+                   &autoInc);
+            }
 
-                if (rc != ResultCode.OK)
-                {
-                    string operation = $"Connection.GetTableColumnMetadata metadata lookup for column '{columnName}' in table '{tableName}'";
-                    ThrowException(rc, operation);
-                }
+            if (rc != ResultCode.OK)
+            {
+                string operation = $"Connection.GetTableColumnMetadata metadata lookup for column '{columnName}' in table '{tableName}'";
+                ThrowException(rc, operation);
             }
 
             dataType = pDataType != null ? Marshal.PtrToStringUTF8((nint)pDataType) : null;

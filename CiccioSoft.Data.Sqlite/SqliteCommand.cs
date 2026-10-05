@@ -14,7 +14,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
-using CiccioSoft.Sqlite.Native;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 
@@ -24,7 +24,7 @@ public sealed class SqliteCommand : DbCommand
 
     private const PrepareFlags SqlitePreparePersistentFlag = PrepareFlags.Persistent;
     private readonly object _statementCacheSync = new();
-    private readonly List<(Statement Statement, int ParamCount)> _preparedStatements = new(1);
+    private readonly List<(CiccioSoft.Sqlite.Native.Statement Statement, int ParamCount)> _preparedStatements = new(1);
     private SqliteConnection? _connection;
     private CachedStatement? _cachedStatement;
     private bool _prepared;
@@ -229,7 +229,7 @@ public sealed class SqliteCommand : DbCommand
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
         scope.Execute(() =>
         {
-            foreach ((Statement _, int _) in PrepareAndEnumerateStatements(session))
+            foreach ((CiccioSoft.Sqlite.Native.Statement _, int _) in PrepareAndEnumerateStatements(session))
             {
             }
         });
@@ -531,17 +531,17 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    internal Statement? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
+    internal CiccioSoft.Sqlite.Native.Statement? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
         => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true);
 
-    internal Statement? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
+    internal CiccioSoft.Sqlite.Native.Statement? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
     {
         if (_prepared)
         {
             return PrepareAndBindFromCache(batchState, throwOnMissingParameter);
         }
 
-        Statement? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
+        CiccioSoft.Sqlite.Native.Statement? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
         if (stmt is null)
         {
@@ -552,7 +552,7 @@ public sealed class SqliteCommand : DbCommand
         return stmt;
     }
 
-    internal void ReleaseStatement(Statement? stmt)
+    internal void ReleaseStatement(CiccioSoft.Sqlite.Native.Statement? stmt)
     {
         if (stmt is null)
         {
@@ -570,9 +570,9 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private void BindParameters(Statement stmt, bool throwOnMissingParameter)
+    private void BindParameters(CiccioSoft.Sqlite.Native.Statement stmt, bool throwOnMissingParameter)
     {
-        int parameterCount = stmt.ParameterCount();
+        int parameterCount = stmt.BindParameterCount();
         bool[] boundParameters = parameterCount == 0
             ? Array.Empty<bool>()
             : new bool[parameterCount + 1];
@@ -612,15 +612,15 @@ public sealed class SqliteCommand : DbCommand
     //     }
     // }
 
-    private static int ResolveParameterIndex(Statement stmt, SqliteParameter parameter, int ordinal)
+    private static int ResolveParameterIndex(CiccioSoft.Sqlite.Native.Statement stmt, SqliteParameter parameter, int ordinal)
     {
         string parameterName = parameter.ParameterName;
         if (string.IsNullOrEmpty(parameterName))
         {
             int ordinalIndex = ordinal + 1;
-            if (ordinalIndex <= stmt.ParameterCount())
+            if (ordinalIndex <= stmt.BindParameterCount())
             {
-                string? name = stmt.GetParameterNameString(ordinalIndex);
+                string? name = stmt.BindParameterName(ordinalIndex);
                 if (string.IsNullOrEmpty(name))
                 {
                     return ordinalIndex;
@@ -629,7 +629,7 @@ public sealed class SqliteCommand : DbCommand
             throw new InvalidOperationException(Resources.RequiresSet("ParameterName"));
         }
 
-        int index = stmt.GetParameterIndex(parameterName);
+        int index = stmt.BindParameterIndex(parameterName);
         if (index > 0)
         {
             return index;
@@ -642,13 +642,13 @@ public sealed class SqliteCommand : DbCommand
         int matchCount = 0;
         int matchedIndex = 0;
 
-        int idx1 = stmt.GetParameterIndex($"@{coreName}");
+        int idx1 = stmt.BindParameterIndex($"@{coreName}");
         if (idx1 > 0) { matchCount++; matchedIndex = idx1; }
 
-        int idx2 = stmt.GetParameterIndex($":{coreName}");
+        int idx2 = stmt.BindParameterIndex($":{coreName}");
         if (idx2 > 0) { matchCount++; matchedIndex = idx2; }
 
-        int idx3 = stmt.GetParameterIndex($"${coreName}");
+        int idx3 = stmt.BindParameterIndex($"${coreName}");
         if (idx3 > 0) { matchCount++; matchedIndex = idx3; }
 
         if (matchCount > 1)
@@ -670,7 +670,7 @@ public sealed class SqliteCommand : DbCommand
         return commandText.StartsWith("EXPLAIN", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void ThrowIfMissingParameters(Statement stmt, bool[] boundParameters)
+    private static void ThrowIfMissingParameters(CiccioSoft.Sqlite.Native.Statement stmt, bool[] boundParameters)
     {
         List<string>? missingParameters = null;
         for (int i = 1; i < boundParameters.Length; i++)
@@ -681,7 +681,7 @@ public sealed class SqliteCommand : DbCommand
             }
 
             missingParameters ??= new List<string>();
-            missingParameters.Add(stmt.GetParameterNameString(i) ?? "?");
+            missingParameters.Add(stmt.BindParameterName(i) ?? "?");
         }
 
         if (missingParameters is not null)
@@ -690,7 +690,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private static void BindParameter(Statement stmt, int index, SqliteParameter parameter)
+    private static void BindParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter)
     {
         object? value = parameter.Value;
         if (value is null || value is DBNull)
@@ -702,19 +702,19 @@ public sealed class SqliteCommand : DbCommand
         switch (value)
         {
             case int i: stmt.BindInt(index, i); break;
-            case long l: stmt.BindLong(index, l); break;
+            case long l: stmt.BindInt64(index, l); break;
             case short s: stmt.BindInt(index, s); break;
             case sbyte sb: stmt.BindInt(index, sb); break;
             case byte b: stmt.BindInt(index, b); break;
-            case uint ui: stmt.BindLong(index, ui); break;
-            case ulong ul when ul <= long.MaxValue: stmt.BindLong(index, (long)ul); break;
+            case uint ui: stmt.BindInt64(index, ui); break;
+            case ulong ul when ul <= long.MaxValue: stmt.BindInt64(index, (long)ul); break;
             case ulong ul: BindTextParameter(stmt, index, parameter, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
             case ushort us: stmt.BindInt(index, us); break;
             case bool bo: stmt.BindInt(index, bo ? 1 : 0); break;
             case float f: BindDoubleParameter(stmt, index, f); break;
             case double d: BindDoubleParameter(stmt, index, d); break;
             case decimal m: BindTextParameter(stmt, index, parameter, m.ToString("0.0###########################", CultureInfo.InvariantCulture)); break;
-            case char c when parameter.SqliteType == SqliteType.Integer: stmt.BindLong(index, c); break;
+            case char c when parameter.SqliteType == SqliteType.Integer: stmt.BindInt64(index, c); break;
             case char c: BindTextParameter(stmt, index, parameter, c.ToString()); break;
             case Guid guid when parameter.SqliteType == SqliteType.Blob: BindBlobParameter(stmt, index, parameter, guid.ToByteArray()); break;
             case Guid guid: BindTextParameter(stmt, index, parameter, guid.ToString("D").ToUpperInvariant()); break;
@@ -737,13 +737,13 @@ public sealed class SqliteCommand : DbCommand
                 break;
             case TimeSpan timeSpan when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, timeSpan.TotalDays); break;
             case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", CultureInfo.InvariantCulture)); break;
-            case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
+            case Enum enumValue: stmt.BindInt64(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
             case byte[] bytes: BindBlobParameter(stmt, index, parameter, bytes); break;
             default: throw new InvalidOperationException(Resources.UnknownDataType(value.GetType()));
         }
     }
 
-    private static void BindDoubleParameter(Statement stmt, int index, double value)
+    private static void BindDoubleParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, double value)
     {
         if (double.IsNaN(value))
         {
@@ -794,7 +794,7 @@ public sealed class SqliteCommand : DbCommand
         return milliseconds / 86400000.0;
     }
 
-    private static void BindTextParameter(Statement stmt, int index, SqliteParameter parameter, string value)
+    private static void BindTextParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter, string value)
     {
         if (parameter.TryGetTruncatedSize(value.Length, out int size))
         {
@@ -804,7 +804,7 @@ public sealed class SqliteCommand : DbCommand
         stmt.BindText(index, value);
     }
 
-    private static void BindBlobParameter(Statement stmt, int index, SqliteParameter parameter, byte[] value)
+    private static void BindBlobParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter, byte[] value)
     {
         stmt.BindBlob(
             index,
@@ -846,14 +846,14 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private IEnumerable<(Statement Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
+    private IEnumerable<(CiccioSoft.Sqlite.Native.Statement Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
     {
         DisposePreparedStatements();
 
         var batchState = new BatchExecutionState(CommandText);
         while (true)
         {
-            Statement? stmt = session.Native.Prepare(
+            CiccioSoft.Sqlite.Native.Statement? stmt = session.Native.Prepare(
                 batchState.Sql,
                 batchState.SqlByteOffset,
                 out int nextSqlByteOffset,
@@ -865,7 +865,7 @@ public sealed class SqliteCommand : DbCommand
                 break;
             }
 
-            int paramCount = stmt.ParameterCount();
+            int paramCount = stmt.BindParameterCount();
             var prepared = (stmt, paramCount);
             _preparedStatements.Add(prepared);
             yield return prepared;
@@ -874,7 +874,7 @@ public sealed class SqliteCommand : DbCommand
         _prepared = true;
     }
 
-    private Statement? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
+    private CiccioSoft.Sqlite.Native.Statement? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
     {
         int index = batchState.PreparedStatementIndex;
         if (index >= _preparedStatements.Count)
@@ -882,7 +882,7 @@ public sealed class SqliteCommand : DbCommand
             return null;
         }
 
-        Statement stmt = _preparedStatements[index].Statement;
+        CiccioSoft.Sqlite.Native.Statement stmt = _preparedStatements[index].Statement;
         batchState.PreparedStatementIndex = index + 1;
         stmt.Reset();
         stmt.ClearBindings();
@@ -892,7 +892,7 @@ public sealed class SqliteCommand : DbCommand
 
     private void DisposePreparedStatements()
     {
-        foreach ((Statement stmt, int _) in _preparedStatements)
+        foreach ((CiccioSoft.Sqlite.Native.Statement stmt, int _) in _preparedStatements)
         {
             stmt.Dispose();
         }
@@ -916,7 +916,7 @@ public sealed class SqliteCommand : DbCommand
                     _cachedStatement = null;
                 }
 
-                Statement statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
+                CiccioSoft.Sqlite.Native.Statement statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
                 _cachedStatement = new CachedStatement(session, CommandText, statement);
                 _cachedStatement.TryAcquire();
             }
@@ -942,7 +942,7 @@ public sealed class SqliteCommand : DbCommand
 
     private sealed class CachedStatement
     {
-        public CachedStatement(SqliteSession session, string commandText, Statement statement)
+        public CachedStatement(SqliteSession session, string commandText, CiccioSoft.Sqlite.Native.Statement statement)
         {
             Session = session;
             CommandText = commandText;
@@ -951,7 +951,7 @@ public sealed class SqliteCommand : DbCommand
 
         public SqliteSession Session { get; }
         public string CommandText { get; }
-        public Statement Statement { get; }
+        public CiccioSoft.Sqlite.Native.Statement Statement { get; }
         public bool InUse { get; private set; }
 
         public bool TryAcquire()
@@ -982,7 +982,7 @@ public sealed class SqliteCommand : DbCommand
             _cached = cached;
         }
 
-        public Statement Statement => _cached.Statement;
+        public CiccioSoft.Sqlite.Native.Statement Statement => _cached.Statement;
 
         public void Dispose()
         {

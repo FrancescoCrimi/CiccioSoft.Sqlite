@@ -7,7 +7,7 @@
 using System;
 using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite.Native;
+namespace CiccioSoft.Sqlite;
 
 [Flags]
 public enum OpenFlags

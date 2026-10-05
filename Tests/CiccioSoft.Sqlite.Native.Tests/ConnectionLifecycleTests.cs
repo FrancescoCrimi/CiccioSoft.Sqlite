@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -16,14 +15,14 @@ public sealed class ConnectionLifecycleTests
     [Fact]
     public void Open_MemoryDatabase_Succeeds()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("SELECT 1;");
     }
 
     [Fact]
     public void Open_FileDatabase_CreatesFileAndPersists()
     {
-        using var temp = new TempDatabase();
+        using var temp = new TestDatabase();
 
         using (var connection = temp.Open())
         {
@@ -37,7 +36,7 @@ public sealed class ConnectionLifecycleTests
         {
             using var stmt = connection.Prepare("SELECT name FROM t WHERE id = 1;");
             Assert.True(stmt.Step());
-            Assert.Equal("persisted", stmt.GetText(0));
+            Assert.Equal("persisted", stmt.ColumnText(0));
         }
     }
 
@@ -56,7 +55,7 @@ public sealed class ConnectionLifecycleTests
     [Fact]
     public void Open_DefaultFlags_CreateReadWrite()
     {
-        using var temp = new TempDatabase();
+        using var temp = new TestDatabase();
         using var connection = Native.Connection.Open(temp.Path, OpenFlags.ReadWrite | OpenFlags.Create);
 
         Assert.False(connection.DbReadOnly());
@@ -73,16 +72,16 @@ public sealed class ConnectionLifecycleTests
         connection.Execute("CREATE TABLE t (id INTEGER);");
         connection.Execute("INSERT INTO t VALUES (42);");
 
-        using var shared = ConnectionFactory.OpenSharedMemory("lifecycle_uri");
+        using var shared = TestDatabase.OpenSharedMemory("lifecycle_uri");
         using var stmt = shared.Prepare("SELECT id FROM t;");
         Assert.True(stmt.Step());
-        Assert.Equal(42, stmt.GetInt(0));
+        Assert.Equal(42, stmt.ColumnInt(0));
     }
 
     [Fact]
     public void DoubleDispose_IsIdempotent()
     {
-        var connection = ConnectionFactory.OpenMemory();
+        var connection = TestDatabase.OpenMemory();
         connection.Dispose();
         connection.Dispose();
     }

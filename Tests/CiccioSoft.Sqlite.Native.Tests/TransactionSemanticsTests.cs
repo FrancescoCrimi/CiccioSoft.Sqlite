@@ -4,7 +4,6 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -14,7 +13,7 @@ public sealed class TransactionSemanticsTests
     [Fact]
     public void Commit_PersistsChanges()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE accounts (id INTEGER PRIMARY KEY, balance INTEGER NOT NULL);");
 
         connection.Execute("BEGIN;");
@@ -24,14 +23,14 @@ public sealed class TransactionSemanticsTests
 
         using var stmt = connection.Prepare("SELECT balance FROM accounts;");
         Assert.True(stmt.Step());
-        Assert.Equal(100, stmt.GetInt(0));
+        Assert.Equal(100, stmt.ColumnInt(0));
         Assert.True(connection.GetAutoCommit());
     }
 
     [Fact]
     public void Rollback_DiscardsUncommittedChanges()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE accounts (id INTEGER PRIMARY KEY, balance INTEGER NOT NULL);");
         connection.Execute("INSERT INTO accounts (balance) VALUES (50);");
 
@@ -42,7 +41,7 @@ public sealed class TransactionSemanticsTests
         using (var stmt = connection.Prepare("SELECT balance FROM accounts;"))
         {
             Assert.True(stmt.Step());
-            Assert.Equal(50, stmt.GetInt(0));
+            Assert.Equal(50, stmt.ColumnInt(0));
         }
 
         Assert.Equal(TransactionState.None, connection.TransactionState());
@@ -52,7 +51,7 @@ public sealed class TransactionSemanticsTests
     [Fact]
     public void NestedSavepoint_RollbackToSavepoint_KeepsOuterWork()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY, v TEXT);");
 
         connection.Execute("BEGIN;");
@@ -65,14 +64,14 @@ public sealed class TransactionSemanticsTests
 
         using var stmt = connection.Prepare("SELECT v FROM t ORDER BY id;");
         Assert.True(stmt.Step());
-        Assert.Equal("keep", stmt.GetText(0));
+        Assert.Equal("keep", stmt.ColumnText(0));
         Assert.False(stmt.Step());
     }
 
     [Fact]
     public void ImmediateTransaction_EnterWriteState()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (id INTEGER);");
 
         connection.Execute("BEGIN IMMEDIATE;");

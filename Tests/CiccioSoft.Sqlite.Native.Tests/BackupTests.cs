@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -15,8 +14,8 @@ public sealed class BackupTests
     [Fact]
     public void InitBackup_CopiesSchemaAndData_InOneStep()
     {
-        using var sourceDb = new TempDatabase("backup-src");
-        using var destDb = new TempDatabase("backup-dst");
+        using var sourceDb = new TestDatabase("backup-src");
+        using var destDb = new TestDatabase("backup-dst");
 
         using (var source = sourceDb.Open())
         {
@@ -42,16 +41,16 @@ public sealed class BackupTests
         using var verify = destDb.Open(OpenFlags.ReadWrite);
         using var stmt = verify.Prepare("SELECT COUNT(*), MIN(sku), MAX(sku) FROM inventory;");
         Assert.True(stmt.Step());
-        Assert.Equal(3, stmt.GetInt(0));
-        Assert.Equal("A-1", stmt.GetText(1));
-        Assert.Equal("C-3", stmt.GetText(2));
+        Assert.Equal(3, stmt.ColumnInt(0));
+        Assert.Equal("A-1", stmt.ColumnText(1));
+        Assert.Equal("C-3", stmt.ColumnText(2));
     }
 
     [Fact]
     public void Step_PageByPage_EventuallyCompletes()
     {
-        using var sourceDb = new TempDatabase("backup-page-src");
-        using var destDb = new TempDatabase("backup-page-dst");
+        using var sourceDb = new TestDatabase("backup-page-src");
+        using var destDb = new TestDatabase("backup-page-dst");
 
         using var source = sourceDb.Open();
         source.Execute("CREATE TABLE t (id INTEGER PRIMARY KEY, payload BLOB);");
@@ -89,7 +88,7 @@ public sealed class BackupTests
     [Fact]
     public void InitBackup_NullConnections_ThrowArgumentNull()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
 
         Assert.Throws<ArgumentNullException>(() =>
             connection.BackupInit(null!));
@@ -105,8 +104,8 @@ public sealed class BackupTests
     [InlineData("   ", "main")]
     public void InitBackup_InvalidDatabaseNames_Throw(string? destName, string? sourceName)
     {
-        using var source = ConnectionFactory.OpenMemory();
-        using var destination = ConnectionFactory.OpenMemory();
+        using var source = TestDatabase.OpenMemory();
+        using var destination = TestDatabase.OpenMemory();
 
         Assert.ThrowsAny<ArgumentException>(() =>
             source.BackupInit(destination, destName!, sourceName!));
@@ -115,8 +114,8 @@ public sealed class BackupTests
     [Fact]
     public void DoubleDispose_IsIdempotent()
     {
-        using var sourceDb = new TempDatabase("backup-dd-src");
-        using var destDb = new TempDatabase("backup-dd-dst");
+        using var sourceDb = new TestDatabase("backup-dd-src");
+        using var destDb = new TestDatabase("backup-dd-dst");
         using var source = sourceDb.Open();
         source.Execute("CREATE TABLE t (id INTEGER);");
         using var destination = destDb.Open();

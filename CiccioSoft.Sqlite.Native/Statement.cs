@@ -36,7 +36,7 @@ public sealed unsafe class Statement : SafeHandle
         return true;
     }
 
-    private sqlite3_stmt* Sqlite3StatementHandle => (sqlite3_stmt*)DangerousGetHandle();
+    private sqlite3_stmt* _sqlite3_stmt => (sqlite3_stmt*)DangerousGetHandle();
 
     #endregion
 
@@ -58,7 +58,7 @@ public sealed unsafe class Statement : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        ResultCode result = (ResultCode)NativeMethods.sqlite3_step(Sqlite3StatementHandle);
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_step(_sqlite3_stmt);
 
         if (result == ResultCode.Row) return true;
         if (result == ResultCode.Done) return false;
@@ -80,7 +80,7 @@ public sealed unsafe class Statement : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        ResultCode result = (ResultCode)NativeMethods.sqlite3_reset(Sqlite3StatementHandle);
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_reset(_sqlite3_stmt);
 
         if (result != ResultCode.OK)
             ThrowException(result, _connection.ErrorMessage());
@@ -99,7 +99,7 @@ public sealed unsafe class Statement : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        ResultCode result = (ResultCode)NativeMethods.sqlite3_clear_bindings(Sqlite3StatementHandle);
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_clear_bindings(_sqlite3_stmt);
 
         if (result != ResultCode.OK)
             ThrowException(result, _connection.ErrorMessage());
@@ -116,8 +116,8 @@ public sealed unsafe class Statement : SafeHandle
     /// <returns>The total count of result columns.</returns>
     /// <remarks>
     /// <b>Usage Scenario:</b>
-    /// This method is typically used in a loop combined with <see cref="GetColumnName"/> 
-    /// or <see cref="GetColumnType"/> to dynamically process query results without 
+    /// This method is typically used in a loop combined with <see cref="ColumnName"/> 
+    /// or <see cref="ColumnType"/> to dynamically process query results without 
     /// knowing the table schema in advance.
     /// </remarks>
     /// <exception cref="ObjectDisposedException">Thrown if the statement handle is invalid.</exception>
@@ -125,35 +125,30 @@ public sealed unsafe class Statement : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_column_count(Sqlite3StatementHandle);
+        int rtn = NativeMethods.sqlite3_column_count(_sqlite3_stmt);
         return rtn;
     }
 
     /// <summary>
     /// Returns the number of SQL parameters in this prepared statement.
     /// </summary>
-    public int ParameterCount()
+    public int BindParameterCount()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_bind_parameter_count(Sqlite3StatementHandle);
+        int rtn = NativeMethods.sqlite3_bind_parameter_count(_sqlite3_stmt);
         return rtn;
     }
 
     // TODO : fix span
-    public ReadOnlySpan<byte> GetParameterName(int index)
+    public ReadOnlySpan<byte> BindParameterNameUtf8(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        byte* pByte = NativeMethods.sqlite3_bind_parameter_name(Sqlite3StatementHandle, index);
-
-        if (pByte == null)
-            return ReadOnlySpan<byte>.Empty;
-
-        int length = 0;
-        while (pByte[length] != 0) length++;
-        return new ReadOnlySpan<byte>(pByte, length);
+        byte* pointer = NativeMethods.sqlite3_bind_parameter_name(_sqlite3_stmt, index);
+        ReadOnlySpan<byte> span = MemoryMarshal.CreateReadOnlySpanFromNullTerminated(pointer);
+        return span;
     }
 
     /// <summary>
@@ -162,12 +157,12 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="index">The one-based index of the SQL parameter (first parameter is 1).</param>
     /// <returns>The name of the parameter, or null if the parameter is nameless or out of range.</returns>
-    public string? GetParameterNameString(int index)
+    public string? BindParameterName(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        byte* pName = NativeMethods.sqlite3_bind_parameter_name(Sqlite3StatementHandle, index);
+        byte* pName = NativeMethods.sqlite3_bind_parameter_name(_sqlite3_stmt, index);
         return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
     }
 
@@ -176,7 +171,7 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="name">The name of the parameter including its prefix (e.g., ":userName", "@id").</param>
     /// <returns>The one-based index of the parameter, or 0 if no matching parameter is found.</returns>
-    public int GetParameterIndex(string parameterName)
+    public int BindParameterIndex(string parameterName)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
@@ -187,8 +182,8 @@ public sealed unsafe class Statement : SafeHandle
 
         fixed (byte* pBuf = utf8Buffer)
         {
-            int rtn = NativeMethods.sqlite3_bind_parameter_index(Sqlite3StatementHandle, pBuf);
-            return rtn;
+            int index = NativeMethods.sqlite3_bind_parameter_index(_sqlite3_stmt, pBuf);
+            return index;
         }
     }
 
@@ -202,66 +197,64 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="index">The 0-based index of the column.</param>
     /// <returns>The column name; <c>null</c> if the index is out of range or the name is unavailable.</returns>
-    public string? GetColumnName(int index)
+    public string? ColumnName(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         // sqlite3_column_name restituisce un byte* UTF-8 (null-terminated)
-        byte* pName = NativeMethods.sqlite3_column_name(Sqlite3StatementHandle, index);
+        byte* pName = NativeMethods.sqlite3_column_name(_sqlite3_stmt, index);
 
         // Se l'indice è fuori intervallo o il nome non è disponibile, SQLite restituisce NULL
-        if (pName == null) return null;
-
         // Converte il puntatore UTF-8 null-terminated in stringa gestita
-        return Marshal.PtrToStringUTF8((nint)pName);
+        return pName is null ? null : Marshal.PtrToStringUTF8((nint)pName);
     }
 
     /// <summary>
     /// Returns the declared type for the specified result column, if available.
     /// </summary>
-    public string? GetColumnDeclType(int index)
+    public string? ColumnDeclType(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        byte* pText = NativeMethods.sqlite3_column_decltype(Sqlite3StatementHandle, index);
+        byte* pText = NativeMethods.sqlite3_column_decltype(_sqlite3_stmt, index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
     /// <summary>
     /// Returns the source database name for the specified result column, if available.
     /// </summary>
-    public string? GetColumnDatabaseName(int index)
+    public string? ColumnDatabaseName(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        byte* pText = NativeMethods.sqlite3_column_database_name(Sqlite3StatementHandle, index);
+        byte* pText = NativeMethods.sqlite3_column_database_name(_sqlite3_stmt, index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
     /// <summary>
     /// Returns the source table name for the specified result column, if available.
     /// </summary>
-    public string? GetColumnTableName(int index)
+    public string? ColumnTableName(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        byte* pText = NativeMethods.sqlite3_column_table_name(Sqlite3StatementHandle, index);
+        byte* pText = NativeMethods.sqlite3_column_table_name(_sqlite3_stmt, index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
     /// <summary>
     /// Returns the source column name for the specified result column, if available.
     /// </summary>
-    public string? GetColumnOriginName(int index)
+    public string? ColumnOriginName(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        byte* pText = NativeMethods.sqlite3_column_origin_name(Sqlite3StatementHandle, index);
+        byte* pText = NativeMethods.sqlite3_column_origin_name(_sqlite3_stmt, index);
         return pText is null ? null : Marshal.PtrToStringUTF8((nint)pText);
     }
 
@@ -275,12 +268,12 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>The 32-bit integer value of the column.</returns>
-    public int GetInt(int index)
+    public int ColumnInt(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        int rtn = NativeMethods.sqlite3_column_int(Sqlite3StatementHandle, index);
+        int rtn = NativeMethods.sqlite3_column_int(_sqlite3_stmt, index);
         return rtn;
     }
 
@@ -290,12 +283,12 @@ public sealed unsafe class Statement : SafeHandle
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>The 64-bit long value of the column.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public long GetLong(int index)
+    public long ColumnInt64(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        long rtn = NativeMethods.sqlite3_column_int64(Sqlite3StatementHandle, index);
+        long rtn = NativeMethods.sqlite3_column_int64(_sqlite3_stmt, index);
         return rtn;
     }
 
@@ -305,29 +298,35 @@ public sealed unsafe class Statement : SafeHandle
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>The double-precision value of the column.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public double GetDouble(int index)
+    public double ColumnDouble(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        double rtn = NativeMethods.sqlite3_column_double(Sqlite3StatementHandle, index);
+        double rtn = NativeMethods.sqlite3_column_double(_sqlite3_stmt, index);
         return rtn;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReadOnlySpan<byte> GetTextAsSpan(int index)
+    public Utf8String ColumnTextUtf8(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
-        byte* pText = NativeMethods.sqlite3_column_text(Sqlite3StatementHandle, index);
-        // Chiediamo a SQLite la lunghezza esatta in byte
-        int length = NativeMethods.sqlite3_column_bytes(Sqlite3StatementHandle, index);
+        byte* ptr = NativeMethods.sqlite3_column_text(_sqlite3_stmt, index);
 
-        if (pText == null) return ReadOnlySpan<byte>.Empty;
-        if (length == 0) return ReadOnlySpan<byte>.Empty;
-        return new ReadOnlySpan<byte>(pText, length);
+        if (ptr == null)
+            return Utf8String.Utf8StringNull;
+        else
+        {
+            // Chiediamo a SQLite la lunghezza esatta in byte
+            int length = NativeMethods.sqlite3_column_bytes(_sqlite3_stmt, index);
+            if (length == 0)
+                return Utf8String.Utf8StringEmpty;
+            else
+                return new Utf8String(new ReadOnlySpan<byte>(ptr, length));
+        }
     }
 
     /// <summary>
@@ -340,16 +339,23 @@ public sealed unsafe class Statement : SafeHandle
     /// <see cref="string.Empty"/> if the database value is an empty string.
     /// </returns>
     /// <exception cref="System.Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
-    public string? GetText(int index)
+    public string? ColumnText(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         // Otteniamo il puntatore alla memoria nativa gestita da SQLite
-        byte* pText = NativeMethods.sqlite3_column_text(Sqlite3StatementHandle, index);
+        byte* ptr = NativeMethods.sqlite3_column_text(_sqlite3_stmt, index);
 
-        // Marshal.PtrToStringUTF8 gestisce internamente il controllo null e la terminazione \0
-        return pText == null ? null : Marshal.PtrToStringUTF8((nint)pText);
+        if (ptr == null)
+            return null;
+        else
+        {
+            // Chiediamo a SQLite la lunghezza esatta in byte
+            int bytelen = NativeMethods.sqlite3_column_bytes(_sqlite3_stmt, index);
+            string text = Marshal.PtrToStringUTF8((nint)ptr, bytelen);
+            return text;
+        }
     }
 
     /// <summary>
@@ -358,15 +364,15 @@ public sealed unsafe class Statement : SafeHandle
     /// <param name="index">The 0-based index of the column to retrieve.</param>
     /// <returns>A <see cref="ReadOnlySpan{Byte}"/> pointing directly to the native SQLite memory; <see cref="ReadOnlySpan{Byte}.Empty"/> if NULL.</returns>
     /// <exception cref="System.Exception">Thrown if the column cannot be read or the statement is in an invalid state.</exception>
-    public ReadOnlySpan<byte> GetBlob(int index)
+    public ReadOnlySpan<byte> ColumnBlob(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         // Otteniamo il puntatore alla memoria del BLOB gestita da SQLite
-        void* pBlob = NativeMethods.sqlite3_column_blob(Sqlite3StatementHandle, index);
+        void* pBlob = NativeMethods.sqlite3_column_blob(_sqlite3_stmt, index);
         // Otteniamo la dimensione in byte
-        int length = NativeMethods.sqlite3_column_bytes(Sqlite3StatementHandle, index);
+        int length = NativeMethods.sqlite3_column_bytes(_sqlite3_stmt, index);
 
         // Controllo prima della creazione dello Span per pulizia,
         // anche se in C# passare null con length 0 a ReadOnlySpan è valido.
@@ -383,12 +389,12 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="index">The zero-based index of the column.</param>
     /// <returns>The <see cref="SqliteType"/> representing the type of the value.</returns>  
-    public SqliteType GetColumnType(int index)
+    public SqliteType ColumnType(int index)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        int typeCode = NativeMethods.sqlite3_column_type(Sqlite3StatementHandle, index);
+        int typeCode = NativeMethods.sqlite3_column_type(_sqlite3_stmt, index);
         return (SqliteType)typeCode;
     }
 
@@ -408,7 +414,7 @@ public sealed unsafe class Statement : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_stmt_busy(Sqlite3StatementHandle);
+        int rtn = NativeMethods.sqlite3_stmt_busy(_sqlite3_stmt);
         return rtn != 0;
     }
 
@@ -416,11 +422,11 @@ public sealed unsafe class Statement : SafeHandle
     /// Returns the SQL text of this prepared statement with all bound parameters expanded to their actual values.
     /// </summary>
     /// <returns>The fully expanded SQL string, or null if out of memory or trace is omitted.</returns>
-    public string? GetExpandedSql()
+    public string? ExpandedSql()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        byte* pExpanded = NativeMethods.sqlite3_expanded_sql(Sqlite3StatementHandle);
+        byte* pExpanded = NativeMethods.sqlite3_expanded_sql(_sqlite3_stmt);
 
         if (pExpanded == null)
         {
@@ -440,11 +446,11 @@ public sealed unsafe class Statement : SafeHandle
     /// <summary>
     /// Returns the original SQL text used to prepare this statement.
     /// </summary>
-    public string? GetSql()
+    public string? Sql()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        byte* pSql = NativeMethods.sqlite3_sql(Sqlite3StatementHandle);
+        byte* pSql = NativeMethods.sqlite3_sql(_sqlite3_stmt);
         return pSql is null ? null : Marshal.PtrToStringUTF8((nint)pSql);
     }
 
@@ -462,9 +468,9 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        int result = NativeMethods.sqlite3_bind_null(Sqlite3StatementHandle, index);
-        if ((ResultCode)result != ResultCode.OK)
-            ThrowBindException((ResultCode)result, index, _connection.ErrorMessage());
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_null(_sqlite3_stmt, index);
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -478,9 +484,9 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        int result = NativeMethods.sqlite3_bind_int(Sqlite3StatementHandle, index, value);
-        if ((ResultCode)result != ResultCode.OK)
-            ThrowBindException((ResultCode)result, index, _connection.ErrorMessage());
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_int(_sqlite3_stmt, index, value);
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -488,14 +494,14 @@ public sealed unsafe class Statement : SafeHandle
     /// </summary>
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="value">The long value to bind.</param>
-    public void BindLong(int index, long value)
+    public void BindInt64(int index, long value)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        int result = NativeMethods.sqlite3_bind_int64(Sqlite3StatementHandle, index, value);
-        if ((ResultCode)result != ResultCode.OK)
-            ThrowBindException((ResultCode)result, index, _connection.ErrorMessage());
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_int64(_sqlite3_stmt, index, value);
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -508,9 +514,9 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        int result = NativeMethods.sqlite3_bind_double(Sqlite3StatementHandle, index, value);
-        if ((ResultCode)result != ResultCode.OK)
-            ThrowBindException((ResultCode)result, index, _connection.ErrorMessage());
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_double(_sqlite3_stmt, index, value);
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -519,16 +525,25 @@ public sealed unsafe class Statement : SafeHandle
     /// <param name="index">The 1-based index of the parameter to bind.</param>
     /// <param name="text">The string value to bind. If null, a SQL NULL is bound instead.</param>
     /// <exception cref="System.Exception">Thrown if the binding fails or the statement is invalid.</exception>
-    public void BindText(int index, string text)
+    public void BindText(int index, string? text)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
+        ResultCode result;
         using var utf8Buffer = new Utf8CStringBuffer(text, stackalloc byte[1024]);
+        fixed (byte* pBuf = utf8Buffer)
+        {
+            result = (ResultCode)NativeMethods.sqlite3_bind_text(
+              _sqlite3_stmt,
+              index,
+              pBuf,
+              utf8Buffer.Length,
+              NativeMethods.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
+        }
 
-        var resultCode = BindTextCore(index, utf8Buffer.AsSpan());
-        if (resultCode != ResultCode.OK)
-            ThrowBindException(resultCode, index, _connection.ErrorMessage());
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     public void BindText(int index, ReadOnlySpan<byte> text)
@@ -536,26 +551,32 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
-        var resultCode = BindTextCore(index, text);
-        if (resultCode != ResultCode.OK)
-            ThrowBindException(resultCode, index, _connection.ErrorMessage());
-    }
-
-    /// <summary>
-    /// Esegue il pinning di <paramref name="text"/> e invoca <c>sqlite3_bind_text</c>.
-    /// </summary>
-    private ResultCode BindTextCore(int index, ReadOnlySpan<byte> text)
-    {
-        fixed (byte* pBuf = text)
+        ResultCode result;
+        if (text.IsEmpty)
         {
-            int result = NativeMethods.sqlite3_bind_text(
-               Sqlite3StatementHandle,
-               index,
-               pBuf,
-               text.Length,
-               NativeMethods.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
-            return (ResultCode)result;
+            byte dummy = 0;
+            result = (ResultCode)NativeMethods.sqlite3_bind_text(
+              _sqlite3_stmt,
+              index,
+              &dummy,
+              0,
+              NativeMethods.SQLITE_TRANSIENT);
         }
+        else
+        {
+            fixed (byte* pBuf = text)
+            {
+                result = (ResultCode)NativeMethods.sqlite3_bind_text(
+                  _sqlite3_stmt,
+                  index,
+                  pBuf,
+                  text.Length,
+                  NativeMethods.SQLITE_TRANSIENT); // -1 = SQLITE_TRANSIENT
+            }
+        }
+
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -574,7 +595,7 @@ public sealed unsafe class Statement : SafeHandle
         fixed (byte* pData = data)
         {
             ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_blob(
-               Sqlite3StatementHandle,
+               _sqlite3_stmt,
                index,
                pData,
                data.Length,

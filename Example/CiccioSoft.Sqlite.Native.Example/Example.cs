@@ -238,7 +238,7 @@ public class Example
             bool first = true;
             while (idsStmt.Step())
             {
-                long currentId = idsStmt.GetLong(0);
+                long currentId = idsStmt.ColumnInt64(0);
 
                 if (first)
                     first = false;  		  // il primo Open ha già puntato alla riga 1
@@ -294,9 +294,9 @@ public class Example
             stmt.BindInt(1, 18);
             while (stmt.Step())
             {
-                int id = stmt.GetInt(0);
-                string? name = stmt.GetText(1);
-                int age = stmt.GetInt(2);
+                int id = stmt.ColumnInt(0);
+                string? name = stmt.ColumnText(1);
+                int age = stmt.ColumnInt(2);
                 Console.WriteLine($"   - Utente: {id} - {name}, {age} anni");
             }
         }

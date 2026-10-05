@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -15,7 +14,7 @@ public sealed class BlobEmptySpanTests
     [Fact]
     public void ReadAndWrite_EmptySpan_DoesNotCrash()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE t (b BLOB); INSERT INTO t (b) VALUES (zeroblob(10));");
         
         long rowid = connection.LastInsertRowId();

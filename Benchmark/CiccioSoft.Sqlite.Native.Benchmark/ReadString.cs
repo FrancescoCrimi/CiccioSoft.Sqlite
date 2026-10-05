@@ -81,7 +81,7 @@ public class ReadString
             for (int i = 0; i < RowCount; i++)
             {
                 stmt.Reset();
-                stmt.BindLong(1, i);
+                stmt.BindInt64(1, i);
                 stmt.BindText(2, TestString);
                 stmt.BindDouble(3, i * 1.1);
                 stmt.Step();
@@ -100,9 +100,9 @@ public class ReadString
         {
             while (stmt.Step())
             {
-                long id = stmt.GetLong(0);
-                string name = stmt.GetText(1);
-                double score = stmt.GetDouble(2);
+                long id = stmt.ColumnInt64(0);
+                string name = stmt.ColumnText(1);
+                double score = stmt.ColumnDouble(2);
                 _consumer.Consume(id);
                 _consumer.Consume(name);
                 _consumer.Consume(score);

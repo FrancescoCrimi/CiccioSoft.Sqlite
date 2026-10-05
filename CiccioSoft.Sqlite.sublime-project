@@ -1,32 +1,46 @@
 {
-    "folders":
-    [
+    "folders": [
         {
             "path": ".",
         }
     ],
-    "debugger_configurations":
-    [
+    "debugger_tasks": [
         {
-            "name": "Example",
+            "name": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "working_dir": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "shell_cmd": "dotnet build",
+        },
+        {
+            "name": "Build_CiccioSoft_Data_Sqlite_Tests",
+            "working_dir": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests",
+            "shell_cmd": "dotnet build",
+        }
+    ],
+    "debugger_configurations": [
+        {
+            "name": "Test11",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Interop.Sqlite.Example/bin/Debug/net10.0/CiccioSoft.Interop.Sqlite.Example.exe",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
             "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_Null_String",
                 "-parallel",
                 "none"
             ],
-            "cwd": "${folder}/CiccioSoft.Interop.Sqlite.Example",
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
             "stopAtEntry": false
         },
         {
-            "name": "Test1",
+            "name": "Test12",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/CiccioSoft.Data.Sqlite.Tests.Extra/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.Extra.exe",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
             "args": [
                 "-filter", 
-                "//CiccioSoft.Data.Sqlite/SqliteConnectionPoolTest/Rent_evicts_a_dead_session_found_in_the_bag_and_creates_a_fresh_one",
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_Empty_String",
                 "-parallel",
                 "none"
             ],
@@ -34,18 +48,139 @@
             "stopAtEntry": false
         },
         {
-            "name": "Test2",
+            "name": "Test13",
             "type": "netcoredbg",
             "request": "launch",
-            "program": "${folder}/Microsoft.Data.Sqlite.Tests/bin/Debug/net10.0/Microsoft.Data.Sqlite.Tests.exe",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
             "args": [
                 "-filter", 
-                "//Microsoft.Data.Sqlite/SqliteTransactionTest/ReadUncommitted_allows_dirty_reads",
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_Empty_Span",
                 "-parallel",
                 "none"
             ],
             "cwd": "${folder}",
             "stopAtEntry": false
+        },
+        {
+            "name": "Test14",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_Span_With_Null",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Test3",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/ConnectionEmptyStringTests/Prepare_EmptyString_ReturnsNullWithoutCrashing",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Test31",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/Utf8CStringBufferTests/GetPinnableReference_AllowsFixedPinAcrossEmptyAndNonEmpty",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Test32",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/Utf8CStringBufferTests/Unicode_PreservesCodePointsInUtf8Bytes",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Test4",
+            "type": "coreclr",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Data_Sqlite_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "args": [
+                "-filter",
+                "//CiccioSoft.Data.Sqlite/SqliteCommandTest/ExecuteReader_throws_on_error",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests",
+            "stopAtEntry": false,
+        },
+        {
+            "name": "Test5",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${folder}/Example/StringConversion/bin/Debug/net10.0/StringConversion.exe",
+            "args": [],
+            "cwd": "${folder}/Example/StringConversion",
+            "stopAtEntry": false,
         },
     ],
+    "build_systems": [
+        {
+            "name": "DotNet_Build",
+            "working_dir": "${folder}",
+            "selector": "source.cs",
+            "word_wrap": false,
+            "quiet": true,
+            "shell_cmd": "dotnet build",
+            "variants": [
+                {
+                    "name": "Clean",
+                    "shell_cmd": "dotnet clean"
+                },
+                {
+                    "name": "Run",
+                    "shell_cmd": "dotnet run"
+                },
+                {
+                    "name": "Test",
+                    "shell_cmd": "dotnet test"
+                }
+            ]
+        },
+        {
+            "name": "CiccioSoft_Data_Sqlite_Benchmark",
+            "working_dir": "${folder}/Benchmark/CiccioSoft.Data.Sqlite.Benchmark",
+            "shell_cmd": "dotnet run -c Release",
+        },
+        {
+            "name": "CiccioSoft_Sqlite_Native_Benchmark",
+            "working_dir": "${folder}/Benchmark/CiccioSoft.Sqlite.Native.Benchmark",
+            "word_wrap": false,
+            "quiet": true,
+            "shell_cmd": "dotnet run -c Release",
+        }
+    ]
 }

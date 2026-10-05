@@ -12,3 +12,13 @@
 | WriteString_PCLRaw     | 197.7 ms |  1.74 ms |  1.63 ms |  1.00 |     232 B |        1.00 |
 | WriteString_CiccioSoft | 178.0 ms |  1.39 ms |  1.30 ms |  0.90 |      72 B |        0.31 |
 
+
+
+| Method                         | Mean     | Error   | StdDev  | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
+|------------------------------- |---------:|--------:|--------:|------:|--------:|-------:|----------:|------------:|
+| OldWay_Allocating              | 347.1 ns | 5.54 ns | 8.79 ns |  1.00 |    0.03 | 0.7114 |     744 B |        1.00 |
+| Encoding_Pointer               | 215.7 ns | 2.38 ns | 2.11 ns |  0.62 |    0.02 | 0.4666 |     488 B |        0.66 |
+| Marshal_PtrToString_Length     | 215.8 ns | 2.18 ns | 1.93 ns |  0.62 |    0.02 | 0.4666 |     488 B |        0.66 |
+| Encoding_Span                  | 225.4 ns | 3.24 ns | 3.03 ns |  0.65 |    0.02 | 0.4666 |     488 B |        0.66 |
+| Marshal_PtrToString_AutoLength | 248.4 ns | 4.28 ns | 3.80 ns |  0.72 |    0.02 | 0.4663 |     488 B |        0.66 |
+| Span_AutoLength                | 248.6 ns | 3.19 ns | 2.83 ns |  0.72 |    0.02 | 0.4663 |     488 B |        0.66 |

@@ -4,13 +4,28 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Sqlite.Native.Tests.Infrastructure;
+using System;
+using System.IO;
+
+namespace CiccioSoft.Sqlite.Native.Tests;
 
 /// <summary>
-/// Factory helpers for enterprise-grade, isolated in-memory connections.
+/// Owns a unique temporary SQLite database file and deletes it on dispose.
 /// </summary>
-internal static class ConnectionFactory
+internal sealed class TestDatabase : IDisposable
 {
+    public string Path { get; }
+
+    public TestDatabase(string? prefix = null)
+    {
+        Path = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"{prefix ?? "interop"}-{Guid.NewGuid():N}.db");
+    }
+
+    public Native.Connection Open(OpenFlags flags = OpenFlags.ReadWrite | OpenFlags.Create)
+        => Native.Connection.Open(Path, flags);
+
     /// <summary>
     /// Opens a private in-memory database (not shared across connections).
     /// </summary>
@@ -26,10 +41,11 @@ internal static class ConnectionFactory
             $"file:{name}?mode=memory&cache=shared",
             OpenFlags.ReadWrite | OpenFlags.Create);
 
-    public static Native.Connection OpenWithSchema(string ddl)
+    public void Dispose()
     {
-        var connection = OpenMemory();
-        connection.Execute(ddl);
-        return connection;
+        try { File.Delete(Path); } catch { }
+        try { File.Delete(Path + "-wal"); } catch { }
+        try { File.Delete(Path + "-shm"); } catch { }
+        try { File.Delete(Path + "-journal"); } catch { }
     }
 }

@@ -40,7 +40,7 @@ public sealed unsafe class Blob : SafeHandle
         return true;
     }
 
-    private sqlite3_blob* Sqlite3BlobHandle => (sqlite3_blob*)DangerousGetHandle();
+    private sqlite3_blob* _sqlite3_blob => (sqlite3_blob*)DangerousGetHandle();
 
     #endregion
 
@@ -54,7 +54,7 @@ public sealed unsafe class Blob : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        int rtn = NativeMethods.sqlite3_blob_bytes(Sqlite3BlobHandle);
+        int rtn = NativeMethods.sqlite3_blob_bytes(_sqlite3_blob);
         return rtn;
     }
 
@@ -74,7 +74,7 @@ public sealed unsafe class Blob : SafeHandle
         fixed (byte* pDest = destination)
         {
             ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_read(
-                Sqlite3BlobHandle, pDest, destination.Length, blobOffset);
+                _sqlite3_blob, pDest, destination.Length, blobOffset);
 
             if (result != ResultCode.OK)
                 ThrowException(result, _connection.ErrorMessage());
@@ -99,7 +99,7 @@ public sealed unsafe class Blob : SafeHandle
         fixed (byte* pSrc = source)
         {
             ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_write(
-                Sqlite3BlobHandle, pSrc, source.Length, blobOffset);
+                _sqlite3_blob, pSrc, source.Length, blobOffset);
 
             if (result != ResultCode.OK)
                 ThrowException(result, _connection.ErrorMessage());
@@ -116,7 +116,7 @@ public sealed unsafe class Blob : SafeHandle
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
-        ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_reopen(Sqlite3BlobHandle, rowId);
+        ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_reopen(_sqlite3_blob, rowId);
 
         if (result != ResultCode.OK)
             ThrowException(result, _connection.ErrorMessage());

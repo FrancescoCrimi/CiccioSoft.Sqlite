@@ -141,9 +141,9 @@ public class ReadString
         command.CommandText = "INSERT INTO Users (Id, Name, Score) VALUES ($id, $name, $score)";
         command.Transaction = transaction;
 
-        var idParam = command.Parameters.Add("$id", CiccioSoft.Sqlite.Native.SqliteType.Integer);
-        var nameParam = command.Parameters.Add("$name", CiccioSoft.Sqlite.Native.SqliteType.Text);
-        var scoreParam = command.Parameters.Add("$score", CiccioSoft.Sqlite.Native.SqliteType.Real);
+        var idParam = command.Parameters.Add("$id", CiccioSoft.Sqlite.SqliteType.Integer);
+        var nameParam = command.Parameters.Add("$name", CiccioSoft.Sqlite.SqliteType.Text);
+        var scoreParam = command.Parameters.Add("$score", CiccioSoft.Sqlite.SqliteType.Real);
 
         command.Prepare();
 

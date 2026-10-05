@@ -5,7 +5,6 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using CiccioSoft.Sqlite.Native.Tests.Infrastructure;
 using Xunit;
 
 namespace CiccioSoft.Sqlite.Native.Tests;
@@ -14,7 +13,7 @@ public sealed class BlobTests
 {
     private static (Connection Connection, long RowId) CreateBlobRow(int size)
     {
-        var connection = ConnectionFactory.OpenMemory();
+        var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE files (id INTEGER PRIMARY KEY, payload BLOB);");
 
         using (var insert = connection.Prepare("INSERT INTO files (payload) VALUES (zeroblob(?));"))
@@ -76,7 +75,7 @@ public sealed class BlobTests
     [Fact]
     public void Reopen_SwitchesToAnotherRowWithoutClose()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE files (id INTEGER PRIMARY KEY, payload BLOB);");
 
         long row1;
@@ -139,7 +138,7 @@ public sealed class BlobTests
     [Fact]
     public void Open_MissingRow_ThrowsEngineException()
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
         connection.Execute("CREATE TABLE files (id INTEGER PRIMARY KEY, payload BLOB);");
 
         var ex = Assert.Throws<Native.Exception>(() =>
@@ -164,7 +163,7 @@ public sealed class BlobTests
     [InlineData("   ", "payload")]
     public void Open_InvalidNames_ThrowArgumentException(string? table, string? column)
     {
-        using var connection = ConnectionFactory.OpenMemory();
+        using var connection = TestDatabase.OpenMemory();
 
         Assert.ThrowsAny<ArgumentException>(() =>
             connection.BlobOpen(table!, column!, 1));
