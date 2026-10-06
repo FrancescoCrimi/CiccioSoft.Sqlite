@@ -6,6 +6,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite.Benchmark;
 
@@ -23,7 +24,7 @@ public class WriteString
     [GlobalSetup]
     public void GlobalSetup()
     {
-        CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
     }
 
     #region Microsoft.Data.Sqlite

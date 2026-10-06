@@ -70,7 +70,7 @@ public sealed class DisposalLifecycleTests
         Assert.Throws<ObjectDisposedException>(() => stmt.ColumnBlob(0));
         Assert.Throws<ObjectDisposedException>(() => stmt.ColumnType(0));
         Assert.Throws<ObjectDisposedException>(() => stmt.IsReadOnly());
-        Assert.Throws<ObjectDisposedException>(() => stmt.IsBusy());
+        Assert.Throws<ObjectDisposedException>(() => stmt.Busy());
         Assert.Throws<ObjectDisposedException>(() => stmt.ExpandedSql());
         Assert.Throws<ObjectDisposedException>(() => stmt.Sql());
         Assert.Throws<ObjectDisposedException>(() => stmt.BindNull(1));

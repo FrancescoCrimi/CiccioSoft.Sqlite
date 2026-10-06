@@ -8,7 +8,7 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Sqlite.Native;
+namespace CiccioSoft.Sqlite;
 
 public static class NativeLibraryResolver
 {

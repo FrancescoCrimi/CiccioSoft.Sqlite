@@ -7,6 +7,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite.Benchmark;
 
@@ -122,7 +123,7 @@ public class ReadString
     [GlobalSetup(Target = nameof(ReadString_CiccioSoft))]
     public void Setup_CiccioSoft()
     {
-        CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
 
         using var _db2 = new CiccioSoft.Data.Sqlite.SqliteConnection(connectionString);
         _db2.Open();

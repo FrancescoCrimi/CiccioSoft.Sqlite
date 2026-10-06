@@ -17,15 +17,17 @@ public sealed unsafe class Statement : SafeHandle
     private readonly Connection _connection;
     private readonly bool _isReadOnly;
 
+    private sqlite3_stmt* _sqlite3_stmt => (sqlite3_stmt*)DangerousGetHandle();
+
 
     #region Ctor and safehandle
 
-    internal Statement(sqlite3_stmt* pStmt, Connection connection)
-        : base((nint)pStmt, true)
+    internal Statement(sqlite3_stmt* sqlite3_stmt, Connection connection)
+        : base((nint)sqlite3_stmt, true)
     {
         ArgumentNullException.ThrowIfNull(connection);
         _connection = connection;
-        _isReadOnly = NativeMethods.sqlite3_stmt_readonly(pStmt) != 0;
+        _isReadOnly = NativeMethods.sqlite3_stmt_readonly(sqlite3_stmt) != 0;
     }
 
     public override bool IsInvalid => handle == nint.Zero;
@@ -35,8 +37,6 @@ public sealed unsafe class Statement : SafeHandle
         _ = NativeMethods.sqlite3_finalize((sqlite3_stmt*)handle);
         return true;
     }
-
-    private sqlite3_stmt* _sqlite3_stmt => (sqlite3_stmt*)DangerousGetHandle();
 
     #endregion
 
@@ -394,8 +394,8 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
-        int typeCode = NativeMethods.sqlite3_column_type(_sqlite3_stmt, index);
-        return (SqliteType)typeCode;
+        SqliteType typeCode = (SqliteType)NativeMethods.sqlite3_column_type(_sqlite3_stmt, index);
+        return typeCode;
     }
 
     /// <summary>
@@ -410,7 +410,7 @@ public sealed unsafe class Statement : SafeHandle
     /// <summary>
     /// Returns <c>true</c> if this prepared statement has been stepped but not yet reset/finalized.
     /// </summary>
-    public bool IsBusy()
+    public bool Busy()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
 
@@ -592,17 +592,19 @@ public sealed unsafe class Statement : SafeHandle
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(index);
 
+        ResultCode result;
         fixed (byte* pData = data)
         {
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_bind_blob(
-               _sqlite3_stmt,
-               index,
-               pData,
-               data.Length,
-               NativeMethods.SQLITE_TRANSIENT);
-            if (result != ResultCode.OK)
-                ThrowBindException(result, index, _connection.ErrorMessage());
+            result = (ResultCode)NativeMethods.sqlite3_bind_blob(
+              _sqlite3_stmt,
+              index,
+              pData,
+              data.Length,
+              NativeMethods.SQLITE_TRANSIENT);
         }
+
+        if (result != ResultCode.OK)
+            ThrowBindException(result, index, _connection.ErrorMessage());
     }
 
     #endregion

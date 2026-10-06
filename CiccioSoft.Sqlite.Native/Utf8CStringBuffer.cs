@@ -124,10 +124,8 @@ internal ref struct Utf8CStringBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref readonly byte GetPinnableReference()
     {
-        if (_textIsNull)
-        {
-            return ref Unsafe.NullRef<byte>();
-        }
+        if (_textIsNull)        
+            return ref Unsafe.NullRef<byte>();        
         else
             return ref MemoryMarshal.GetReference(_buffer);
     }

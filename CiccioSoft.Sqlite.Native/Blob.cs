@@ -22,6 +22,8 @@ namespace CiccioSoft.Sqlite.Native;
 public sealed unsafe class Blob : SafeHandle
 {
     private readonly Connection _connection;
+    private sqlite3_blob* _sqlite3_blob => (sqlite3_blob*)DangerousGetHandle();
+
 
     #region Ctor and safehandle
 
@@ -40,8 +42,6 @@ public sealed unsafe class Blob : SafeHandle
         return true;
     }
 
-    private sqlite3_blob* _sqlite3_blob => (sqlite3_blob*)DangerousGetHandle();
-
     #endregion
 
 
@@ -53,7 +53,6 @@ public sealed unsafe class Blob : SafeHandle
     public int Bytes()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         int rtn = NativeMethods.sqlite3_blob_bytes(_sqlite3_blob);
         return rtn;
     }
@@ -67,18 +66,18 @@ public sealed unsafe class Blob : SafeHandle
     public void Read(Span<byte> destination, int blobOffset)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         if (blobOffset < 0)
             throw new ArgumentOutOfRangeException(nameof(blobOffset));
 
+        ResultCode result;
         fixed (byte* pDest = destination)
         {
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_read(
-                _sqlite3_blob, pDest, destination.Length, blobOffset);
-
-            if (result != ResultCode.OK)
-                ThrowException(result, _connection.ErrorMessage());
+            result = (ResultCode)NativeMethods.sqlite3_blob_read(
+               _sqlite3_blob, pDest, destination.Length, blobOffset);
         }
+
+        if (result != ResultCode.OK)
+            ThrowException(result, _connection.ErrorMessage());
     }
 
     /// <summary>
@@ -92,18 +91,18 @@ public sealed unsafe class Blob : SafeHandle
     public void Write(ReadOnlySpan<byte> source, int blobOffset)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         if (blobOffset < 0)
             throw new ArgumentOutOfRangeException(nameof(blobOffset));
 
+        ResultCode result;
         fixed (byte* pSrc = source)
         {
-            ResultCode result = (ResultCode)NativeMethods.sqlite3_blob_write(
-                _sqlite3_blob, pSrc, source.Length, blobOffset);
-
-            if (result != ResultCode.OK)
-                ThrowException(result, _connection.ErrorMessage());
+            result = (ResultCode)NativeMethods.sqlite3_blob_write(
+               _sqlite3_blob, pSrc, source.Length, blobOffset);
         }
+
+        if (result != ResultCode.OK)
+            ThrowException(result, _connection.ErrorMessage());
     }
 
     /// <summary>

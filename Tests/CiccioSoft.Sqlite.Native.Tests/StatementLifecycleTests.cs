@@ -24,7 +24,7 @@ public sealed class StatementLifecycleTests
             count++;
 
         Assert.Equal(3, count);
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
     }
 
     [Fact]
@@ -82,16 +82,16 @@ public sealed class StatementLifecycleTests
         connection.Execute("INSERT INTO t VALUES (1);");
 
         using var stmt = connection.Prepare("SELECT id FROM t;");
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
 
         Assert.True(stmt.Step());
-        Assert.True(stmt.IsBusy());
+        Assert.True(stmt.Busy());
 
         Assert.False(stmt.Step());
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
 
         stmt.Reset();
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
     }
 
     [Fact]

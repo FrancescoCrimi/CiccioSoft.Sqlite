@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 
 namespace CiccioSoft.Sqlite.Native;
 
@@ -57,9 +56,7 @@ public sealed unsafe class Exception : System.Exception
         string errorString = Connection.ErrorString(resultCode);
 
         if (errorMessage is null || errorMessage == "")
-        {
             errorMessage = errorString;
-        }
 
         string message =
             $"{caller} failed. " +

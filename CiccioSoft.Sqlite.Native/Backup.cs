@@ -12,6 +12,8 @@ namespace CiccioSoft.Sqlite.Native;
 
 public sealed unsafe class Backup : SafeHandle
 {
+    private sqlite3_backup* _sqlite3_backup => (sqlite3_backup*)DangerousGetHandle();
+
 
     #region Ctor and safehandle
 
@@ -28,8 +30,6 @@ public sealed unsafe class Backup : SafeHandle
         return true;
     }
 
-    private sqlite3_backup* _sqlite3_backup => (sqlite3_backup*)DangerousGetHandle();
-
     #endregion
 
 
@@ -38,7 +38,6 @@ public sealed unsafe class Backup : SafeHandle
     public ResultCode Step(int pages = -1)
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         ResultCode rtn = (ResultCode)NativeMethods.sqlite3_backup_step(_sqlite3_backup, pages);
         return rtn;
     }
@@ -46,7 +45,6 @@ public sealed unsafe class Backup : SafeHandle
     public int Remaining()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         int rtn = NativeMethods.sqlite3_backup_remaining(_sqlite3_backup);
         return rtn;
     }
@@ -54,7 +52,6 @@ public sealed unsafe class Backup : SafeHandle
     public int PageCount()
     {
         ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
-
         int rtn = NativeMethods.sqlite3_backup_pagecount(_sqlite3_backup);
         return rtn;
     }

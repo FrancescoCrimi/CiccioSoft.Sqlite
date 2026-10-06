@@ -5,7 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System.Threading.Tasks;
-using CiccioSoft.Sqlite.Native;
+using CiccioSoft.Sqlite;
 using Xunit;
 
 namespace CiccioSoft.Data.Sqlite;
