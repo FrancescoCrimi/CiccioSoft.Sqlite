@@ -32,8 +32,8 @@ public sealed class UnicodeAndLargePayloadTests
 
         using var select = connection.Prepare("SELECT v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(value, select.GetText(0));
-        Assert.Equal(Encoding.UTF8.GetBytes(value), select.GetTextAsSpan(0).ToArray());
+        Assert.Equal(value, select.ColumnText(0));
+        Assert.Equal(Encoding.UTF8.GetBytes(value), select.ColumnTextUtf8(0).Value.ToArray());
     }
 
     [Fact]
@@ -53,8 +53,8 @@ public sealed class UnicodeAndLargePayloadTests
 
         using var select = connection.Prepare("SELECT length(v), v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(large.Length, select.GetInt(0));
-        Assert.Equal(large, select.GetText(1));
+        Assert.Equal(large.Length, select.ColumnInt(0));
+        Assert.Equal(large, select.ColumnText(1));
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public sealed class UnicodeAndLargePayloadTests
 
         using var select = connection.Prepare("SELECT length(v), v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(payload.Length, select.GetInt(0));
-        Assert.Equal(payload, select.GetBlob(1).ToArray());
+        Assert.Equal(payload.Length, select.ColumnInt(0));
+        Assert.Equal(payload, select.ColumnBlob(1).ToArray());
     }
 
     [Fact]
@@ -91,6 +91,6 @@ public sealed class UnicodeAndLargePayloadTests
 
         using var stmt = connection.Prepare("SELECT COUNT(*) FROM t;");
         Assert.True(stmt.Step());
-        Assert.Equal(200, stmt.GetInt(0));
+        Assert.Equal(200, stmt.ColumnInt(0));
     }
 }

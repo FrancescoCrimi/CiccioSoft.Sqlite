@@ -20,7 +20,7 @@ public sealed class ConnectionPrepareTests
         connection.Execute("INSERT INTO t VALUES (1, 'x');");
 
         using var stmt = connection.Prepare("SELECT id, name FROM t WHERE id = ?;");
-        Assert.Equal(1, stmt.ParameterCount());
+        Assert.Equal(1, stmt.BindParameterCount());
         Assert.Equal(2, stmt.ColumnCount());
         Assert.True(stmt.IsReadOnly());
     }
@@ -44,7 +44,7 @@ public sealed class ConnectionPrepareTests
         using var stmt = connection.Prepare("SELECT 1;", PrepareFlags.Persistent);
 
         Assert.True(stmt.Step());
-        Assert.Equal(1, stmt.GetInt(0));
+        Assert.Equal(1, stmt.ColumnInt(0));
         Assert.False(stmt.Step());
     }
 
@@ -70,7 +70,7 @@ public sealed class ConnectionPrepareTests
                 if (stmt.IsReadOnly() && stmt.ColumnCount() > 0)
                 {
                     Assert.True(stmt.Step());
-                    selected = stmt.GetInt(0);
+                    selected = stmt.ColumnInt(0);
                 }
                 else
                 {

@@ -77,7 +77,7 @@ public static class SqliteConnectionPool
         string connectionString,
         string dataSource,
         int maxPoolSize,
-        CiccioSoft.Sqlite.Native.OpenFlags openFlags)
+        CiccioSoft.Sqlite.OpenFlags openFlags)
     {
         ArgumentNullException.ThrowIfNull(connectionString);
         ArgumentNullException.ThrowIfNull(dataSource);
@@ -147,7 +147,7 @@ public static class SqliteConnectionPool
         string connectionString,
         string dataSource,
         int maxPoolSize,
-        CiccioSoft.Sqlite.Native.OpenFlags openFlags,
+        CiccioSoft.Sqlite.OpenFlags openFlags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(connectionString);
@@ -407,7 +407,7 @@ public static class SqliteConnectionPool
         string connectionString,
         PoolState state,
         string dataSource,
-        CiccioSoft.Sqlite.Native.OpenFlags openFlags,
+        CiccioSoft.Sqlite.OpenFlags openFlags,
         int maxPoolSize)
     {
         SqliteSession session;
@@ -451,7 +451,7 @@ public static class SqliteConnectionPool
         string connectionString,
         PoolState state,
         string dataSource,
-        CiccioSoft.Sqlite.Native.OpenFlags openFlags,
+        CiccioSoft.Sqlite.OpenFlags openFlags,
         int maxPoolSize,
         CancellationToken cancellationToken)
     {

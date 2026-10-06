@@ -40,6 +40,7 @@ internal ref struct Utf8CStringBuffer
 {
     private readonly Span<byte> _buffer;
     private byte[]? _poolArray; // Holds the reference to the pooled array, if one was rented
+    private bool _textIsNull = false;
 
     /// <summary>
     /// Gets the effective length of the UTF-8 string (excluding the null terminator).
@@ -62,7 +63,7 @@ internal ref struct Utf8CStringBuffer
     /// <see cref="ArrayPool{T}.Shared"/> is used instead, and returned by <see cref="Dispose"/>.
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="stackStorage"/> has a length less than 1.</exception>
-    public Utf8CStringBuffer(string text, Span<byte> stackStorage)
+    public Utf8CStringBuffer(string? text, Span<byte> stackStorage)
     {
         if (stackStorage.Length < 1)
             throw new ArgumentException(
@@ -71,48 +72,49 @@ internal ref struct Utf8CStringBuffer
 
         if (text == null)
         {
-            _buffer = Span<byte>.Empty;
+            _textIsNull = true;
             Length = 0;
             return;
         }
 
         if (text.Length == 0)
         {
-            _buffer = stackStorage[..1];
-            _buffer[0] = 0;
-            Length = 1;
+            _buffer = stackStorage[..0];
+            Length = 0;
             return;
-        }
-
-        _poolArray = null;
-
-        // Compute the maximum space needed in UTF-8 bytes (+1 for the null terminator).
-        // Note: GetMaxByteCount(text.Length) could theoretically overflow for strings whose
-        // length approaches int.MaxValue/4; not handled here because it is not a realistic
-        // scenario for the text typically marshalled towards SQLite (queries, paths, parameters).
-        int requiredByteCount = Encoding.UTF8.GetMaxByteCount(text.Length) + 1;
-
-        Span<byte> destination;
-
-        // If the stackalloc storage is not sufficient, fall back to the ArrayPool
-        if (requiredByteCount > stackStorage.Length)
-        {
-            _poolArray = ArrayPool<byte>.Shared.Rent(requiredByteCount);
-            destination = _poolArray;
         }
         else
         {
-            destination = stackStorage;
+            _poolArray = null;
+
+            // Compute the maximum space needed in UTF-8 bytes (+1 for the null terminator).
+            // Note: GetMaxByteCount(text.Length) could theoretically overflow for strings whose
+            // length approaches int.MaxValue/4; not handled here because it is not a realistic
+            // scenario for the text typically marshalled towards SQLite (queries, paths, parameters).
+            int requiredByteCount = Encoding.UTF8.GetMaxByteCount(text.Length) + 1;
+
+            Span<byte> destination;
+
+            // If the stackalloc storage is not sufficient, fall back to the ArrayPool
+            if (requiredByteCount > stackStorage.Length)
+            {
+                _poolArray = ArrayPool<byte>.Shared.Rent(requiredByteCount);
+                destination = _poolArray;
+            }
+            else
+            {
+                destination = stackStorage;
+            }
+
+            // Ultra-fast conversion into the available space
+            Length = Encoding.UTF8.GetBytes(text, destination[..^1]);
+
+            // Append the null terminator required for C/C++
+            destination[Length] = 0;
+
+            // Slice the final buffer including the null terminator
+            _buffer = destination[..(Length + 1)];
         }
-
-        // Ultra-fast conversion into the available space
-        Length = Encoding.UTF8.GetBytes(text, destination[..^1]);
-
-        // Append the null terminator required for C/C++
-        destination[Length] = 0;
-
-        // Slice the final buffer including the null terminator
-        _buffer = destination[..(Length + 1)];
     }
 
     /// <summary>
@@ -122,7 +124,10 @@ internal ref struct Utf8CStringBuffer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref readonly byte GetPinnableReference()
     {
-        return ref MemoryMarshal.GetReference(_buffer);
+        if (_textIsNull)
+            return ref MemoryMarshal.GetReference(_buffer);
+        else
+            return ref MemoryMarshal.GetReference(_buffer);
     }
 
     public ReadOnlySpan<byte> AsSpan() => _buffer[..Length];

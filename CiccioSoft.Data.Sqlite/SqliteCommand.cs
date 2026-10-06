@@ -573,7 +573,7 @@ public sealed class SqliteCommand : DbCommand
 
     private void BindParameters(NativeStatement stmt, bool throwOnMissingParameter)
     {
-        int parameterCount = stmt.ParameterCount();
+        int parameterCount = stmt.BindParameterCount();
         bool[] boundParameters = parameterCount == 0
             ? Array.Empty<bool>()
             : new bool[parameterCount + 1];
@@ -619,9 +619,9 @@ public sealed class SqliteCommand : DbCommand
         if (string.IsNullOrEmpty(parameterName))
         {
             int ordinalIndex = ordinal + 1;
-            if (ordinalIndex <= stmt.ParameterCount())
+            if (ordinalIndex <= stmt.BindParameterCount())
             {
-                string? name = stmt.GetParameterNameString(ordinalIndex);
+                string? name = stmt.BindParameterName(ordinalIndex);
                 if (string.IsNullOrEmpty(name))
                 {
                     return ordinalIndex;
@@ -630,7 +630,7 @@ public sealed class SqliteCommand : DbCommand
             throw new InvalidOperationException(Resources.RequiresSet("ParameterName"));
         }
 
-        int index = stmt.GetParameterIndex(parameterName);
+        int index = stmt.BindParameterIndex(parameterName);
         if (index > 0)
         {
             return index;
@@ -643,13 +643,13 @@ public sealed class SqliteCommand : DbCommand
         int matchCount = 0;
         int matchedIndex = 0;
 
-        int idx1 = stmt.GetParameterIndex($"@{coreName}");
+        int idx1 = stmt.BindParameterIndex($"@{coreName}");
         if (idx1 > 0) { matchCount++; matchedIndex = idx1; }
 
-        int idx2 = stmt.GetParameterIndex($":{coreName}");
+        int idx2 = stmt.BindParameterIndex($":{coreName}");
         if (idx2 > 0) { matchCount++; matchedIndex = idx2; }
 
-        int idx3 = stmt.GetParameterIndex($"${coreName}");
+        int idx3 = stmt.BindParameterIndex($"${coreName}");
         if (idx3 > 0) { matchCount++; matchedIndex = idx3; }
 
         if (matchCount > 1)
@@ -682,7 +682,7 @@ public sealed class SqliteCommand : DbCommand
             }
 
             missingParameters ??= new List<string>();
-            missingParameters.Add(stmt.GetParameterNameString(i) ?? "?");
+            missingParameters.Add(stmt.BindParameterName(i) ?? "?");
         }
 
         if (missingParameters is not null)
@@ -703,19 +703,19 @@ public sealed class SqliteCommand : DbCommand
         switch (value)
         {
             case int i: stmt.BindInt(index, i); break;
-            case long l: stmt.BindLong(index, l); break;
+            case long l: stmt.BindInt64(index, l); break;
             case short s: stmt.BindInt(index, s); break;
             case sbyte sb: stmt.BindInt(index, sb); break;
             case byte b: stmt.BindInt(index, b); break;
-            case uint ui: stmt.BindLong(index, ui); break;
-            case ulong ul when ul <= long.MaxValue: stmt.BindLong(index, (long)ul); break;
+            case uint ui: stmt.BindInt64(index, ui); break;
+            case ulong ul when ul <= long.MaxValue: stmt.BindInt64(index, (long)ul); break;
             case ulong ul: BindTextParameter(stmt, index, parameter, ul.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
             case ushort us: stmt.BindInt(index, us); break;
             case bool bo: stmt.BindInt(index, bo ? 1 : 0); break;
             case float f: BindDoubleParameter(stmt, index, f); break;
             case double d: BindDoubleParameter(stmt, index, d); break;
             case decimal m: BindTextParameter(stmt, index, parameter, m.ToString("0.0###########################", CultureInfo.InvariantCulture)); break;
-            case char c when parameter.SqliteType == SqliteType.Integer: stmt.BindLong(index, c); break;
+            case char c when parameter.SqliteType == SqliteType.Integer: stmt.BindInt64(index, c); break;
             case char c: BindTextParameter(stmt, index, parameter, c.ToString()); break;
             case Guid guid when parameter.SqliteType == SqliteType.Blob: BindBlobParameter(stmt, index, parameter, guid.ToByteArray()); break;
             case Guid guid: BindTextParameter(stmt, index, parameter, guid.ToString("D").ToUpperInvariant()); break;
@@ -738,7 +738,7 @@ public sealed class SqliteCommand : DbCommand
                 break;
             case TimeSpan timeSpan when parameter.SqliteType == SqliteType.Real: BindDoubleParameter(stmt, index, timeSpan.TotalDays); break;
             case TimeSpan timeSpan: BindTextParameter(stmt, index, parameter, timeSpan.ToString("c", CultureInfo.InvariantCulture)); break;
-            case Enum enumValue: stmt.BindLong(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
+            case Enum enumValue: stmt.BindInt64(index, Convert.ToInt64(enumValue, CultureInfo.InvariantCulture)); break;
             case byte[] bytes: BindBlobParameter(stmt, index, parameter, bytes); break;
             default: throw new InvalidOperationException(Resources.UnknownDataType(value.GetType()));
         }
@@ -866,7 +866,7 @@ public sealed class SqliteCommand : DbCommand
                 break;
             }
 
-            int paramCount = stmt.ParameterCount();
+            int paramCount = stmt.BindParameterCount();
             var prepared = (stmt, paramCount);
             _preparedStatements.Add(prepared);
             yield return prepared;

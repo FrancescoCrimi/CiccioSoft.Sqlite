@@ -124,7 +124,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Stmt.GetInt(ordinal) != 0;
+        return Stmt.ColumnInt(ordinal) != 0;
     }
 
     public override byte GetByte(int ordinal)
@@ -132,7 +132,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return (byte)Stmt.GetInt(ordinal);
+        return (byte)Stmt.ColumnInt(ordinal);
     }
 
     public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length)
@@ -140,7 +140,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        ReadOnlySpan<byte> blob = Stmt.GetBlob(ordinal);
+        ReadOnlySpan<byte> blob = Stmt.ColumnBlob(ordinal);
         if (dataOffset < 0 || dataOffset > blob.Length)
         {
             throw new ArgumentOutOfRangeException(nameof(dataOffset));
@@ -166,11 +166,11 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Stmt.GetColumnType(ordinal) switch
+        return Stmt.ColumnType(ordinal) switch
         {
-            SqliteType.Integer => (char)Stmt.GetInt(ordinal),
-            SqliteType.Real => (char)Convert.ToInt32(Stmt.GetDouble(ordinal), CultureInfo.InvariantCulture),
-            SqliteType.Text => (Stmt.GetText(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
+            SqliteType.Integer => (char)Stmt.ColumnInt(ordinal),
+            SqliteType.Real => (char)Convert.ToInt32(Stmt.ColumnDouble(ordinal), CultureInfo.InvariantCulture),
+            SqliteType.Text => (Stmt.ColumnText(ordinal) ?? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal)))[0],
             _ => throw new InvalidCastException(),
         };
     }
@@ -222,7 +222,7 @@ public sealed class SqliteDataReader : DbDataReader
             EnsurePrefetched();
         }
 
-        return Stmt.GetColumnType(ordinal) switch
+        return Stmt.ColumnType(ordinal) switch
         {
             SqliteType.Integer => "INTEGER",
             SqliteType.Real => "REAL",
@@ -237,12 +237,12 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        switch (Stmt.GetColumnType(ordinal))
+        switch (Stmt.ColumnType(ordinal))
         {
             case SqliteType.Integer:
-                return JulianDayToDateTime(Stmt.GetLong(ordinal));
+                return JulianDayToDateTime(Stmt.ColumnInt64(ordinal));
             case SqliteType.Real:
-                return JulianDayToDateTime(Stmt.GetDouble(ordinal));
+                return JulianDayToDateTime(Stmt.ColumnDouble(ordinal));
             case SqliteType.Text:
                 DateTime value = DateTime.Parse(GetString(ordinal), CultureInfo.InvariantCulture);
                 return value.Kind switch
@@ -275,7 +275,7 @@ public sealed class SqliteDataReader : DbDataReader
             throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
         }
 
-        return Stmt.GetDouble(ordinal);
+        return Stmt.ColumnDouble(ordinal);
     }
     public override IEnumerator GetEnumerator() => new DbEnumerator(this);
 
@@ -299,7 +299,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return (float)Stmt.GetDouble(ordinal);
+        return (float)Stmt.ColumnDouble(ordinal);
     }
 
     public override T GetFieldValue<T>(int ordinal)
@@ -409,11 +409,11 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        var sqliteType = Stmt.GetColumnType(ordinal);
+        var sqliteType = Stmt.ColumnType(ordinal);
         switch (sqliteType)
         {
             case SqliteType.Blob:
-                ReadOnlySpan<byte> bytes = Stmt.GetBlob(ordinal);
+                ReadOnlySpan<byte> bytes = Stmt.ColumnBlob(ordinal);
                 return bytes.Length == 16
                     ? new Guid(bytes)
                     : new Guid(Encoding.UTF8.GetString(bytes));
@@ -428,14 +428,14 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return (short)Stmt.GetInt(ordinal);
+        return (short)Stmt.ColumnInt(ordinal);
     }
     public override int GetInt32(int ordinal)
     {
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        return Stmt.GetInt(ordinal);
+        return Stmt.ColumnInt(ordinal);
     }
 
     public override long GetInt64(int ordinal)
@@ -447,7 +447,7 @@ public sealed class SqliteDataReader : DbDataReader
             throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal));
         }
 
-        return Stmt.GetLong(ordinal);
+        return Stmt.ColumnInt64(ordinal);
     }
 
     public override string GetName(int ordinal)
@@ -460,7 +460,7 @@ public sealed class SqliteDataReader : DbDataReader
 
         ValidateOrdinal(ordinal);
 
-        return Stmt.GetColumnName(ordinal) ?? string.Empty;
+        return Stmt.ColumnName(ordinal) ?? string.Empty;
     }
 
     public override int GetOrdinal(string name)
@@ -514,7 +514,7 @@ public sealed class SqliteDataReader : DbDataReader
 
         return IsDBNull(ordinal)
             ? throw new InvalidOperationException(Resources.CalledOnNullValue(ordinal))
-            : Stmt.GetText(ordinal)!;
+            : Stmt.ColumnText(ordinal)!;
     }
 
     public override Stream GetStream(int ordinal)
@@ -550,12 +550,12 @@ public sealed class SqliteDataReader : DbDataReader
         ValidateOrdinal(ordinal);
 
         if (IsDBNull(ordinal)) return DBNull.Value;
-        return Stmt.GetColumnType(ordinal) switch
+        return Stmt.ColumnType(ordinal) switch
         {
-            SqliteType.Integer => Stmt.GetLong(ordinal),
-            SqliteType.Real => Stmt.GetDouble(ordinal),
-            SqliteType.Text => Stmt.GetText(ordinal) ?? string.Empty,
-            SqliteType.Blob => Stmt.GetBlob(ordinal).ToArray(),
+            SqliteType.Integer => Stmt.ColumnInt64(ordinal),
+            SqliteType.Real => Stmt.ColumnDouble(ordinal),
+            SqliteType.Text => Stmt.ColumnText(ordinal) ?? string.Empty,
+            SqliteType.Blob => Stmt.ColumnBlob(ordinal).ToArray(),
             _ => DBNull.Value,
         };
     }
@@ -578,7 +578,7 @@ public sealed class SqliteDataReader : DbDataReader
     public override bool IsDBNull(int ordinal)
     {
         EnsureHasRow();
-        return Stmt.GetColumnType(ordinal) == SqliteType.Null;
+        return Stmt.ColumnType(ordinal) == SqliteType.Null;
     }
 
     public override bool NextResult()
@@ -642,7 +642,7 @@ public sealed class SqliteDataReader : DbDataReader
             string dataTypeName = GetDataTypeName(ordinal);
             if (fieldType == typeof(byte[]) && string.Equals(dataTypeName, "BLOB", StringComparison.Ordinal))
             {
-                SqliteType sqliteType = Stmt.GetColumnType(ordinal);
+                SqliteType sqliteType = Stmt.ColumnType(ordinal);
                 if (sqliteType != SqliteType.Null)
                 {
                     fieldType = TypeFromSqliteStorageClass(sqliteType);
@@ -808,7 +808,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        switch (Stmt.GetColumnType(ordinal))
+        switch (Stmt.ColumnType(ordinal))
         {
             case SqliteType.Real:
             case SqliteType.Integer:
@@ -835,7 +835,7 @@ public sealed class SqliteDataReader : DbDataReader
         EnsureHasRow();
         ValidateOrdinal(ordinal);
 
-        switch (Stmt.GetColumnType(ordinal))
+        switch (Stmt.ColumnType(ordinal))
         {
             case SqliteType.Real:
             case SqliteType.Integer:
@@ -1068,7 +1068,7 @@ public sealed class SqliteDataReader : DbDataReader
     }
 
     private Type InferFieldType(int ordinal)
-        => Stmt.GetColumnType(ordinal) switch
+        => Stmt.ColumnType(ordinal) switch
         {
             SqliteType.Integer => typeof(long),
             SqliteType.Real => typeof(double),
@@ -1113,7 +1113,7 @@ public sealed class SqliteDataReader : DbDataReader
             """;
 
         using NativeStatement stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
-        return _executionScope.Execute(stmt.Step) && stmt.GetLong(0) != 0L;
+        return _executionScope.Execute(stmt.Step) && stmt.ColumnInt64(0) != 0L;
     }
 
     private bool TryGetTableColumnMetadata(
@@ -1161,7 +1161,7 @@ public sealed class SqliteDataReader : DbDataReader
             return false;
         }
 
-        string? sqliteTypeName = stmt.GetText(0);
+        string? sqliteTypeName = stmt.ColumnText(0);
         inferredType = sqliteTypeName?.ToLowerInvariant() switch
         {
             "integer" => SqliteType.Integer,
@@ -1176,7 +1176,7 @@ public sealed class SqliteDataReader : DbDataReader
 
     private string GetDataTypeNameFromDeclaration(int ordinal)
     {
-        string? declaredType = Stmt.GetColumnDeclType(ordinal);
+        string? declaredType = Stmt.ColumnDeclType(ordinal);
         if (string.IsNullOrWhiteSpace(declaredType))
         {
             return "BLOB";
@@ -1191,7 +1191,7 @@ public sealed class SqliteDataReader : DbDataReader
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)]
     private Type GetFieldTypeFromDeclaration(int ordinal)
     {
-        string? declaredType = Stmt.GetColumnDeclType(ordinal);
+        string? declaredType = Stmt.ColumnDeclType(ordinal);
         if (string.IsNullOrWhiteSpace(declaredType))
         {
             return typeof(byte[]);

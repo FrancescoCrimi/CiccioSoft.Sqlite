@@ -35,9 +35,9 @@ public sealed class Statement : IDisposable
 
     public bool IsReadOnly => _native.IsReadOnly();
     public int ColumnCount => _native.ColumnCount();
-    public int ParameterCount => _native.ParameterCount();
-    public string? Sql => _native.GetSql();
-    public string? ExpandedSql => _native.GetExpandedSql();
+    public int ParameterCount => _native.BindParameterCount();
+    public string? Sql => _native.Sql();
+    public string? ExpandedSql => _native.ExpandedSql();
 
     public bool Step(CancellationToken cancellationToken = default)
     {
@@ -104,11 +104,11 @@ public sealed class Statement : IDisposable
         // }
     }
 
-    public string? GetParameterName(int index) => _native.GetParameterNameString(index);
-    public int GetParameterIndex(string parameterName) => _native.GetParameterIndex(parameterName);
+    public string? GetParameterName(int index) => _native.BindParameterName(index);
+    public int GetParameterIndex(string parameterName) => _native.BindParameterIndex(parameterName);
     public void BindNull(int index) => _native.BindNull(index);
     public void BindInt(int index, int value) => _native.BindInt(index, value);
-    public void BindLong(int index, long value) => _native.BindLong(index, value);
+    public void BindLong(int index, long value) => _native.BindInt64(index, value);
     public void BindDouble(int index, double value) => _native.BindDouble(index, value);
     public void BindText(int index, string? value) => _native.BindText(index, value!);
 
@@ -124,27 +124,27 @@ public sealed class Statement : IDisposable
         _native.BindBlob(index, value);
     }
 
-    public string? GetColumnName(int index) => _native.GetColumnName(index);
-    public string? GetColumnDeclaredType(int index) => _native.GetColumnDeclType(index);
+    public string? GetColumnName(int index) => _native.ColumnName(index);
+    public string? GetColumnDeclaredType(int index) => _native.ColumnDeclType(index);
     public string? GetColumnDatabaseName(int index) => _native.GetColumnDatabaseName(index);
     public string? GetColumnTableName(int index) => _native.GetColumnTableName(index);
     public string? GetColumnOriginName(int index) => _native.GetColumnOriginName(index);
-    public SqliteType GetColumnType(int index) => _native.GetColumnType(index);
-    public int GetInt(int index) => _native.GetInt(index);
-    public long GetLong(int index) => _native.GetLong(index);
-    public double GetDouble(int index) => _native.GetDouble(index);
-    public string? GetText(int index) => _native.GetText(index);
+    public SqliteType GetColumnType(int index) => _native.ColumnType(index);
+    public int GetInt(int index) => _native.ColumnInt(index);
+    public long GetLong(int index) => _native.ColumnInt64(index);
+    public double GetDouble(int index) => _native.ColumnDouble(index);
+    public string? GetText(int index) => _native.ColumnText(index);
 
-    public ReadOnlySpan<byte> GetTextBytes(int index)
+    public Utf8String GetTextBytes(int index)
     {
         EnsureNotDisposed();
-        return _native.GetTextAsSpan(index);
+        return _native.ColumnTextUtf8(index);
     }
 
     public ReadOnlySpan<byte> GetBlob(int index)
     {
         EnsureNotDisposed();
-        return _native.GetBlob(index);
+        return _native.ColumnBlob(index);
     }
 
     #endregion

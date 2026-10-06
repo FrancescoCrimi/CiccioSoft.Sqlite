@@ -18,8 +18,8 @@ public sealed class PhysicalConnectionTests
         using var connection = Connection.Open(":memory:", OpenFlags.ReadWrite | OpenFlags.Create);
 
         // Assert.True(connection.IsValid);
-        Assert.False(connection.Handle.IsInvalid);
-        Assert.False(connection.Handle.IsClosed);
+        Assert.False(connection.IsInvalid);
+        Assert.False(connection.IsClosed);
     }
 
     [Fact]
@@ -29,8 +29,8 @@ public sealed class PhysicalConnectionTests
 
         connection.Dispose();
 
-        Assert.False(connection.Handle.IsInvalid);
-        Assert.True(connection.Handle.IsClosed);
+        Assert.False(connection.IsInvalid);
+        Assert.True(connection.IsClosed);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class PhysicalConnectionTests
         connection.Dispose();
         connection.Dispose();
 
-        Assert.True(connection.Handle.IsClosed);
+        Assert.True(connection.IsClosed);
     }
 
     // [Fact]

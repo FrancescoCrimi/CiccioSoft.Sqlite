@@ -25,7 +25,7 @@ public sealed class StatementLifecycleTests
             count++;
 
         Assert.Equal(3, count);
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
     }
 
     [Fact]
@@ -39,12 +39,12 @@ public sealed class StatementLifecycleTests
         stmt.BindInt(1, 10);
 
         Assert.True(stmt.Step());
-        Assert.Equal(10, stmt.GetInt(0));
+        Assert.Equal(10, stmt.ColumnInt(0));
         Assert.False(stmt.Step());
 
         stmt.Reset();
         Assert.True(stmt.Step());
-        Assert.Equal(10, stmt.GetInt(0));
+        Assert.Equal(10, stmt.ColumnInt(0));
     }
 
     [Fact]
@@ -54,12 +54,12 @@ public sealed class StatementLifecycleTests
         using var stmt = connection.Prepare("SELECT ? IS NULL;");
         stmt.BindInt(1, 5);
         Assert.True(stmt.Step());
-        Assert.Equal(0, stmt.GetInt(0));
+        Assert.Equal(0, stmt.ColumnInt(0));
 
         stmt.Reset();
         stmt.ClearBindings();
         Assert.True(stmt.Step());
-        Assert.Equal(1, stmt.GetInt(0));
+        Assert.Equal(1, stmt.ColumnInt(0));
     }
 
     [Fact]
@@ -83,16 +83,16 @@ public sealed class StatementLifecycleTests
         connection.Execute("INSERT INTO t VALUES (1);");
 
         using var stmt = connection.Prepare("SELECT id FROM t;");
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
 
         Assert.True(stmt.Step());
-        Assert.True(stmt.IsBusy());
+        Assert.True(stmt.Busy());
 
         Assert.False(stmt.Step());
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
 
         stmt.Reset();
-        Assert.False(stmt.IsBusy());
+        Assert.False(stmt.Busy());
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class StatementLifecycleTests
         const string sql = "SELECT ? AS value;";
         using var stmt = connection.Prepare(sql);
 
-        Assert.Equal(sql, stmt.GetSql());
+        Assert.Equal(sql, stmt.Sql());
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class StatementLifecycleTests
         stmt.BindInt(1, 11);
         stmt.BindText(2, "expanded");
 
-        string? expanded = stmt.GetExpandedSql();
+        string? expanded = stmt.ExpandedSql();
 
         Assert.NotNull(expanded);
         Assert.Contains("11", expanded, StringComparison.Ordinal);

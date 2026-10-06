@@ -25,7 +25,7 @@ public sealed class TransactionSemanticsTests
 
         using var stmt = connection.Prepare("SELECT balance FROM accounts;");
         Assert.True(stmt.Step());
-        Assert.Equal(100, stmt.GetInt(0));
+        Assert.Equal(100, stmt.ColumnInt(0));
         Assert.True(connection.GetAutoCommit());
     }
 
@@ -43,7 +43,7 @@ public sealed class TransactionSemanticsTests
         using (var stmt = connection.Prepare("SELECT balance FROM accounts;"))
         {
             Assert.True(stmt.Step());
-            Assert.Equal(50, stmt.GetInt(0));
+            Assert.Equal(50, stmt.ColumnInt(0));
         }
 
         Assert.Equal(TransactionState.None, connection.TransactionState());
@@ -66,7 +66,7 @@ public sealed class TransactionSemanticsTests
 
         using var stmt = connection.Prepare("SELECT v FROM t ORDER BY id;");
         Assert.True(stmt.Step());
-        Assert.Equal("keep", stmt.GetText(0));
+        Assert.Equal("keep", stmt.ColumnText(0));
         Assert.False(stmt.Step());
     }
 

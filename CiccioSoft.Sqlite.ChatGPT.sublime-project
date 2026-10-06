@@ -1,0 +1,117 @@
+{
+    "folders": [
+        {
+            "path": ".",
+        }
+    ],
+    "debugger_tasks": [
+        {
+            "name": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "working_dir": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "shell_cmd": "dotnet build",
+        },
+        {
+            "name": "Build_CiccioSoft_Data_Sqlite_Tests",
+            "working_dir": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests",
+            "shell_cmd": "dotnet build",
+        }
+    ],
+    "debugger_configurations": [
+        {
+            "name": "Test1",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_NullString",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "stopAtEntry": false,
+        },
+        {
+            "name": "Test2",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/StatementBindAndColumnTests/BindText_EmptyString",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}",
+            "stopAtEntry": false,
+        },
+        {
+            "name": "Test3",
+            "type": "netcoredbg",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Sqlite_Native_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests/bin/Debug/net10.0/CiccioSoft.Sqlite.Native.Tests.exe",
+            "args": [
+                "-filter", 
+                "//CiccioSoft.Sqlite.Native.Tests/ConnectionEmptyStringTests/Prepare_EmptyString_ReturnsNullWithoutCrashing",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Sqlite.Native.Tests",
+            "stopAtEntry": false,
+        },
+        {
+            "name": "Test4",
+            "type": "coreclr",
+            "request": "launch",
+            "pre_debug_task": "Build_CiccioSoft_Data_Sqlite_Tests",
+            "program": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests/bin/Debug/net10.0/CiccioSoft.Data.Sqlite.Tests.exe",
+            "args": [
+                "-filter",
+                "//CiccioSoft.Data.Sqlite/SqliteCommandTest/ExecuteReader_throws_on_error",
+                "-parallel",
+                "none"
+            ],
+            "cwd": "${folder}/Tests/CiccioSoft.Data.Sqlite.Tests",
+            "stopAtEntry": false,
+        },
+    ],
+    "build_systems": [
+        {
+            "name": "DotNet_Build",
+            "working_dir": "${folder}",
+            "selector": "source.cs",
+            "word_wrap": false,
+            "quiet": true,
+            "shell_cmd": "dotnet build",
+            "variants": [
+                {
+                    "name": "Clean",
+                    "shell_cmd": "dotnet clean",
+                },
+                {
+                    "name": "Run",
+                    "shell_cmd": "dotnet run",
+                },
+                {
+                    "name": "Test",
+                    "shell_cmd": "dotnet test",
+                }
+            ],
+        },
+        {
+            "name": "CiccioSoft_Data_Sqlite_Benchmark",
+            "working_dir": "${folder}/Benchmark/CiccioSoft.Data.Sqlite.Benchmark",
+            "shell_cmd": "dotnet run -c Release",
+        },
+        {
+            "name": "CiccioSoft_Sqlite_Native_Benchmark",
+            "working_dir": "${folder}/Benchmark/CiccioSoft.Sqlite.Native.Benchmark",
+            "word_wrap": false,
+            "quiet": true,
+            "shell_cmd": "dotnet run -c Release",
+        }
+    ],
+}

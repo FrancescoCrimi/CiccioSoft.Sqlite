@@ -50,7 +50,7 @@ public partial class MainWindow : Window
         {
             using var stmt = _connection.Prepare("SELECT COUNT(*) FROM Images");
             stmt.Step();
-            _countImages = stmt.GetInt(0);
+            _countImages = stmt.ColumnInt(0);
 
             if (_countImages > 0)
                 ShowImage(1);
@@ -127,9 +127,9 @@ public partial class MainWindow : Window
         using var stmt = _connection.Prepare("SELECT Id, Nome, Image FROM Images WHERE Id = ?");
         stmt.BindInt(1, index);
         stmt.Step();
-        _indiceCorrente = stmt.GetInt(0);
-        TestoDescrizione.Text = stmt.GetText(1);
-        VisualizzatoreImmagine.Source = ToBitmapImage(stmt.GetBlob(2).ToArray());
+        _indiceCorrente = stmt.ColumnInt(0);
+        TestoDescrizione.Text = stmt.ColumnText(1);
+        VisualizzatoreImmagine.Source = ToBitmapImage(stmt.ColumnBlob(2).ToArray());
     }
 
     // Tasto Dietro

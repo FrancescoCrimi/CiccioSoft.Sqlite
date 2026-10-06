@@ -6,14 +6,14 @@
 
 using CiccioSoft.Sqlite.Native.Interop;
 
-namespace CiccioSoft.Sqlite.Native;
+namespace CiccioSoft.Sqlite;
 
 /// <summary>
 /// Allowed return values from sqlite3_txn_state().
 /// </summary>
 public enum TransactionState
 {
-    None    = NativeMethods.SQLITE_TXN_NONE,    // SQLITE_TXN_NONE: Nessuna transazione attiva
-    Read    = NativeMethods.SQLITE_TXN_READ,    // SQLITE_TXN_READ: Transazione di sola lettura (SELECT attiva)
-    Write   = NativeMethods.SQLITE_TXN_WRITE    // SQLITE_TXN_WRITE: Transazione di scrittura (modifiche in corso non committate)
+    None = NativeMethods.SQLITE_TXN_NONE,    // SQLITE_TXN_NONE: Nessuna transazione attiva
+    Read = NativeMethods.SQLITE_TXN_READ,    // SQLITE_TXN_READ: Transazione di sola lettura (SELECT attiva)
+    Write = NativeMethods.SQLITE_TXN_WRITE    // SQLITE_TXN_WRITE: Transazione di scrittura (modifiche in corso non committate)
 }

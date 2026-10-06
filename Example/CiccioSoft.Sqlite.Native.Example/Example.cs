@@ -233,12 +233,12 @@ public class Example
         ConsoleOutput.Message("Reopen: riutilizzare lo stesso handle blob senza riaprirlo");
         //--------------------------------------------------------------------------------//
         using (var idsStmt = db.Prepare("SELECT id FROM Users"))
-        using (var blob = db.OpenBlob("Users", "Photo", rowId: 1, readWrite: false))
+        using (var blob = db.BlobOpen("Users", "Photo", rowId: 1, readWrite: false))
         {
             bool first = true;
             while (idsStmt.Step())
             {
-                long currentId = idsStmt.GetLong(0);
+                long currentId = idsStmt.ColumnInt64(0);
 
                 if (first)
                     first = false;  		  // il primo Open ha già puntato alla riga 1
@@ -268,7 +268,7 @@ public class Example
         ConsoleOutput.Message("Esecuzione Backup...");
         using (var backupDb = Connection.Open(_backupDbPath, OpenFlags.ReadWrite | OpenFlags.Create))
         {
-            var backup = db.InitBackup(backupDb);
+            var backup = db.BackupInit(backupDb);
             ResultCode rc;
             do
             {
@@ -294,9 +294,9 @@ public class Example
             stmt.BindInt(1, 18);
             while (stmt.Step())
             {
-                int id = stmt.GetInt(0);
-                string? name = stmt.GetText(1);
-                int age = stmt.GetInt(2);
+                int id = stmt.ColumnInt(0);
+                string? name = stmt.ColumnText(1);
+                int age = stmt.ColumnInt(2);
                 Console.WriteLine($"   - Utente: {id} - {name}, {age} anni");
             }
         }

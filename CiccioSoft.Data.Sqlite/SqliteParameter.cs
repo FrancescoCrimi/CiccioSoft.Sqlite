@@ -11,7 +11,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using CiccioSoft.Data.Sqlite.Properties;
 using System.Collections.Generic;
-using CiccioSoft.Sqlite.Native;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite;
 

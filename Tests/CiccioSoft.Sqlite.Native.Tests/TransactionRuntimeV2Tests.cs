@@ -165,6 +165,6 @@ public sealed class TransactionRuntimeV2Tests
     {
         using var statement = connection.Prepare("SELECT COUNT(*) FROM t;");
         Assert.True(statement.Step());
-        return statement.GetInt(0);
+        return statement.ColumnInt(0);
     }
 }

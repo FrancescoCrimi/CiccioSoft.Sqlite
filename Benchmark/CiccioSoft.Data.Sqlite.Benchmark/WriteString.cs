@@ -6,6 +6,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using CiccioSoft.Sqlite;
 
 namespace CiccioSoft.Data.Sqlite.Benchmark;
 
@@ -23,7 +24,7 @@ public class WriteString
     [GlobalSetup]
     public void GlobalSetup()
     {
-        CiccioSoft.Sqlite.Native.NativeLibraryResolver.Configure(CiccioSoft.Sqlite.Native.NativeSource.SourceGear);
+        NativeLibraryResolver.Configure(NativeSource.SourceGear);
     }
 
     #region Microsoft.Data.Sqlite
@@ -107,9 +108,9 @@ public class WriteString
         command.CommandText = "INSERT INTO Users (Id, Name, Score) VALUES ($id, $name, $score)";
         command.Transaction = transaction;
 
-        var idParam = command.Parameters.Add("$id", CiccioSoft.Sqlite.Native.SqliteType.Integer);
-        var nameParam = command.Parameters.Add("$name", CiccioSoft.Sqlite.Native.SqliteType.Text);
-        var scoreParam = command.Parameters.Add("$score", CiccioSoft.Sqlite.Native.SqliteType.Real);
+        var idParam = command.Parameters.Add("$id", SqliteType.Integer);
+        var nameParam = command.Parameters.Add("$name", SqliteType.Text);
+        var scoreParam = command.Parameters.Add("$score", SqliteType.Real);
 
         command.Prepare();
 

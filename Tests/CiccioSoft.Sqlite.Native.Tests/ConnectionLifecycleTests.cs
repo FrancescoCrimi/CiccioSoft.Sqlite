@@ -38,7 +38,7 @@ public sealed class ConnectionLifecycleTests
         {
             using var stmt = connection.Prepare("SELECT name FROM t WHERE id = 1;");
             Assert.True(stmt.Step());
-            Assert.Equal("persisted", stmt.GetText(0));
+            Assert.Equal("persisted", stmt.ColumnText(0));
         }
     }
 
@@ -77,7 +77,7 @@ public sealed class ConnectionLifecycleTests
         using var shared = ConnectionFactory.OpenSharedMemory("lifecycle_uri");
         using var stmt = shared.Prepare("SELECT id FROM t;");
         Assert.True(stmt.Step());
-        Assert.Equal(42, stmt.GetInt(0));
+        Assert.Equal(42, stmt.ColumnInt(0));
     }
 
     [Fact]

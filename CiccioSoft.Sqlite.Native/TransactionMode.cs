@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-namespace CiccioSoft.Sqlite.Native;
+namespace CiccioSoft.Sqlite;
 
 /// <summary>
 /// Specifies the SQLite root transaction mode requested at transaction start.

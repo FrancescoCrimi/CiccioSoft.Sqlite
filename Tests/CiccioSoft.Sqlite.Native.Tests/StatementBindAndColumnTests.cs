@@ -32,7 +32,7 @@ public sealed class StatementBindAndColumnTests
                    "INSERT INTO sample (i, l, d, t, b, n) VALUES (?, ?, ?, ?, ?, ?);"))
         {
             insert.BindInt(1, 42);
-            insert.BindLong(2, long.MaxValue);
+            insert.BindInt64(2, long.MaxValue);
             insert.BindDouble(3, 3.141592653589793);
             insert.BindText(4, "hello");
             insert.BindBlob(5, new byte[] { 0x01, 0x02, 0xFF });
@@ -43,21 +43,21 @@ public sealed class StatementBindAndColumnTests
         using var select = connection.Prepare("SELECT i, l, d, t, b, n FROM sample;");
         Assert.True(select.Step());
 
-        Assert.Equal(SqliteType.Integer, select.GetColumnType(0));
-        Assert.Equal(42, select.GetInt(0));
-        Assert.Equal(long.MaxValue, select.GetLong(1));
-        Assert.Equal(3.141592653589793, select.GetDouble(2), precision: 10);
-        Assert.Equal("hello", select.GetText(3));
-        Assert.Equal(SqliteType.Text, select.GetColumnType(3));
+        Assert.Equal(SqliteType.Integer, select.ColumnType(0));
+        Assert.Equal(42, select.ColumnInt(0));
+        Assert.Equal(long.MaxValue, select.ColumnInt64(1));
+        Assert.Equal(3.141592653589793, select.ColumnDouble(2), precision: 10);
+        Assert.Equal("hello", select.ColumnText(3));
+        Assert.Equal(SqliteType.Text, select.ColumnType(3));
 
-        ReadOnlySpan<byte> blob = select.GetBlob(4);
+        ReadOnlySpan<byte> blob = select.ColumnBlob(4);
         Assert.Equal(new byte[] { 0x01, 0x02, 0xFF }, blob.ToArray());
-        Assert.Equal(SqliteType.Blob, select.GetColumnType(4));
+        Assert.Equal(SqliteType.Blob, select.ColumnType(4));
 
-        Assert.Equal(SqliteType.Null, select.GetColumnType(5));
-        Assert.Null(select.GetText(5));
-        Assert.True(select.GetTextAsSpan(5).IsEmpty);
-        Assert.True(select.GetBlob(5).IsEmpty);
+        Assert.Equal(SqliteType.Null, select.ColumnType(5));
+        Assert.Null(select.ColumnText(5));
+        Assert.True(select.ColumnTextUtf8(5).IsEmpty);
+        Assert.True(select.ColumnBlob(5).IsEmpty);
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL, typeof(v) FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
-        Assert.Equal("null", select.GetText(1), ignoreCase: true);
+        Assert.Equal(1, select.ColumnInt(0));
+        Assert.Equal("null", select.ColumnText(1), ignoreCase: true);
     }
 
     [Fact]
@@ -92,13 +92,13 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL, typeof(v), length(v), v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(0, select.GetInt(0));
-        Assert.Equal("text", select.GetText(1), ignoreCase: true);
-        Assert.Equal(0, select.GetInt(2));
-        Assert.Equal(string.Empty, select.GetText(3));
-        Assert.Equal(SqliteType.Text, select.GetColumnType(3));
-        Assert.False(select.GetTextAsSpan(3).IsEmpty);
-        Assert.Equal(1, select.GetTextAsSpan(3).Length);
+        Assert.Equal(0, select.ColumnInt(0));
+        Assert.Equal("text", select.ColumnText(1), ignoreCase: true);
+        Assert.Equal(0, select.ColumnInt(2));
+        Assert.Equal(string.Empty, select.ColumnText(3));
+        Assert.Equal(SqliteType.Text, select.ColumnType(3));
+        Assert.False(select.ColumnTextUtf8(3).IsEmpty);
+        Assert.Equal(1, select.ColumnTextUtf8(3).Length);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
+        Assert.Equal(1, select.ColumnInt(0));
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
+        Assert.Equal(1, select.ColumnInt(0));
     }
 
     [Fact]
@@ -156,13 +156,13 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL, typeof(v), length(v), v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
-        Assert.Equal("null", select.GetText(1), ignoreCase: true);
-        Assert.Equal(0, select.GetInt(2));
-        Assert.Null(select.GetText(3));
-        Assert.Equal(SqliteType.Null, select.GetColumnType(3));
-        Assert.True(select.GetTextAsSpan(3).IsEmpty);
-        Assert.Equal(0, select.GetTextAsSpan(3).Length);
+        Assert.Equal(1, select.ColumnInt(0));
+        Assert.Equal("null", select.ColumnText(1), ignoreCase: true);
+        Assert.Equal(0, select.ColumnInt(2));
+        Assert.Null(select.ColumnText(3));
+        Assert.Equal(SqliteType.Null, select.ColumnType(3));
+        Assert.True(select.ColumnTextUtf8(3).IsEmpty);
+        Assert.Equal(0, select.ColumnTextUtf8(3).Length);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
+        Assert.Equal(1, select.ColumnInt(0));
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
+        Assert.Equal(1, select.ColumnInt(0));
     }
 
     [Fact]
@@ -216,11 +216,11 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v IS NULL, typeof(v), length(v), v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(1, select.GetInt(0));
-        Assert.Equal("null", select.GetText(1), ignoreCase: true);
-        Assert.Equal(0, select.GetInt(2));
-        Assert.Equal(SqliteType.Null, select.GetColumnType(3));
-        Assert.True(select.GetBlob(3).IsEmpty);
+        Assert.Equal(1, select.ColumnInt(0));
+        Assert.Equal("null", select.ColumnText(1), ignoreCase: true);
+        Assert.Equal(0, select.ColumnInt(2));
+        Assert.Equal(SqliteType.Null, select.ColumnType(3));
+        Assert.True(select.ColumnBlob(3).IsEmpty);
     }
 
     [Fact]
@@ -242,9 +242,9 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v FROM t ORDER BY rowid;");
         Assert.True(select.Step());
-        Assert.Equal(string.Empty, select.GetText(0));
+        Assert.Equal(string.Empty, select.ColumnText(0));
         Assert.True(select.Step());
-        Assert.Equal("after-empty", select.GetText(0));
+        Assert.Equal("after-empty", select.ColumnText(0));
         Assert.False(select.Step());
     }
 
@@ -262,7 +262,7 @@ public sealed class StatementBindAndColumnTests
 
         using var select = connection.Prepare("SELECT v FROM t;");
         Assert.True(select.Step());
-        Assert.Equal("ok", select.GetText(0));
+        Assert.Equal("ok", select.ColumnText(0));
     }
 
     [Fact]
@@ -272,25 +272,25 @@ public sealed class StatementBindAndColumnTests
         connection.Execute("CREATE TABLE t (id INTEGER, name TEXT);");
 
         using var insert = connection.Prepare("INSERT INTO t (id, name) VALUES (@id, :name);");
-        Assert.Equal(2, insert.ParameterCount());
-        Assert.Equal("@id", insert.GetParameterNameString(1));
-        Assert.Equal(":name", insert.GetParameterNameString(2));
+        Assert.Equal(2, insert.BindParameterCount());
+        Assert.Equal("@id", insert.BindParameterName(1));
+        Assert.Equal(":name", insert.BindParameterName(2));
 
-        Assert.Equal(1, insert.GetParameterIndex("@id"));
-        Assert.Equal(2, insert.GetParameterIndex(":name"));
-        Assert.Equal(0, insert.GetParameterIndex(":missing"));
+        Assert.Equal(1, insert.BindParameterIndex("@id"));
+        Assert.Equal(2, insert.BindParameterIndex(":name"));
+        Assert.Equal(0, insert.BindParameterIndex(":missing"));
 
-        ReadOnlySpan<byte> nameBytes = insert.GetParameterName(1);
+        ReadOnlySpan<byte> nameBytes = insert.BindParameterNameUtf8(1);
         Assert.Equal("@id"u8, nameBytes);
 
-        insert.BindInt(insert.GetParameterIndex("@id"), 9);
-        insert.BindText(insert.GetParameterIndex(":name"), "Ada");
+        insert.BindInt(insert.BindParameterIndex("@id"), 9);
+        insert.BindText(insert.BindParameterIndex(":name"), "Ada");
         insert.Step();
 
         using var select = connection.Prepare("SELECT id, name FROM t;");
         Assert.True(select.Step());
-        Assert.Equal(9, select.GetInt(0));
-        Assert.Equal("Ada", select.GetText(1));
+        Assert.Equal(9, select.ColumnInt(0));
+        Assert.Equal("Ada", select.ColumnText(1));
     }
 
     [Fact]
@@ -299,9 +299,9 @@ public sealed class StatementBindAndColumnTests
         using var connection = ConnectionFactory.OpenMemory();
         using var stmt = connection.Prepare("SELECT ?;");
 
-        Assert.Equal(1, stmt.ParameterCount());
-        Assert.Null(stmt.GetParameterNameString(1));
-        Assert.True(stmt.GetParameterName(1).IsEmpty);
+        Assert.Equal(1, stmt.BindParameterCount());
+        Assert.Null(stmt.BindParameterName(1));
+        Assert.True(stmt.BindParameterNameUtf8(1).IsEmpty);
     }
 
     [Theory]
@@ -313,7 +313,7 @@ public sealed class StatementBindAndColumnTests
         using var stmt = connection.Prepare("SELECT ?;");
 
         Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindInt(index, 1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindLong(index, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindInt64(index, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindDouble(index, 1.0));
         Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindText(index, "x"));
         Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindBlob(index, new byte[] { 1 }));
@@ -328,14 +328,14 @@ public sealed class StatementBindAndColumnTests
         using var stmt = connection.Prepare("SELECT 1 AS n;");
         Assert.True(stmt.Step());
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetInt(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetLong(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetDouble(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetText(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetTextAsSpan(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetBlob(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetColumnType(index));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetColumnName(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnInt(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnInt64(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnDouble(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnText(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnTextUtf8(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnBlob(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnType(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.ColumnName(index));
     }
 
     [Fact]
@@ -347,10 +347,10 @@ public sealed class StatementBindAndColumnTests
 
         using var stmt = connection.Prepare("SELECT person_id AS id, full_name FROM people;");
         Assert.Equal(2, stmt.ColumnCount());
-        Assert.Equal("id", stmt.GetColumnName(0));
-        Assert.Equal("full_name", stmt.GetColumnName(1));
-        Assert.Equal("INTEGER", stmt.GetColumnDeclType(0), ignoreCase: true);
-        Assert.Equal("TEXT", stmt.GetColumnDeclType(1), ignoreCase: true);
+        Assert.Equal("id", stmt.ColumnName(0));
+        Assert.Equal("full_name", stmt.ColumnName(1));
+        Assert.Equal("INTEGER", stmt.ColumnDeclType(0), ignoreCase: true);
+        Assert.Equal("TEXT", stmt.ColumnDeclType(1), ignoreCase: true);
         Assert.Equal("main", stmt.GetColumnDatabaseName(0), ignoreCase: true);
         Assert.Equal("people", stmt.GetColumnTableName(0), ignoreCase: true);
         Assert.Equal("person_id", stmt.GetColumnOriginName(0), ignoreCase: true);
@@ -364,8 +364,8 @@ public sealed class StatementBindAndColumnTests
         using var stmt = connection.Prepare("SELECT 'café ☕';");
         Assert.True(stmt.Step());
 
-        string? asString = stmt.GetText(0);
-        ReadOnlySpan<byte> asSpan = stmt.GetTextAsSpan(0);
+        string? asString = stmt.ColumnText(0);
+        ReadOnlySpan<byte> asSpan = stmt.ColumnTextUtf8(0).Value;
 
         Assert.Equal("café ☕", asString);
         Assert.Equal(Encoding.UTF8.GetBytes("café ☕"), asSpan.ToArray());
@@ -377,8 +377,8 @@ public sealed class StatementBindAndColumnTests
         using var connection = ConnectionFactory.OpenMemory();
         using var stmt = connection.Prepare("SELECT @a;");
 
-        Assert.Throws<ArgumentException>(() => stmt.GetParameterIndex(""));
-        Assert.Throws<ArgumentException>(() => stmt.GetParameterIndex(null!));
+        Assert.Throws<ArgumentException>(() => stmt.BindParameterIndex(""));
+        Assert.Throws<ArgumentException>(() => stmt.BindParameterIndex(null!));
     }
 
     [Fact]
@@ -387,7 +387,7 @@ public sealed class StatementBindAndColumnTests
         using var connection = ConnectionFactory.OpenMemory();
         using var stmt = connection.Prepare("SELECT ?;");
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetParameterName(0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.GetParameterNameString(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindParameterNameUtf8(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stmt.BindParameterName(0));
     }
 }

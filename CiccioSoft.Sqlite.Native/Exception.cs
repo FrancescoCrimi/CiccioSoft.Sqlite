@@ -5,8 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using System.Runtime.InteropServices;
-using CiccioSoft.Sqlite.Native.Interop;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CiccioSoft.Sqlite.Native;
 
@@ -52,27 +51,12 @@ public sealed unsafe class Exception : System.Exception
     /// </summary>
     public string? ErrorMessage { get; }
 
-
-    internal static Exception CreateException(ConnectionSafeHandle connectionSafeHandle, ResultCode resultCode, string caller)
+    internal static Exception ReturnException(ResultCode resultCode, string errorMessage, string caller)
     {
-        byte* pErrStr = NativeMethods.sqlite3_errstr((int)resultCode);
-        string errorString = Marshal.PtrToStringUTF8((nint)pErrStr) ?? "Unknown error code";
+        string errorString = Connection.ErrorString(resultCode);
 
-        string errorMessage;
-        if (connectionSafeHandle is { IsClosed: false, IsInvalid: false })
-        {
-            // sqlite3_errmsg returns the most recent error message for this specific connection,
-            // providing contextual details (e.g. which column or constraint failed).
-            byte* pErr = NativeMethods.sqlite3_errmsg((sqlite3*)connectionSafeHandle.DangerousGetHandle());
-            GC.KeepAlive(connectionSafeHandle);
-            errorMessage = Marshal.PtrToStringUTF8((nint)pErr) ?? "Unreadable SQLite error";
-        }
-        else
-        {
-            // No valid connection handle available: fall back to the generic
-            // error code description provided by sqlite3_errstr.
+        if (errorMessage is null || errorMessage == "")
             errorMessage = errorString;
-        }
 
         string message =
             $"{caller} failed. " +
@@ -81,6 +65,12 @@ public sealed unsafe class Exception : System.Exception
             $"ResultCode: {resultCode}, " +
             $"Message: {errorMessage}";
 
-        return new CiccioSoft.Sqlite.Native.Exception(message, resultCode, errorString, errorMessage);
+        return new Exception(message, resultCode, errorString, errorMessage);
+    }
+
+    [DoesNotReturn]
+    internal static void ThrowException(ResultCode resultCode, string errorMessage, string caller)
+    {
+        throw ReturnException(resultCode, errorMessage, caller);
     }
 }

@@ -93,7 +93,7 @@ public class WriteSpan
                 for (int i = 0; i < RowCount; i++)
                 {
                     stmt.Reset();
-                    stmt.BindLong(1, i);
+                    stmt.BindInt64(1, i);
                     stmt.BindText(2, TestString);
                     stmt.BindDouble(3, i * 1.1);
                     stmt.Step();

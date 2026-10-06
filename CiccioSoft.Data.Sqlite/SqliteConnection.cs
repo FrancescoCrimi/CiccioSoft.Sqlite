@@ -345,7 +345,7 @@ public sealed class SqliteConnection : DbConnection
         try
         {
             // using var backup = Backup.InitBackup(destination.Interop, Interop, destinationName, sourceName);
-            using var backup = Interop.InitBackup(destination.Interop, destinationName, sourceName);
+            using var backup = Interop.BackupInit(destination.Interop, destinationName, sourceName);
 
             var result = backup.Step(-1);
             if (result != ResultCode.Done)
