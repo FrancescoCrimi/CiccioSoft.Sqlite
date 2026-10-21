@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using CiccioSoft.Sqlite.Native;
 
 namespace CiccioSoft.Sqlite.Tests;
 

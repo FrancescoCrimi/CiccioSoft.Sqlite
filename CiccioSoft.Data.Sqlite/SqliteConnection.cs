@@ -32,6 +32,7 @@ public sealed class SqliteConnection : DbConnection
     private bool _hasActiveTransaction;
     private SqliteTransaction? _activeTransaction;
     private SqliteConnectionSettings _settings = new(new SqliteConnectionStringBuilder());
+    private SqliteConnectionStringBuilder _connectionStringBuilder = new();
     private string _dataSource = string.Empty;
     private string _writerKey = string.Empty;
     private int? _defaultTimeout;
@@ -74,9 +75,12 @@ public sealed class SqliteConnection : DbConnection
         {
             lock (_syncRoot)
             {
-                if (_state != ConnectionState.Closed) throw new InvalidOperationException(Resources.ConnectionStringRequiresClosedConnection);
+                if (_state != ConnectionState.Closed)
+                    throw new InvalidOperationException(Resources.ConnectionStringRequiresClosedConnection);
                 _connectionString = value ?? string.Empty;
-                _settings = new SqliteConnectionSettings(new SqliteConnectionStringBuilder { ConnectionString = _connectionString });
+                // _settings = new SqliteConnectionSettings(new SqliteConnectionStringBuilder { ConnectionString = _connectionString });
+                _settings = new SqliteConnectionSettings(new SqliteConnectionStringBuilder(_connectionString));
+                _connectionStringBuilder = new SqliteConnectionStringBuilder(_connectionString);
                 _dataSource = _settings.DataSource;
                 _writerKey = ResolveWriterKey(_connectionString, _dataSource);
             }
