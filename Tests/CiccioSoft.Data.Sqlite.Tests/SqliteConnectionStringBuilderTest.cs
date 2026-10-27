@@ -65,7 +65,7 @@ public class SqliteConnectionStringBuilderTest
         Assert.Equal(1, builder.DefaultTimeout);
     }
 
-    [Fact(Skip = "Not Implemented")]
+    [Fact]
     public void Ctor_parses_Vfs()
     {
         var builder = new SqliteConnectionStringBuilder("Vfs=win32-longpath");
@@ -141,7 +141,7 @@ public class SqliteConnectionStringBuilderTest
     public void Password_defaults_to_null()
         => Assert.Null(new SqliteConnectionStringBuilder().Password);
 
-    [Fact]
+    [Fact(Skip = "Sostituito in SqliteConnectionStringBuilderNewTest con i nuovi valori di default")]
     public void DefaultTimeout_defaults_to_null()
         => Assert.Null(new SqliteConnectionStringBuilder().DefaultTimeout);
 
@@ -230,7 +230,7 @@ public class SqliteConnectionStringBuilderTest
         Assert.ThrowsAny<ArgumentException>(() => builder["Cache"] = value);
     }
 
-    [Theory, InlineData(1, true), InlineData("True", true), InlineData(0, false), InlineData("False", false), InlineData(null, null),
+    [Theory(Skip = "Sostituito in SqliteConnectionStringBuilderNewTest con i nuovi valori di default"), InlineData(1, true), InlineData("True", true), InlineData(0, false), InlineData("False", false), InlineData(null, null),
      InlineData("", null)]
     public void Item_converts_to_bool_on_set(object? value, bool? expected)
     {
@@ -241,7 +241,7 @@ public class SqliteConnectionStringBuilderTest
         Assert.Equal(expected, builder["Foreign Keys"]);
     }
 
-    [Theory(Skip = "Now Work Done"), InlineData("1"), InlineData("Yes"), InlineData("On"), InlineData("0"), InlineData("No"), InlineData("Off")]
+    [Theory(Skip = "Sostituito in SqliteConnectionStringBuilderNewTest"), InlineData("1"), InlineData("Yes"), InlineData("On"), InlineData("0"), InlineData("No"), InlineData("Off")]
     public void Item_throws_when_cannot_convert_to_bool_on_set(object value)
     {
         var builder = new SqliteConnectionStringBuilder();
@@ -249,7 +249,7 @@ public class SqliteConnectionStringBuilderTest
         Assert.ThrowsAny<FormatException>(() => builder["Foreign Keys"] = value);
     }
 
-    [Fact]
+    [Fact(Skip = "Sostituito in SqliteConnectionStringBuilderNewTest con i nuovi valori di default")]
     public void Clear_resets_everything()
     {
         var builder = new SqliteConnectionStringBuilder(

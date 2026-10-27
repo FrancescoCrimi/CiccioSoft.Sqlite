@@ -135,12 +135,18 @@ public abstract class CommonDbConnectionStringBuilder : DbConnectionStringBuilde
     protected ConnectionStringOption<T> Register<T>(
         string[] keys,
         Func<T, T>? coerce = null)
+        => Register(keys, default, coerce);
+
+    protected ConnectionStringOption<T> Register<T>(
+        string[] keys,
+        T? defaultValue,
+        Func<T, T>? coerce = null)
     {
         ArgumentNullException.ThrowIfNull(keys);
         if (keys.Length == 0)
             throw new ArgumentException("At least one key must be specified.", nameof(keys));
 
-        var option = new ConnectionStringOption<T>(this, keys, coerce);
+        var option = new ConnectionStringOption<T>(this, keys, defaultValue, coerce);
         foreach (var key in keys)
             options.Add(key, option);
         OptionNames.Add(keys[0]);
@@ -173,15 +179,17 @@ public abstract class CommonDbConnectionStringBuilder : DbConnectionStringBuilde
         public abstract void SetObject(object? value);
     }
 
-    public sealed class ConnectionStringOption<T>(CommonDbConnectionStringBuilder builder, string[] keys, Func<T, T>? coerce = null)
+    public sealed class ConnectionStringOption<T>(CommonDbConnectionStringBuilder builder, string[] keys, T? defaultValue = default, Func<T, T>? coerce = null)
         : ConnectionStringOption(builder, keys)
     {
-        // Typed get: returns default(T) (null for nullable types) when key is absent.
+        public T? DefaultValue { get; } = defaultValue;
+
+        // Typed get: returns DefaultValue when key is absent.
         public T? GetValue()
         {
             return _builder.TryGetValue(Key, out var raw) && raw is not null
                 ? ConvertTo(raw)
-                : default;
+                : DefaultValue;
         }
 
         // Typed set: null removes the key, non-null stores the (optionally coerced) value.

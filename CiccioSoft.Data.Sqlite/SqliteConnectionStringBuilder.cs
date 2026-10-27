@@ -38,12 +38,12 @@ public class SqliteConnectionStringBuilder : CommonDbConnectionStringBuilder
         ModeOption = Register<SqliteOpenMode?>(["Mode"]);
         CacheOption = Register<SqliteCacheMode?>(["Cache"]);
         PasswordOption = Register<string?>(["Password"]);
-        ForeignKeysOption = Register<bool?>(["Foreign Keys", "foreign_keys"]);
+        ForeignKeysOption = Register<bool?>(["Foreign Keys", "foreign_keys"], true);
         RecursiveTriggersOption = Register<bool?>(["Recursive Triggers", "recursive_triggers"]);
-        DefaultTimeoutOption = Register<int?>(["Default Timeout", "default_timeout", "Command Timeout"], val => val.HasValue ? Math.Max(0, val.Value) : null);
-        PoolingOption = Register<bool?>(["Pooling"]);
-        MaxPoolSizeOption = Register<int?>(["Max Pool Size", "MaxPoolSize"], val => val.HasValue ? Math.Max(1, val.Value) : null);
-        JournalModeOption = Register<string?>(["Journal Mode", "journal_mode"]);
+        DefaultTimeoutOption = Register<int?>(["Default Timeout", "default_timeout", "Command Timeout"], 30, val => val.HasValue ? Math.Max(0, val.Value) : null);
+        PoolingOption = Register<bool?>(["Pooling"], true);
+        MaxPoolSizeOption = Register<int?>(["Max Pool Size", "MaxPoolSize"], 100, val => val.HasValue ? Math.Max(1, val.Value) : null);
+        JournalModeOption = Register<string?>(["Journal Mode", "journal_mode"], "WAL");
         VfsOption = Register<string?>(["Vfs"]);
     }
 

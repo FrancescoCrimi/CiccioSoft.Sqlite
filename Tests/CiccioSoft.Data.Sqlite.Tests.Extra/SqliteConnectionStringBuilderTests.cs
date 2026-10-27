@@ -12,25 +12,87 @@ namespace CiccioSoft.Data.Sqlite;
 
 public class SqliteConnectionStringBuilderTests
 {
+    // Test Microsoft.Data.Sqlite.Tests modificato con i nuovi valori di Default
+    [Theory, InlineData(1, true), InlineData("True", true), InlineData(0, false), InlineData("False", false), InlineData(null, true),
+     InlineData("", true)]
+    public void Item_converts_to_bool_on_set(object? value, bool? expected)
+    {
+        var builder = new SqliteConnectionStringBuilder();
+
+        builder["Foreign Keys"] = value;
+
+        Assert.Equal(expected, builder["Foreign Keys"]);
+    }
+
+    // Test modificato Microsoft.Data.Sqlite.Tests
+    [Theory,  InlineData("On"), InlineData("Off")]
+    public void Item_throws_when_cannot_convert_to_bool_on_set(object value)
+    {
+        var builder = new SqliteConnectionStringBuilder();
+
+        Assert.ThrowsAny<ArgumentException>(() => builder["Foreign Keys"] = value);
+    }
+
+    // Test Microsoft.Data.Sqlite.Tests modificato con i nuovi valori di Default
+    [Fact]
+    public void Clear_resets_everything()
+    {
+        var builder = new SqliteConnectionStringBuilder(
+            "Data Source=test.db;Mode=Memory;Cache=Shared;Password=test;Foreign Keys=True;Recursive Triggers=True;Default Timeout=1");
+
+        builder.Clear();
+
+        Assert.Null(builder.DataSource);
+        Assert.Null(builder.Mode);
+        Assert.Null(builder.Cache);
+        Assert.Null(builder.Password);
+        Assert.True(builder.ForeignKeys);
+        Assert.Null(builder.RecursiveTriggers);
+        Assert.Equal(30, builder.DefaultTimeout);
+
+        Assert.True(builder.Pooling);
+        Assert.Equal(100, builder.MaxPoolSize);
+    }
+
     [Fact]
     public void DataSource_defaults_to_null()
         => Assert.Null(new SqliteConnectionStringBuilder().DataSource);
 
     [Fact]
-    public void Pooling_defaults_to_null()
-        => Assert.Null(new SqliteConnectionStringBuilder().Pooling);
+    public void Pooling_defaults_to_true()
+        => Assert.True(new SqliteConnectionStringBuilder().Pooling);
 
     [Fact]
-    public void MaxPoolSize_defaults_to_null()
-        => Assert.Null(new SqliteConnectionStringBuilder().MaxPoolSize);
+    public void MaxPoolSize_defaults_to_100()
+        => Assert.Equal(100, new SqliteConnectionStringBuilder().MaxPoolSize);
 
     [Fact]
-    public void DefaultTimeout_defaults_to_null()
-        => Assert.Null(new SqliteConnectionStringBuilder().DefaultTimeout);
+    public void DefaultTimeout_defaults_to_30()
+        => Assert.Equal(30, new SqliteConnectionStringBuilder().DefaultTimeout);
 
-    [Fact(Skip = "outdate")]
-    public void JournalMode_defaults_to_empty()
-        => Assert.Empty(new SqliteConnectionStringBuilder().JournalMode!);
+    [Fact]
+    public void JournalMode_defaults_to_wal()
+        => Assert.Equal("WAL", new SqliteConnectionStringBuilder().JournalMode!);
+
+    [Fact]
+    public void Keys_works()
+    {
+        var keys = (ICollection<string>)new SqliteConnectionStringBuilder().Keys;
+
+        Assert.True(keys.IsReadOnly);
+        Assert.Equal(11, keys.Count);
+        Assert.Contains("Data Source", keys);
+        Assert.Contains("Mode", keys);
+        Assert.Contains("Cache", keys);
+        Assert.Contains("Password", keys);
+        Assert.Contains("Foreign Keys", keys);
+        Assert.Contains("Recursive Triggers", keys);
+        Assert.Contains("Default Timeout", keys);
+        Assert.Contains("Pooling", keys);
+        Assert.Contains("Max Pool Size", keys);
+        Assert.Contains("Journal Mode", keys);
+        Assert.Contains("Vfs", keys);
+    }
 
     [Fact]
     public void Ctor_parses_known_values()
@@ -99,7 +161,6 @@ public class SqliteConnectionStringBuilderTests
 
         Assert.Equal(expected, builder.DefaultTimeout);
     }
-
 
     [Fact]
     public void DefaultTimeout_parses_pragma_alias()
