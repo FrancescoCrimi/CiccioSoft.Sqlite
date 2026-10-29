@@ -12,10 +12,10 @@ namespace CiccioSoft.Data.Sqlite;
 
 internal sealed class SqliteSession : IDisposable
 {
-    public CiccioSoft.Sqlite.Native.Connection Native { get; }
+    public CiccioSoft.Sqlite.Connection Native { get; }
     public SemaphoreSlim Gate { get; } = new(1, 1);
 
-    public SqliteSession(CiccioSoft.Sqlite.Native.Connection native)
+    public SqliteSession(CiccioSoft.Sqlite.Connection native)
     {
         Native = native;
     }

@@ -71,7 +71,7 @@ public class WriteString
             }
             transaction.Commit();
         }
-        catch (Exception)
+        catch (System.Exception)
         {
             transaction.Rollback();
             throw;
@@ -125,7 +125,7 @@ public class WriteString
             }
             transaction.Commit();
         }
-        catch (Exception)
+        catch (System.Exception)
         {
             transaction.Rollback();
             throw;

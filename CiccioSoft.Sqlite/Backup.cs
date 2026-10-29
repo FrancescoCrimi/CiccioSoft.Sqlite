@@ -5,21 +5,61 @@
 // https://opensource.org/licenses/MIT.
 
 using System;
-using NativeBackup = CiccioSoft.Sqlite.Native.Backup;
+using System.Runtime.InteropServices;
+using CiccioSoft.Sqlite.Native.Interop;
 
 namespace CiccioSoft.Sqlite;
 
-public class Backup : IDisposable
+public sealed unsafe class Backup : SafeHandle
 {
-    NativeBackup _native;
+    private sqlite3_backup* _sqlite3_backup => (sqlite3_backup*)DangerousGetHandle();
 
-    public Backup(NativeBackup native)
+
+    #region Ctor and safehandle
+
+    internal Backup(sqlite3_backup* sqlite3_backup)
+        : base((nint)sqlite3_backup, true)
     {
-        _native = native;
     }
 
-    public void Dispose()
+    public override bool IsInvalid => handle == nint.Zero;
+
+    protected override bool ReleaseHandle()
     {
-        _native.Dispose();
+        _ = NativeMethods.sqlite3_backup_finish((sqlite3_backup*)handle);
+        return true;
     }
+
+    #endregion
+
+
+    #region Backup
+
+    public ResultCode Step(int pages = -1)
+    {
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+        ResultCode rtn = (ResultCode)NativeMethods.sqlite3_backup_step(_sqlite3_backup, pages);
+        return rtn;
+    }
+
+    public int Remaining()
+    {
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+        int rtn = NativeMethods.sqlite3_backup_remaining(_sqlite3_backup);
+        return rtn;
+    }
+
+    public int PageCount()
+    {
+        ObjectDisposedException.ThrowIf(IsClosed || IsInvalid, this);
+        int rtn = NativeMethods.sqlite3_backup_pagecount(_sqlite3_backup);
+        return rtn;
+    }
+
+    public void Finish()
+    {
+        Dispose();
+    }
+
+    #endregion
 }

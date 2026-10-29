@@ -1,0 +1,40 @@
+// Copyright (c) 2026 Francesco Crimi
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+
+using System;
+using CiccioSoft.Sqlite.Native.Interop;
+
+namespace CiccioSoft.Sqlite;
+
+internal static class ThreadingGuard
+{
+    private static bool _verified;
+    private static readonly System.Threading.Lock _gate = new();
+
+    public static void EnsureCompatibleThreadingModeOrThrow()
+    {
+        if (_verified) return;
+        lock (_gate)
+        {
+            if (_verified) return;
+
+            int mode = NativeMethods.sqlite3_threadsafe();
+            // 0 = Single-thread, 1 = Serialized, 2 = Multi-thread (valori nativi di sqlite3_threadsafe)
+            if (mode == 0)
+            {
+                // throw new SqliteConfigurationException(
+                throw new System.Exception(
+                    "La libreria SQLite nativa collegata è compilata in modalità Single-thread " +
+                    "(sqlite3_threadsafe() == 0). CiccioSoft.SQLite richiede Multi-thread o " +
+                    "Serialized (ARCH-SQLITE-LIB-001 §19, Invariante I15). Se la sorgente configurata " +
+                    "è 'System', verificare la build di libsqlite3 fornita dal sistema operativo, " +
+                    "oppure passare a SqliteNativeSource.Bundled.");
+            }
+
+            _verified = true;
+        }
+    }
+}

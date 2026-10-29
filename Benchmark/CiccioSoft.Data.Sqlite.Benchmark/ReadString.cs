@@ -77,7 +77,7 @@ public class ReadString
             }
             transaction.Commit();
         }
-        catch (Exception)
+        catch (System.Exception)
         {
             transaction.Rollback();
             throw;
@@ -159,7 +159,7 @@ public class ReadString
             }
             transaction.Commit();
         }
-        catch (Exception)
+        catch (System.Exception)
         {
             transaction.Rollback();
             throw;

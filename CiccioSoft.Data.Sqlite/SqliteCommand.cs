@@ -24,7 +24,7 @@ public sealed class SqliteCommand : DbCommand
 
     private const PrepareFlags SqlitePreparePersistentFlag = PrepareFlags.Persistent;
     private readonly object _statementCacheSync = new();
-    private readonly List<(CiccioSoft.Sqlite.Native.Statement Statement, int ParamCount)> _preparedStatements = new(1);
+    private readonly List<(CiccioSoft.Sqlite.Statement Statement, int ParamCount)> _preparedStatements = new(1);
     private SqliteConnection? _connection;
     private CachedStatement? _cachedStatement;
     private bool _prepared;
@@ -229,7 +229,7 @@ public sealed class SqliteCommand : DbCommand
         using CommandExecutionScope scope = CreateExecutionScope(session, CancellationToken.None);
         scope.Execute(() =>
         {
-            foreach ((CiccioSoft.Sqlite.Native.Statement _, int _) in PrepareAndEnumerateStatements(session))
+            foreach ((CiccioSoft.Sqlite.Statement _, int _) in PrepareAndEnumerateStatements(session))
             {
             }
         });
@@ -424,19 +424,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 return operation();
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_timeoutTriggered && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when (_timeoutTriggered && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex)
+            catch (CiccioSoft.Sqlite.Exception ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseResultCode, ex.ErrorMessage), ex);
@@ -464,19 +464,19 @@ public sealed class SqliteCommand : DbCommand
                 operationCancellationToken.ThrowIfCancellationRequested();
                 operation();
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_timeoutTriggered && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when (_timeoutTriggered && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new SqliteException(Properties.Resources.CommandTimedOut(_command.CommandTimeout), ex);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when ((operationCanceled || operationCancellationToken.IsCancellationRequested) && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(operationCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == ResultCode.Interrupt)
+            catch (CiccioSoft.Sqlite.Exception ex) when (_externalCancellationToken.IsCancellationRequested && ex.BaseResultCode == ResultCode.Interrupt)
             {
                 throw new OperationCanceledException(_externalCancellationToken);
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex)
+            catch (CiccioSoft.Sqlite.Exception ex)
             {
                 // throw new SqliteException(ex.Message, (int)ex.BaseErrorCode, (int)ex.ExtendedErrorCode, ex);
                 throw new SqliteException(Resources.SqliteNativeError((int)ex.BaseResultCode, ex.ErrorMessage), ex);
@@ -531,17 +531,17 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    internal CiccioSoft.Sqlite.Native.Statement? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
+    internal CiccioSoft.Sqlite.Statement? PrepareAndBind(SqliteSession session, BatchExecutionState batchState)
         => PrepareAndBindNext(session, batchState, throwOnMissingParameter: true);
 
-    internal CiccioSoft.Sqlite.Native.Statement? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
+    internal CiccioSoft.Sqlite.Statement? PrepareAndBindNext(SqliteSession session, BatchExecutionState batchState, bool throwOnMissingParameter = false)
     {
         if (_prepared)
         {
             return PrepareAndBindFromCache(batchState, throwOnMissingParameter);
         }
 
-        CiccioSoft.Sqlite.Native.Statement? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
+        CiccioSoft.Sqlite.Statement? stmt = session.Native.Prepare(batchState.Sql, batchState.SqlByteOffset, out int nextSqlByteOffset, SqlitePreparePersistentFlag);
         batchState.SqlByteOffset = nextSqlByteOffset;
         if (stmt is null)
         {
@@ -552,7 +552,7 @@ public sealed class SqliteCommand : DbCommand
         return stmt;
     }
 
-    internal void ReleaseStatement(CiccioSoft.Sqlite.Native.Statement? stmt)
+    internal void ReleaseStatement(CiccioSoft.Sqlite.Statement? stmt)
     {
         if (stmt is null)
         {
@@ -570,7 +570,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private void BindParameters(CiccioSoft.Sqlite.Native.Statement stmt, bool throwOnMissingParameter)
+    private void BindParameters(CiccioSoft.Sqlite.Statement stmt, bool throwOnMissingParameter)
     {
         int parameterCount = stmt.BindParameterCount();
         bool[] boundParameters = parameterCount == 0
@@ -612,7 +612,7 @@ public sealed class SqliteCommand : DbCommand
     //     }
     // }
 
-    private static int ResolveParameterIndex(CiccioSoft.Sqlite.Native.Statement stmt, SqliteParameter parameter, int ordinal)
+    private static int ResolveParameterIndex(CiccioSoft.Sqlite.Statement stmt, SqliteParameter parameter, int ordinal)
     {
         string parameterName = parameter.ParameterName;
         if (string.IsNullOrEmpty(parameterName))
@@ -670,7 +670,7 @@ public sealed class SqliteCommand : DbCommand
         return commandText.StartsWith("EXPLAIN", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void ThrowIfMissingParameters(CiccioSoft.Sqlite.Native.Statement stmt, bool[] boundParameters)
+    private static void ThrowIfMissingParameters(CiccioSoft.Sqlite.Statement stmt, bool[] boundParameters)
     {
         List<string>? missingParameters = null;
         for (int i = 1; i < boundParameters.Length; i++)
@@ -690,7 +690,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private static void BindParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter)
+    private static void BindParameter(CiccioSoft.Sqlite.Statement stmt, int index, SqliteParameter parameter)
     {
         object? value = parameter.Value;
         if (value is null || value is DBNull)
@@ -743,7 +743,7 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private static void BindDoubleParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, double value)
+    private static void BindDoubleParameter(CiccioSoft.Sqlite.Statement stmt, int index, double value)
     {
         if (double.IsNaN(value))
         {
@@ -794,7 +794,7 @@ public sealed class SqliteCommand : DbCommand
         return milliseconds / 86400000.0;
     }
 
-    private static void BindTextParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter, string value)
+    private static void BindTextParameter(CiccioSoft.Sqlite.Statement stmt, int index, SqliteParameter parameter, string value)
     {
         if (parameter.TryGetTruncatedSize(value.Length, out int size))
         {
@@ -804,7 +804,7 @@ public sealed class SqliteCommand : DbCommand
         stmt.BindText(index, value);
     }
 
-    private static void BindBlobParameter(CiccioSoft.Sqlite.Native.Statement stmt, int index, SqliteParameter parameter, byte[] value)
+    private static void BindBlobParameter(CiccioSoft.Sqlite.Statement stmt, int index, SqliteParameter parameter, byte[] value)
     {
         stmt.BindBlob(
             index,
@@ -846,14 +846,14 @@ public sealed class SqliteCommand : DbCommand
         }
     }
 
-    private IEnumerable<(CiccioSoft.Sqlite.Native.Statement Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
+    private IEnumerable<(CiccioSoft.Sqlite.Statement Statement, int ParamCount)> PrepareAndEnumerateStatements(SqliteSession session)
     {
         DisposePreparedStatements();
 
         var batchState = new BatchExecutionState(CommandText);
         while (true)
         {
-            CiccioSoft.Sqlite.Native.Statement? stmt = session.Native.Prepare(
+            CiccioSoft.Sqlite.Statement? stmt = session.Native.Prepare(
                 batchState.Sql,
                 batchState.SqlByteOffset,
                 out int nextSqlByteOffset,
@@ -874,7 +874,7 @@ public sealed class SqliteCommand : DbCommand
         _prepared = true;
     }
 
-    private CiccioSoft.Sqlite.Native.Statement? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
+    private CiccioSoft.Sqlite.Statement? PrepareAndBindFromCache(BatchExecutionState batchState, bool throwOnMissingParameter)
     {
         int index = batchState.PreparedStatementIndex;
         if (index >= _preparedStatements.Count)
@@ -882,7 +882,7 @@ public sealed class SqliteCommand : DbCommand
             return null;
         }
 
-        CiccioSoft.Sqlite.Native.Statement stmt = _preparedStatements[index].Statement;
+        CiccioSoft.Sqlite.Statement stmt = _preparedStatements[index].Statement;
         batchState.PreparedStatementIndex = index + 1;
         stmt.Reset();
         stmt.ClearBindings();
@@ -892,7 +892,7 @@ public sealed class SqliteCommand : DbCommand
 
     private void DisposePreparedStatements()
     {
-        foreach ((CiccioSoft.Sqlite.Native.Statement stmt, int _) in _preparedStatements)
+        foreach ((CiccioSoft.Sqlite.Statement stmt, int _) in _preparedStatements)
         {
             stmt.Dispose();
         }
@@ -916,7 +916,7 @@ public sealed class SqliteCommand : DbCommand
                     _cachedStatement = null;
                 }
 
-                CiccioSoft.Sqlite.Native.Statement statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
+                CiccioSoft.Sqlite.Statement statement = session.Native.Prepare(CommandText, SqlitePreparePersistentFlag);
                 _cachedStatement = new CachedStatement(session, CommandText, statement);
                 _cachedStatement.TryAcquire();
             }
@@ -942,7 +942,7 @@ public sealed class SqliteCommand : DbCommand
 
     private sealed class CachedStatement
     {
-        public CachedStatement(SqliteSession session, string commandText, CiccioSoft.Sqlite.Native.Statement statement)
+        public CachedStatement(SqliteSession session, string commandText, CiccioSoft.Sqlite.Statement statement)
         {
             Session = session;
             CommandText = commandText;
@@ -951,7 +951,7 @@ public sealed class SqliteCommand : DbCommand
 
         public SqliteSession Session { get; }
         public string CommandText { get; }
-        public CiccioSoft.Sqlite.Native.Statement Statement { get; }
+        public CiccioSoft.Sqlite.Statement Statement { get; }
         public bool InUse { get; private set; }
 
         public bool TryAcquire()
@@ -982,7 +982,7 @@ public sealed class SqliteCommand : DbCommand
             _cached = cached;
         }
 
-        public CiccioSoft.Sqlite.Native.Statement Statement => _cached.Statement;
+        public CiccioSoft.Sqlite.Statement Statement => _cached.Statement;
 
         public void Dispose()
         {

@@ -47,7 +47,7 @@ public sealed class SqliteConnection : DbConnection
     /// <summary>
     ///     Gets the underlying low-level SQLite interop object for advanced/native operations.
     /// </summary>
-    public CiccioSoft.Sqlite.Native.Connection Interop
+    public CiccioSoft.Sqlite.Connection Interop
     {
         get
         {
@@ -61,7 +61,7 @@ public sealed class SqliteConnection : DbConnection
     ///     Gets a handle to underlying database connection.
     /// </summary>
     /// <value>A handle to underlying database connection.</value>
-    public CiccioSoft.Sqlite.Native.Connection? Handle
+    public CiccioSoft.Sqlite.Connection? Handle
         => _session?.Native;
 
     [DefaultValue("")]
@@ -107,7 +107,7 @@ public sealed class SqliteConnection : DbConnection
     {
         get
         {
-            return CiccioSoft.Sqlite.Native.Connection.LibVersion()!;
+            return CiccioSoft.Sqlite.Connection.LibVersion()!;
         }
     }
 
@@ -193,7 +193,7 @@ public sealed class SqliteConnection : DbConnection
                 bool pooling = IsPoolingEnabled();
                 SqliteSession session = pooling
                     ? SqliteConnectionPool.Rent(_connectionString, dataSource, _settings.MaxPoolSize, openFlags)
-                    : new SqliteSession(CiccioSoft.Sqlite.Native.Connection.Open(dataSource, openFlags));
+                    : new SqliteSession(CiccioSoft.Sqlite.Connection.Open(dataSource, openFlags));
 
                 ApplyConnectionSettings(session.Native);
 
@@ -202,7 +202,7 @@ public sealed class SqliteConnection : DbConnection
                 _writerKey = ResolveWriterKey(_connectionString, _dataSource);
                 _state = ConnectionState.Open;
             }
-            catch (CiccioSoft.Sqlite.Native.Exception ex)
+            catch (CiccioSoft.Sqlite.Exception ex)
             {
                 throw new SqliteException(ex.Message, ex);
             }
@@ -446,7 +446,7 @@ public sealed class SqliteConnection : DbConnection
         {
             session.Native.Execute(sql);
         }
-        catch (CiccioSoft.Sqlite.Native.Exception ex)
+        catch (CiccioSoft.Sqlite.Exception ex)
         {
             throw new SqliteException(ex.Message, ex);
         }
@@ -561,7 +561,7 @@ public sealed class SqliteConnection : DbConnection
         return flags;
     }
 
-    private void ApplyConnectionSettings(CiccioSoft.Sqlite.Native.Connection native)
+    private void ApplyConnectionSettings(CiccioSoft.Sqlite.Connection native)
     {
         native.BusyTimeout(Math.Max(0, _settings.DefaultTimeout * 1000));
 
@@ -656,7 +656,7 @@ public sealed class SqliteConnection : DbConnection
         }
 
         // Intercetta eventuali SqliteInteropException
-        catch (CiccioSoft.Sqlite.Native.Exception siex)
+        catch (CiccioSoft.Sqlite.Exception siex)
         {
             throw new SqliteException(siex.Message, siex);
         }

@@ -32,7 +32,7 @@ public sealed class SqliteDataReader : DbDataReader
     private readonly System.Data.CommandBehavior _behavior;
     private readonly SqliteCommand.CommandExecutionScope _executionScope;
     private readonly SqliteCommand.BatchExecutionState _batchState;
-    private CiccioSoft.Sqlite.Native.Statement? _stmt;
+    private CiccioSoft.Sqlite.Statement? _stmt;
     private bool _hasRow;
     private bool _prefetched;
     private bool _readStarted;
@@ -45,7 +45,7 @@ public sealed class SqliteDataReader : DbDataReader
         SqliteConnection connection,
         SqliteSession session,
         System.Data.CommandBehavior behavior,
-        CiccioSoft.Sqlite.Native.Statement? stmt,
+        CiccioSoft.Sqlite.Statement? stmt,
         SqliteCommand.BatchExecutionState batchState,
         SqliteCommand.CommandExecutionScope executionScope)
     {
@@ -81,7 +81,7 @@ public sealed class SqliteDataReader : DbDataReader
     }
 
 
-    private CiccioSoft.Sqlite.Native.Statement Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
+    private CiccioSoft.Sqlite.Statement Stmt => _stmt ?? throw new InvalidOperationException(Resources.NoData);
 
     public override object this[int ordinal] => GetValue(ordinal);
 
@@ -650,7 +650,7 @@ public sealed class SqliteDataReader : DbDataReader
             _readStarted = false;
             _hasRow = false;
 
-            CiccioSoft.Sqlite.Native.Statement? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState, throwOnMissingParameter: true));
+            CiccioSoft.Sqlite.Statement? next = _executionScope.Execute(() => _command.PrepareAndBindNext(_session, _batchState, throwOnMissingParameter: true));
             if (next is null)
             {
                 return false;
@@ -1057,7 +1057,7 @@ public sealed class SqliteDataReader : DbDataReader
                   WHERE c2.name <> c.name);
             """;
 
-        using CiccioSoft.Sqlite.Native.Statement stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
+        using CiccioSoft.Sqlite.Statement stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
         return _executionScope.Execute(stmt.Step) && stmt.ColumnInt64(0) != 0L;
     }
 
@@ -1080,7 +1080,7 @@ public sealed class SqliteDataReader : DbDataReader
                 out isAutoIncrement);
             return true;
         }
-        catch (CiccioSoft.Sqlite.Native.Exception)
+        catch (CiccioSoft.Sqlite.Exception)
         {
             isNotNull = false;
             isPrimaryKey = false;
@@ -1100,7 +1100,7 @@ public sealed class SqliteDataReader : DbDataReader
         string escapedColumnName = columnName.Replace("\"", "\"\"", StringComparison.Ordinal);
         string sql = $"SELECT typeof(\"{escapedColumnName}\") FROM \"{escapedTableName}\" WHERE \"{escapedColumnName}\" IS NOT NULL LIMIT 1;";
 
-        using CiccioSoft.Sqlite.Native.Statement stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
+        using CiccioSoft.Sqlite.Statement stmt = _executionScope.Execute(() => _session.Native.Prepare(sql));
         if (!_executionScope.Execute(stmt.Step))
         {
             return false;
