@@ -11,7 +11,7 @@ using System.IO;
 using System.Threading.Tasks;
 using CiccioSoft.Data.Sqlite.Properties;
 using Xunit;
-using static CiccioSoft.Sqlite.Native.Interop.NativeMethods;
+using static CiccioSoft.Sqlite.Interop.NativeMethods;
 
 namespace CiccioSoft.Data.Sqlite;
 

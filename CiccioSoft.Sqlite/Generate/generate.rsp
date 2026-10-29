@@ -17,7 +17,7 @@ license.txt
 
 # Namespace C# di destinazione
 --namespace
-CiccioSoft.Sqlite.Native.Interop
+CiccioSoft.Sqlite.Interop
 
 # Nome della DLL/libreria nativa inserito nei [DllImport] (es. sqlite3)
 --libraryPath

@@ -11,7 +11,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace CiccioSoft.Sqlite.Native.Interop
+namespace CiccioSoft.Sqlite.Interop
 {
     public static unsafe partial class NativeMethods
     {

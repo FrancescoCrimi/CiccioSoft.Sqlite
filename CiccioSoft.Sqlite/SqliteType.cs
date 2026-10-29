@@ -7,7 +7,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-using CiccioSoft.Sqlite.Native.Interop;
+using CiccioSoft.Sqlite.Interop;
 
 namespace CiccioSoft.Sqlite;
 
